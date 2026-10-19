@@ -3,7 +3,7 @@ import { Show } from "solid-js";
 import { t } from "../i18n/i18n.ts";
 import { favorites } from "../lib/favorites.ts";
 import GolBand from "./GolBand.tsx";
-import { HeartIcon, SearchIcon } from "./icons.tsx";
+import { HeartIcon } from "./icons.tsx";
 import LanguageSwitch from "./LanguageSwitch.tsx";
 
 export default function Header() {
@@ -11,19 +11,11 @@ export default function Header() {
   return (
     <header class="bg-white">
       <GolBand />
-      <div class="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2">
+      <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 px-4 py-1 sm:flex-nowrap sm:py-2">
         <A href="/" class="mr-auto font-display text-3xl leading-none text-garnet">
           {t("app.name")}
         </A>
-        <nav class="flex items-center text-sm">
-          <A
-            href="/dresses"
-            class="btn-icon"
-            aria-label={t("search.label")}
-            title={t("search.label")}
-          >
-            <SearchIcon />
-          </A>
+        <nav class="order-last flex w-full items-center text-sm sm:order-none sm:w-auto">
           <A
             href="/dresses"
             class="inline-flex min-h-11 items-center rounded-full px-3 hover:bg-veil"
