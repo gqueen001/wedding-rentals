@@ -23,6 +23,10 @@ func (h *Handler) RegisterAdmin(g *gin.RouterGroup) {
 	g.DELETE("/shops/:id", h.delete)
 }
 
+func (h *Handler) RegisterPublic(g *gin.RouterGroup) {
+	g.GET("/shops/:slug", h.getPublic)
+}
+
 func (h *Handler) bindInput(c *gin.Context) (Input, bool) {
 	var in Input
 	if !httpx.BindJSON(c, &in) {

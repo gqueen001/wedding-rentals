@@ -24,8 +24,37 @@ func (h *Handler) RegisterAdmin(g *gin.RouterGroup) {
 	g.DELETE("/dresses/:id", h.delete)
 }
 
-// RegisterPublic is filled in by Task 9.
-func (h *Handler) RegisterPublic(g *gin.RouterGroup) {}
+func (h *Handler) RegisterPublic(g *gin.RouterGroup) {
+	g.GET("/dresses", h.listPublic)
+	g.GET("/dresses/:id", h.getPublic)
+}
+
+func (h *Handler) listPublic(c *gin.Context) {
+	f, errs := ParseFilter(c.Request.URL.Query())
+	if len(errs) > 0 {
+		httpx.Abort(c, httpx.Validation(errs))
+		return
+	}
+	page, err := ListPublic(c.Request.Context(), h.DB, f)
+	if err != nil {
+		httpx.Abort(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, page)
+}
+
+func (h *Handler) getPublic(c *gin.Context) {
+	id, ok := httpx.ParseID(c, "id")
+	if !ok {
+		return
+	}
+	d, err := GetPublic(c.Request.Context(), h.DB, id)
+	if err != nil {
+		httpx.Abort(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, d)
+}
 
 func (h *Handler) bindInput(c *gin.Context) (Input, bool) {
 	var in Input
