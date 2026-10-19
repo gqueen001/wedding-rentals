@@ -124,8 +124,18 @@ Deno.test("a 413 without a JSON body becomes body_too_large", async () => {
   assertEquals(err.code, "body_too_large");
 });
 
-Deno.test("requests carry a timeout signal", async () => {
-  const { api, calls } = setup(() => json(200, { items: [] }));
-  await api.cities();
-  assertInstanceOf(calls[0].init.signal, AbortSignal);
+Deno.test("a request that never answers is aborted and becomes network_error", async () => {
+  const fetchFn = ((_: RequestInfo | URL, init: RequestInit = {}) =>
+    new Promise<Response>((_res, rej) => {
+      init.signal?.addEventListener("abort", () => rej(new DOMException("aborted", "AbortError")));
+    })) as typeof fetch;
+  const api = createApi({ fetch: fetchFn, token: () => null, onUnauthorized: () => {}, timeoutMs: 10 });
+  const err = await assertRejects(() => api.cities(), ApiError);
+  assertEquals(err.code, "network_error");
+});
+
+Deno.test("an OK response whose body cannot be read becomes network_error", async () => {
+  const { api } = setup(() => new Response("<html>cut off", { status: 200 }));
+  const err = await assertRejects(() => api.cities(), ApiError);
+  assertEquals(err.code, "network_error");
 });

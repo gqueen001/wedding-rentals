@@ -35,6 +35,8 @@ export interface ApiDeps {
   fetch: typeof fetch;
   token: () => string | null;
   onUnauthorized: () => void;
+  /** How long a request may take before it is abandoned; defaults to 20 s. */
+  timeoutMs?: number;
 }
 
 interface RequestOptions {
@@ -57,24 +59,38 @@ export function createApi(deps: ApiDeps) {
       const token = deps.token();
       if (token) headers.Authorization = `Bearer ${token}`;
     }
-    let res: Response;
+    // AbortSignal.timeout needs Safari 16; a controller works everywhere.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), deps.timeoutMs ?? REQUEST_TIMEOUT_MS);
     try {
-      res = await deps.fetch(path, {
-        method,
-        headers,
-        body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS), // a timeout rejects, so it becomes network_error
-      });
-    } catch {
-      throw new ApiError(0, "network_error", "network request failed");
+      let res: Response;
+      try {
+        res = await deps.fetch(path, {
+          method,
+          headers,
+          body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+          signal: controller.signal,
+        });
+      } catch {
+        throw new ApiError(0, "network_error", "network request failed");
+      }
+      if (res.status === 204) return undefined as T;
+      let data: unknown;
+      try {
+        data = await res.json();
+      } catch {
+        // An error page from a proxy is fine to report by status; a cut-off success is not.
+        if (res.ok) throw new ApiError(0, "network_error", "response could not be read");
+        data = null;
+      }
+      if (!res.ok) {
+        if (opts.auth && res.status === 401) deps.onUnauthorized();
+        throw toApiError(res.status, data, res.statusText);
+      }
+      return data as T;
+    } finally {
+      clearTimeout(timer);
     }
-    if (res.status === 204) return undefined as T;
-    const data: unknown = await res.json().catch(() => null);
-    if (!res.ok) {
-      if (opts.auth && res.status === 401) deps.onUnauthorized();
-      throw toApiError(res.status, data, res.statusText);
-    }
-    return data as T;
   }
 
   const admin = { auth: true } as const;
