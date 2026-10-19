@@ -46,7 +46,7 @@ function DressEditor(props: { id: number | null }) {
       const current = id();
       const result = current ? await api.admin.updateDress(current, input) : await api.admin.createDress(input);
       setSaved(true);
-      if (current) mutate(result);
+      if (current) mutate((prev) => ({ ...result, images: prev?.images ?? result.images }));
       else navigate(`/admin/dresses/${result.id}`, { replace: true });
     } catch (e) {
       setErrors(validationFields(e));

@@ -29,8 +29,8 @@ export default function AdminDresses() {
           value={shopId() ? String(shopId()) : ""}
           onChange={(e) => setSearch({ shop_id: e.currentTarget.value || undefined })}
         >
-          <option value="">{t("admin.all_shops")}</option>
-          <For each={shopList()}>{(s) => <option value={String(s.id)}>{s.name}</option>}</For>
+          <option value="" selected={!shopId()}>{t("admin.all_shops")}</option>
+          <For each={shopList()}>{(s) => <option value={String(s.id)} selected={s.id === shopId()}>{s.name}</option>}</For>
         </select>
         <A
           href={shopId() ? `/admin/dresses/new?shop_id=${shopId()}` : "/admin/dresses/new"}

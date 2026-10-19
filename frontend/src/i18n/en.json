@@ -171,5 +171,7 @@
   "photos.move_later": "Move photo {n} later",
   "photos.delete": "Delete photo {n}",
   "photos.delete_confirm": "Delete this photo?",
-  "photos.drag_hint": "Drag photos to change the order. The first photo is the cover."
+  "photos.drag_hint": "Drag photos to change the order. The first photo is the cover.",
+  "photos.moved": "Photo moved to position {n}",
+  "photos.deleted": "Photo deleted"
 }

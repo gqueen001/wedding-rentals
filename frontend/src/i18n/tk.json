@@ -171,5 +171,7 @@
   "photos.move_later": "Surat {n}: yza süý",
   "photos.delete": "Surat {n}: poz",
   "photos.delete_confirm": "Bu suraty pozmalymy?",
-  "photos.drag_hint": "Tertibi üýtgetmek üçin suratlary süýräň. Birinji surat esasy surat bolýar."
+  "photos.drag_hint": "Tertibi üýtgetmek üçin suratlary süýräň. Birinji surat esasy surat bolýar.",
+  "photos.moved": "Suratyň täze orny: {n}",
+  "photos.deleted": "Surat pozuldy"
 }
