@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -78,10 +77,13 @@ func run() error {
 		return err
 	case <-ctx.Done():
 	}
+	// Restore default signal handling so a second Ctrl-C/SIGTERM during the
+	// drain below terminates the process instead of being swallowed.
+	stop()
 	log.Print("shutting down")
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	if err := srv.Shutdown(shutdownCtx); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	if err := srv.Shutdown(shutdownCtx); err != nil {
 		return fmt.Errorf("shutdown: %w", err)
 	}
 	return nil

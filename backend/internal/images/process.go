@@ -18,8 +18,9 @@ const (
 	jpegQuality = 82
 )
 
-// maxPixels bounds the decoded size; a 48 MP phone photo fits.
-const maxPixels = 40_000_000
+// maxPixels bounds the decoded size. 52 MP covers 8000x6000 and 8160x6120
+// phone sensors; anything larger is rejected before decoding.
+const maxPixels = 52_000_000
 
 var (
 	ErrUnsupported = errors.New("unsupported image")

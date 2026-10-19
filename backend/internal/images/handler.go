@@ -20,7 +20,7 @@ const MaxUploadBytes = 10 << 20
 
 var (
 	errTooLarge     = httpx.New(http.StatusRequestEntityTooLarge, "file_too_large", "image must be 10 MB or smaller")
-	errImageTooBig  = httpx.New(http.StatusUnprocessableEntity, "image_too_large", "image dimensions are too large (max 40 megapixels)")
+	errImageTooBig  = httpx.New(http.StatusUnprocessableEntity, "image_too_large", "image dimensions are too large (max 52 megapixels)")
 	errInvalidImage = httpx.New(http.StatusUnprocessableEntity, "invalid_image", "file must be a JPEG, PNG or WebP image")
 )
 

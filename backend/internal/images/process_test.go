@@ -106,8 +106,41 @@ func TestProcessRejectsHugeDimensionsWithoutDecoding(t *testing.T) {
 	if _, err := images.Process(hugeHeaderPNG(30000, 30000)); !errors.Is(err, images.ErrTooLarge) {
 		t.Fatalf("err = %v, want ErrTooLarge", err)
 	}
-	if _, err := images.Process(hugeHeaderPNG(7000, 6000)); !errors.Is(err, images.ErrTooLarge) {
-		t.Fatalf("42MP: err = %v, want ErrTooLarge", err)
+	if _, err := images.Process(hugeHeaderPNG(10000, 6000)); !errors.Is(err, images.ErrTooLarge) {
+		t.Fatalf("60MP: err = %v, want ErrTooLarge", err)
+	}
+}
+
+func TestProcessDoesNotRejectPhoneSensorSize(t *testing.T) {
+	// The header is truncated, so decoding fails, but it must not fail on size.
+	_, err := images.Process(hugeHeaderPNG(8160, 6120))
+	if errors.Is(err, images.ErrTooLarge) {
+		t.Fatalf("8160x6120 rejected for size: %v", err)
+	}
+}
+
+func TestProcessFlattensTransparentLargeAndSmall(t *testing.T) {
+	p, err := images.Process(pngBytes(t, 2000, 1000, color.NRGBA{0, 0, 0, 0}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Width != 1200 || p.Height != 600 {
+		t.Fatalf("large = %dx%d", p.Width, p.Height)
+	}
+	large := decodeJPEG(t, p.Large)
+	small := decodeJPEG(t, p.Small)
+	if b := large.Bounds(); b.Dx() != 1200 || b.Dy() != 600 {
+		t.Fatalf("large bytes = %v", b)
+	}
+	if b := small.Bounds(); b.Dx() != 400 || b.Dy() != 200 {
+		t.Fatalf("small bytes = %v", b)
+	}
+	for name, img := range map[string]image.Image{"large": large, "small": small} {
+		bd := img.Bounds()
+		r, g, b, _ := img.At(bd.Min.X+bd.Dx()/2, bd.Min.Y+bd.Dy()/2).RGBA()
+		if r>>8 < 240 || g>>8 < 240 || b>>8 < 240 {
+			t.Errorf("%s centre = %d,%d,%d; want white", name, r>>8, g>>8, b>>8)
+		}
 	}
 }
 
