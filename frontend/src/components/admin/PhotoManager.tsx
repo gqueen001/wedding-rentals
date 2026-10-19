@@ -39,7 +39,7 @@ export default function PhotoManager(props: {
   /** Puts keyboard focus back on a photo tile's button after the list has re-rendered. */
   function focusTile(index: number, action: Action) {
     queueMicrotask(() => {
-      const tiles = list?.querySelectorAll("li");
+      const tiles = list?.isConnected ? list.querySelectorAll("li") : undefined;
       const tile = tiles?.[Math.min(index, (tiles?.length ?? 1) - 1)];
       const wanted = tile?.querySelector<HTMLButtonElement>(`[data-action="${action}"]`);
       const target = wanted && !wanted.disabled ? wanted : tile?.querySelector<HTMLButtonElement>('[data-action="delete"]');
@@ -68,7 +68,7 @@ export default function PhotoManager(props: {
     }
   }
 
-  async function reorder(from: number, to: number, action: Action) {
+  async function reorder(from: number, to: number, action: Action | null) {
     if (busy() || from === to || to < 0 || to >= props.images.length) return;
     const before = props.images;
     const next = [...before];
@@ -80,11 +80,11 @@ export default function PhotoManager(props: {
     try {
       await api.admin.reorderImages(next.map((i) => i.id));
       setStatus(t("photos.moved", { n: to + 1 }));
-      focusTile(to, action);
+      if (action) focusTile(to, action);
     } catch (err) {
       props.onChange(before);
       setError(() => err);
-      focusTile(from, action);
+      if (action) focusTile(from, action);
     } finally {
       setWorking(false);
     }
@@ -101,6 +101,7 @@ export default function PhotoManager(props: {
       focusTile(index, "delete");
     } catch (err) {
       setError(() => err);
+      focusTile(index, "delete");
     } finally {
       setWorking(false);
     }
@@ -204,7 +205,7 @@ export default function PhotoManager(props: {
                   if (from === null) return;
                   e.preventDefault();
                   setDragging(null);
-                  void reorder(from, i(), "earlier");
+                  void reorder(from, i(), null);
                 }}
               >
                 <img
