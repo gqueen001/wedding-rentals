@@ -71,13 +71,19 @@ func TestListPublicFilters(t *testing.T) {
 func TestListPublicSearch(t *testing.T) {
 	e := setup(t)
 	c := seed(t, e.tx)
+	wh := testutil.InsertShop(t, e.tx, testutil.ShopFixture{Name: "Ak Gelin Wedding House"})
+	dWH := testutil.InsertDress(t, e.tx, testutil.DressFixture{ShopID: wh.ID, Title: "Classic"})
+	sd := testutil.InsertShop(t, e.tx, testutil.ShopFixture{Name: "Dream Salon", Aliases: []string{"Свадебный дом"}})
+	dSD := testutil.InsertDress(t, e.tx, testutil.DressFixture{ShopID: sd.ID, Title: "Lace"})
 	cases := map[string][]int64{
-		"gelin+oyi":           {c.d2, c.d1}, // Latin spelling of the Turkmen name
-		"GELIN+%C3%96%C3%9DI": {c.d2, c.d1}, // "GELIN ÖÝI": case and Turkmen letters ignored
-		"bridal":              {c.d2, c.d1}, // alias substring
-		"gelim+oyi":           {c.d2, c.d1}, // typo tolerance
-		"mermaid":             {c.d2},       // dress title
-		"secret":              {},           // hidden shop never matches
+		"ak+gelyn": {dWH}, // typo in one word of a multi-word shop name
+		"%D0%A1%D0%92%D0%90%D0%94%D0%95%D0%91%D0%9D%D0%AB%D0%99": {dSD}, // Cyrillic alias, one word
+		"gelin+oyi":           {c.d2, c.d1, dWH}, // dWH: word-similar to "Ak Gelin Wedding House", ranked last; Latin spelling of the Turkmen name
+		"GELIN+%C3%96%C3%9DI": {c.d2, c.d1, dWH}, // "GELIN ÖÝI": case and Turkmen letters ignored
+		"bridal":              {c.d2, c.d1},      // alias substring
+		"gelim+oyi":           {c.d2, c.d1},      // typo tolerance
+		"mermaid":             {c.d2},            // dress title
+		"secret":              {},                // hidden shop never matches
 		"zzzzqqq":             {},
 	}
 	for q, want := range cases {

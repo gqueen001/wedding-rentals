@@ -114,10 +114,10 @@ func buildWhere(f Filter) (string, []any, string) {
 		qParam = "$" + strconv.Itoa(len(args)-1)
 		like := "$" + strconv.Itoa(len(args))
 		where = append(where, fmt.Sprintf(`(
-			norm(l.title) %% %[1]s OR norm(s.name) %% %[1]s
+			%[1]s <%% norm(l.title) OR %[1]s <%% norm(s.name)
 			OR norm(l.title) LIKE %[2]s OR norm(s.name) LIKE %[2]s
 			OR EXISTS (SELECT 1 FROM shop_aliases a WHERE a.shop_id = s.id
-			           AND (norm(a.alias) %% %[1]s OR norm(a.alias) LIKE %[2]s)))`, qParam, like))
+			           AND (%[1]s <%% norm(a.alias) OR norm(a.alias) LIKE %[2]s)))`, qParam, like))
 	}
 	return " WHERE " + strings.Join(where, " AND "), args, qParam
 }
@@ -127,9 +127,9 @@ func orderBy(qParam string) string {
 		return " ORDER BY l.created_at DESC, l.id DESC"
 	}
 	return fmt.Sprintf(` ORDER BY GREATEST(
-		similarity(norm(l.title), %[1]s),
-		similarity(norm(s.name), %[1]s),
-		COALESCE((SELECT max(similarity(norm(a.alias), %[1]s)) FROM shop_aliases a WHERE a.shop_id = s.id), 0)
+		word_similarity(%[1]s, norm(l.title)),
+		word_similarity(%[1]s, norm(s.name)),
+		COALESCE((SELECT max(word_similarity(%[1]s, norm(a.alias))) FROM shop_aliases a WHERE a.shop_id = s.id), 0)
 	) DESC, l.created_at DESC, l.id DESC`, qParam)
 }
 
