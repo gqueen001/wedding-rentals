@@ -31,15 +31,19 @@ func main() {
 	if err := os.MkdirAll(cfg.UploadDir, 0o755); err != nil {
 		log.Fatal(err)
 	}
-	r := server.New(server.Deps{
-		DB:        pool,
-		Tokens:    auth.NewTokens(cfg.JWTSecret, auth.TokenTTL),
-		Limiter:   auth.NewLimiter(5, time.Minute),
-		Storage:   images.LocalStorage{Dir: cfg.UploadDir},
-		UploadDir: cfg.UploadDir,
-		WebDir:    cfg.WebDir,
-		BaseURL:   cfg.BaseURL,
+	r, err := server.New(server.Deps{
+		DB:             pool,
+		Tokens:         auth.NewTokens(cfg.JWTSecret, auth.TokenTTL),
+		Limiter:        auth.NewLimiter(5, time.Minute),
+		Storage:        images.LocalStorage{Dir: cfg.UploadDir},
+		UploadDir:      cfg.UploadDir,
+		WebDir:         cfg.WebDir,
+		BaseURL:        cfg.BaseURL,
+		TrustedProxies: cfg.TrustedProxies,
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
 	srv := &http.Server{Addr: ":" + cfg.Port, Handler: r, ReadHeaderTimeout: 10 * time.Second}
 	log.Printf("listening on http://localhost:%s", cfg.Port)
 	log.Fatal(srv.ListenAndServe())

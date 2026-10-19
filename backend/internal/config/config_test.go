@@ -14,6 +14,7 @@ func setBase(t *testing.T) {
 	t.Setenv("WEB_DIR", "")
 	t.Setenv("PORT", "")
 	t.Setenv("PUBLIC_BASE_URL", "")
+	t.Setenv("TRUSTED_PROXIES", "")
 }
 
 func TestLoadDefaults(t *testing.T) {
@@ -40,5 +41,26 @@ func TestLoadRequiresLongSecret(t *testing.T) {
 	t.Setenv("JWT_SECRET", "short")
 	if _, err := config.Load(); err == nil {
 		t.Fatal("expected error for short JWT_SECRET")
+	}
+}
+
+func TestLoadTrustedProxies(t *testing.T) {
+	setBase(t)
+	c, err := config.Load()
+	if err != nil || len(c.TrustedProxies) != 0 {
+		t.Fatalf("empty: %v %v", c.TrustedProxies, err)
+	}
+	t.Setenv("TRUSTED_PROXIES", "10.0.0.1, 172.16.0.0/12 ,::1")
+	c, err = config.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"10.0.0.1", "172.16.0.0/12", "::1"}
+	if strings.Join(c.TrustedProxies, "|") != strings.Join(want, "|") {
+		t.Fatalf("got %v", c.TrustedProxies)
+	}
+	t.Setenv("TRUSTED_PROXIES", "10.0.0.1,not-an-ip")
+	if _, err := config.Load(); err == nil {
+		t.Fatal("expected error for invalid proxy entry")
 	}
 }

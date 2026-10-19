@@ -23,12 +23,16 @@ type Deps struct {
 	UploadDir string
 	WebDir    string
 	BaseURL   string
+	// TrustedProxies are IPs/CIDRs allowed to set X-Forwarded-For; empty trusts none.
+	TrustedProxies []string
 }
 
-func New(d Deps) *gin.Engine {
+func New(d Deps) (*gin.Engine, error) {
 	r := gin.New()
 	r.Use(gin.Logger(), httpx.Recovery())
-	_ = r.SetTrustedProxies(nil)
+	if err := r.SetTrustedProxies(d.TrustedProxies); err != nil {
+		return nil, err
+	}
 	r.MaxMultipartMemory = 16 << 20
 
 	api := r.Group("/api")
@@ -53,5 +57,5 @@ func New(d Deps) *gin.Engine {
 	r.Static("/uploads", d.UploadDir)
 	webH := &web.Handler{Dir: d.WebDir, DB: d.DB, BaseURL: d.BaseURL}
 	r.NoRoute(webH.Serve)
-	return r
+	return r, nil
 }
