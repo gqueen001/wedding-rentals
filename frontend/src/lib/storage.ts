@@ -38,6 +38,9 @@ export function safeKV(storage: Storage | null = browserStorage()): KV {
   return {
     get: (k) => attempt((s) => s.getItem(k) ?? fallback.get(k), () => fallback.get(k)),
     set: (k, v) => attempt((s) => s.setItem(k, v), () => fallback.set(k, v)),
-    remove: (k) => attempt((s) => s.removeItem(k), () => fallback.remove(k)),
+    remove: (k) => {
+      fallback.remove(k);
+      attempt((s) => s.removeItem(k), () => undefined);
+    },
   };
 }

@@ -68,3 +68,14 @@ Deno.test("safeKV works without any storage", () => {
   kv.set("a", "1");
   assertEquals(kv.get("a"), "1");
 });
+
+Deno.test("safeKV remove also clears the memory fallback when only removeItem works", () => {
+  const s = new FakeStorage();
+  s.setItem = () => {
+    throw new Error("quota");
+  };
+  const kv = safeKV(s);
+  kv.set("a", "1"); // lands in memory
+  kv.remove("a");
+  assertEquals(kv.get("a"), null);
+});
