@@ -83,3 +83,24 @@ func TestMissingIndexIs404(t *testing.T) {
 		t.Fatalf("status = %d", rec.Code)
 	}
 }
+
+func TestMissingUploadIsJSON404(t *testing.T) {
+	r, _ := setup(t, true)
+	rec := testutil.Request(t, r, http.MethodGet, "/uploads/ab/nope_l.jpg", nil, "")
+	if rec.Code != 404 || testutil.Decode[testutil.ErrorBody](t, rec).Error.Code != "not_found" {
+		t.Fatalf("got %d %q", rec.Code, rec.Body)
+	}
+}
+
+func TestOpenGraphEscapesMarkup(t *testing.T) {
+	r, h := setup(t, true)
+	shop := testutil.InsertShop(t, h.DB, testutil.ShopFixture{Name: `Shop"><script>alert(2)</script>`})
+	dress := testutil.InsertDress(t, h.DB, testutil.DressFixture{ShopID: shop.ID, Title: `"><script>alert(1)</script>`, Price: 100})
+	body := testutil.Request(t, r, http.MethodGet, "/dresses/"+strconv.FormatInt(dress, 10), nil, "").Body.String()
+	if strings.Contains(body, "<script>") {
+		t.Fatalf("raw script in output: %s", body)
+	}
+	if !strings.Contains(body, "&#34;&gt;&lt;script&gt;alert(1)&lt;/script&gt;") {
+		t.Fatalf("escaped title missing: %s", body)
+	}
+}

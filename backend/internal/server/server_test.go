@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -82,5 +84,36 @@ func TestForwardedForIgnoredWithoutTrustedProxies(t *testing.T) {
 func TestForwardedForHonouredFromTrustedProxy(t *testing.T) {
 	if got := clientIPFor(t, []string{"192.0.2.0/24"}); got != "203.0.113.9" {
 		t.Fatalf("ClientIP = %q", got)
+	}
+}
+
+func TestUploadsAndImageAuth(t *testing.T) {
+	uploads := t.TempDir()
+	if err := os.WriteFile(filepath.Join(uploads, "pic.jpg"), []byte("jpegdata"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	web := t.TempDir()
+	_ = os.WriteFile(filepath.Join(web, "index.html"), []byte(`<html><head></head><body><div id="root"></div></body></html>`), 0o644)
+	r, err := server.New(server.Deps{
+		DB:        testutil.Tx(t),
+		Tokens:    auth.NewTokens(strings.Repeat("k", 32), auth.TokenTTL),
+		Limiter:   auth.NewLimiter(5, time.Minute),
+		Storage:   images.LocalStorage{Dir: uploads},
+		UploadDir: uploads,
+		WebDir:    web,
+		BaseURL:   "http://localhost:8080",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rec := testutil.Request(t, r, http.MethodPost, "/api/admin/images", nil, ""); rec.Code != 401 {
+		t.Errorf("POST images without token: %d", rec.Code)
+	}
+	if rec := testutil.Request(t, r, http.MethodGet, "/uploads/pic.jpg", nil, ""); rec.Code != 200 || rec.Body.String() != "jpegdata" {
+		t.Errorf("existing upload: %d %q", rec.Code, rec.Body)
+	}
+	rec := testutil.Request(t, r, http.MethodGet, "/uploads/missing.jpg", nil, "")
+	if rec.Code != 404 || testutil.Decode[testutil.ErrorBody](t, rec).Error.Code != "not_found" {
+		t.Errorf("missing upload: %d %q", rec.Code, rec.Body)
 	}
 }

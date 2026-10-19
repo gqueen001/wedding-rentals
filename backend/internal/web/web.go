@@ -3,9 +3,11 @@ package web
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"html"
 	"io/fs"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -14,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 
 	"wedding-rentals/backend/internal/db"
 	"wedding-rentals/backend/internal/dresses"
@@ -33,6 +36,7 @@ var dressPath = regexp.MustCompile(`^/dresses/(\d+)/?$`)
 func (h *Handler) Serve(c *gin.Context) {
 	p := c.Request.URL.Path
 	if p == "/api" || strings.HasPrefix(p, "/api/") ||
+		p == "/uploads" || strings.HasPrefix(p, "/uploads/") ||
 		(c.Request.Method != http.MethodGet && c.Request.Method != http.MethodHead) {
 		httpx.Abort(c, httpx.ErrNotFound)
 		return
@@ -61,6 +65,9 @@ func (h *Handler) Serve(c *gin.Context) {
 func (h *Handler) injectOG(ctx context.Context, index []byte, id int64) []byte {
 	d, err := dresses.GetPublic(ctx, h.DB, id)
 	if err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			log.Printf("og lookup for dress %d: %v", id, err)
+		}
 		return index
 	}
 	var b strings.Builder
