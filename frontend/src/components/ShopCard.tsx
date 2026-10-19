@@ -6,6 +6,9 @@ import type { ShopCard } from "../lib/types.ts";
 import { InstagramIcon, PhoneIcon, TikTokIcon } from "./icons.tsx";
 import ShopLogo from "./ShopLogo.tsx";
 
+/** Only https links are rendered, whatever the API sends. */
+const httpsUrl = (url: string | null) => (url?.startsWith("https://") ? url : null);
+
 /** Big tap targets for the three ways a bride contacts a shop. */
 export function ContactButtons(props: {
   shop: { phone: string; instagram_url: string | null; tiktok_url: string | null };
@@ -16,7 +19,7 @@ export function ContactButtons(props: {
         <PhoneIcon />
         {t("dress.call", { phone: props.shop.phone })}
       </a>
-      <Show when={props.shop.instagram_url}>
+      <Show when={httpsUrl(props.shop.instagram_url)}>
         {(url) => (
           <a href={url()} target="_blank" rel="noopener noreferrer" class="btn btn-outline min-h-12">
             <InstagramIcon />
@@ -24,7 +27,7 @@ export function ContactButtons(props: {
           </a>
         )}
       </Show>
-      <Show when={props.shop.tiktok_url}>
+      <Show when={httpsUrl(props.shop.tiktok_url)}>
         {(url) => (
           <a href={url()} target="_blank" rel="noopener noreferrer" class="btn btn-outline min-h-12">
             <TikTokIcon />
