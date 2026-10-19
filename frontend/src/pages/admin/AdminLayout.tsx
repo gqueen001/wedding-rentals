@@ -4,6 +4,7 @@ import GolBand from "../../components/GolBand.tsx";
 import LanguageSwitch from "../../components/LanguageSwitch.tsx";
 import { t } from "../../i18n/i18n.ts";
 import { auth } from "../../lib/auth.ts";
+import { mainRef } from "../../lib/dom.ts";
 import { usePageTitle } from "../../lib/title.ts";
 
 const NAV_LINK = "inline-flex min-h-11 items-center rounded-full px-3 hover:bg-veil";
@@ -40,7 +41,7 @@ export default function AdminLayout(props: RouteSectionProps) {
             </div>
           </div>
         </header>
-        <main class="mx-auto max-w-6xl px-4 py-8">{props.children}</main>
+        <main ref={mainRef} id="main" tabindex="-1" class="mx-auto max-w-6xl px-4 py-8 outline-none">{props.children}</main>
       </div>
     </Show>
   );

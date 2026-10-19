@@ -35,3 +35,23 @@ export function lockScroll(): () => void {
 export function prefersReducedMotion(): boolean {
   return typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
+
+let focusPending = false;
+
+/** After navigation: moves focus to the page's <main>, or to the next one that mounts. */
+export function focusMain() {
+  const main = document.getElementById("main");
+  if (main) {
+    main.focus({ preventScroll: true });
+    focusPending = false;
+  } else {
+    focusPending = true;
+  }
+}
+
+/** The ref for a <main id="main">: takes the focus that focusMain could not give yet. */
+export function mainRef(el: HTMLElement) {
+  if (!focusPending) return;
+  focusPending = false;
+  queueMicrotask(() => el.focus({ preventScroll: true }));
+}

@@ -3,6 +3,7 @@ import { createEffect, ErrorBoundary, type JSX, on, Show } from "solid-js";
 import ErrorState from "../components/ErrorState.tsx";
 import Header from "../components/Header.tsx";
 import { t } from "../i18n/i18n.ts";
+import { focusMain, mainRef } from "../lib/dom.ts";
 
 /** A lazy chunk that failed to download: only a full reload fetches a fresh build. */
 function isChunkError(err: unknown): boolean {
@@ -30,6 +31,8 @@ function Guard(props: { children: JSX.Element }) {
 export default function App(props: RouteSectionProps) {
   const location = useLocation();
   const isAdmin = () => location.pathname === "/admin" || location.pathname.startsWith("/admin/");
+  // Not on first load, and not when only the search string changes.
+  createEffect(on(() => location.pathname, () => focusMain(), { defer: true }));
   return (
     <Show when={!isAdmin()} fallback={<Guard>{props.children}</Guard>}>
       <a
@@ -39,7 +42,7 @@ export default function App(props: RouteSectionProps) {
         {t("common.skip")}
       </a>
       <Header />
-      <main id="main" class="mx-auto w-full max-w-6xl px-4 pb-20">
+      <main ref={mainRef} id="main" tabindex="-1" class="mx-auto w-full max-w-6xl px-4 pb-20 outline-none">
         <Guard>{props.children}</Guard>
       </main>
       <footer class="border-t border-veil">
