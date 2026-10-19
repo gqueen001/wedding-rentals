@@ -30,6 +30,11 @@ function price(v: string | null): number | null {
   return n <= MAX_PRICE ? n : null;
 }
 
+/** What the price fields make of typed text: only the digits count ("1 500" is 1500). */
+export function parsePriceInput(s: string): number | null {
+  return price(s.replace(/\D/g, ""));
+}
+
 /** Reads filters from a URL query; unknown or invalid values are dropped. */
 export function parseFilters(query: URLSearchParams): Filters {
   return {

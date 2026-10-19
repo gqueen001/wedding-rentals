@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { countActiveFilters, EMPTY_FILTERS, type Filters, filtersToQuery, parseFilters } from "./filters.ts";
+import { countActiveFilters, EMPTY_FILTERS, type Filters, filtersToQuery, parseFilters, parsePriceInput } from "./filters.ts";
 
 const full: Filters = {
   q: "ak gelin", city: "mary", priceMin: 500, priceMax: 3000, size: "M", color: "ivory",
@@ -32,4 +32,13 @@ Deno.test("countActiveFilters ignores the search text", () => {
   assertEquals(countActiveFilters(EMPTY_FILTERS), 0);
   assertEquals(countActiveFilters({ ...EMPTY_FILTERS, q: "ak" }), 0);
   assertEquals(countActiveFilters(full), 7);
+});
+
+Deno.test("parsePriceInput keeps the digits and drops everything else", () => {
+  assertEquals(parsePriceInput("1500"), 1500);
+  assertEquals(parsePriceInput("1 500"), 1500);
+  assertEquals(parsePriceInput(" 1,500 TMT"), 1500);
+  assertEquals(parsePriceInput("abc"), null);
+  assertEquals(parsePriceInput(""), null);
+  assertEquals(parsePriceInput("99999999999"), null);
 });

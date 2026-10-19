@@ -2,7 +2,7 @@ import { createEffect, createSignal, For, type JSX, on, onCleanup, Show } from "
 import { i18n, t } from "../i18n/i18n.ts";
 import { useCities } from "../lib/cities.ts";
 import { focusFirst, lockScroll, trapTab } from "../lib/dom.ts";
-import { EMPTY_FILTERS, type Filters } from "../lib/filters.ts";
+import { EMPTY_FILTERS, type Filters, parsePriceInput } from "../lib/filters.ts";
 import { cityName } from "../lib/format.ts";
 import { type Color, COLORS, SILHOUETTES, SIZES, SLEEVES } from "../lib/types.ts";
 import ColorSwatch from "./ColorSwatch.tsx";
@@ -47,7 +47,6 @@ function ChoiceGroup<T extends string>(props: {
 }
 
 const priceValue = (n: number | null) => (n === null ? "" : String(n));
-const parsePrice = (s: string) => (/^\d+$/.test(s.trim()) ? Number(s.trim()) : null);
 
 /** The bottom sheet with every filter. Changes stay in a draft until "Show dresses". */
 export default function FilterSheet(props: {
@@ -107,8 +106,14 @@ export default function FilterSheet(props: {
                 value={draft().city}
                 onChange={(e) => set("city", e.currentTarget.value)}
               >
-                <option value="">{t("filters.any_city")}</option>
-                <For each={cities()}>{(c) => <option value={c.slug}>{cityName(c, i18n.lang())}</option>}</For>
+                <option value="" selected={!draft().city}>{t("filters.any_city")}</option>
+                <For each={cities()}>
+                  {(c) => (
+                    <option value={c.slug} selected={c.slug === draft().city}>
+                      {cityName(c, i18n.lang())}
+                    </option>
+                  )}
+                </For>
               </select>
             </label>
 
@@ -121,7 +126,11 @@ export default function FilterSheet(props: {
                     class="field-input mt-1"
                     inputmode="numeric"
                     value={priceValue(draft().priceMin)}
-                    onInput={(e) => set("priceMin", parsePrice(e.currentTarget.value))}
+                    onInput={(e) => {
+                      const n = parsePriceInput(e.currentTarget.value);
+                      set("priceMin", n);
+                      e.currentTarget.value = priceValue(n); // show what was understood
+                    }}
                   />
                 </label>
                 <label>
@@ -130,7 +139,11 @@ export default function FilterSheet(props: {
                     class="field-input mt-1"
                     inputmode="numeric"
                     value={priceValue(draft().priceMax)}
-                    onInput={(e) => set("priceMax", parsePrice(e.currentTarget.value))}
+                    onInput={(e) => {
+                      const n = parsePriceInput(e.currentTarget.value);
+                      set("priceMax", n);
+                      e.currentTarget.value = priceValue(n); // show what was understood
+                    }}
                   />
                 </label>
               </div>
