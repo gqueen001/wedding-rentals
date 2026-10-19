@@ -22,7 +22,7 @@ export default function Favorites() {
   // Ids that the API no longer returns (deleted or unpublished) are dropped silently.
   createEffect(() => {
     const p = page.state === "ready" ? page() : null;
-    if (p) favorites.keepOnly(p.items.map((i) => i.id));
+    if (p) untrack(() => favorites.keepOnly(p.items.map((i) => i.id)));
   });
 
   // Newest favorite first, the same order as on the device.

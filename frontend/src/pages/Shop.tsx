@@ -18,13 +18,14 @@ import NotFound from "./NotFound.tsx";
 export default function Shop() {
   const params = useParams();
   const [info, setInfo] = createSignal<PublicShop | null>(null);
-  // One request per page: page 1 also carries the shop details.
-  const list = createPagedList((page) =>
-    api.shop(params.slug ?? "", new URLSearchParams({ page: String(page), per_page: "24" })).then((s) => {
-      if (page === 1) setInfo(s);
+  const list = createPagedList((page) => {
+    const slug = params.slug ?? "";
+    return api.shop(slug, new URLSearchParams({ page: String(page), per_page: "24" })).then((s) => {
+      // Ignore the details of a shop the user has already left.
+      if (page === 1 && slug === params.slug) setInfo(s);
       return s.dresses;
-    })
-  );
+    });
+  });
   createEffect(on(() => params.slug, () => {
     setInfo(null);
     void list.reset();
