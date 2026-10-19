@@ -18,7 +18,13 @@ const (
 	jpegQuality = 82
 )
 
-var ErrUnsupported = errors.New("unsupported image")
+// maxPixels bounds the decoded size; a 48 MP phone photo fits.
+const maxPixels = 40_000_000
+
+var (
+	ErrUnsupported = errors.New("unsupported image")
+	ErrTooLarge    = errors.New("image dimensions too large")
+)
 
 type Processed struct {
 	Small, Large  []byte
@@ -33,17 +39,27 @@ func Process(data []byte) (Processed, error) {
 	default:
 		return Processed{}, ErrUnsupported
 	}
+	cfg, _, err := image.DecodeConfig(bytes.NewReader(data))
+	if err != nil {
+		return Processed{}, fmt.Errorf("%w: %v", ErrUnsupported, err)
+	}
+	if cfg.Width <= 0 || cfg.Height <= 0 {
+		return Processed{}, ErrUnsupported
+	}
+	if int64(cfg.Width)*int64(cfg.Height) > maxPixels {
+		return Processed{}, ErrTooLarge
+	}
 	img, err := imaging.Decode(bytes.NewReader(data), imaging.AutoOrientation(true))
 	if err != nil {
 		return Processed{}, fmt.Errorf("%w: %v", ErrUnsupported, err)
 	}
-	img = flatten(img)
-	large := fitWidth(img, LargeWidth)
+	// Resize first so flattening only touches the small outputs.
+	large := flatten(fitWidth(img, LargeWidth))
 	lb, err := encode(large)
 	if err != nil {
 		return Processed{}, err
 	}
-	sb, err := encode(fitWidth(img, SmallWidth))
+	sb, err := encode(flatten(fitWidth(img, SmallWidth)))
 	if err != nil {
 		return Processed{}, err
 	}
@@ -57,7 +73,11 @@ func fitWidth(img image.Image, w int) image.Image {
 	return imaging.Resize(img, w, 0, imaging.Lanczos)
 }
 
+// flatten composites img onto white; opaque images are returned untouched.
 func flatten(img image.Image) image.Image {
+	if o, ok := img.(interface{ Opaque() bool }); ok && o.Opaque() {
+		return img
+	}
 	b := img.Bounds()
 	bg := imaging.New(b.Dx(), b.Dy(), color.White)
 	return imaging.Overlay(bg, img, image.Pt(0, 0), 1.0)

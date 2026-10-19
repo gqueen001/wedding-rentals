@@ -2,7 +2,9 @@ package images_test
 
 import (
 	"bytes"
+	"encoding/binary"
 	"errors"
+	"hash/crc32"
 	"image"
 	"image/color"
 	"image/gif"
@@ -81,5 +83,41 @@ func TestProcessRejectsUnsupported(t *testing.T) {
 		if _, err := images.Process(data); !errors.Is(err, images.ErrUnsupported) {
 			t.Errorf("%s: err = %v, want ErrUnsupported", name, err)
 		}
+	}
+}
+
+// hugeHeaderPNG is a truncated PNG whose IHDR declares w x h pixels; it is
+// enough for image.DecodeConfig but would be enormous to fully decode.
+func hugeHeaderPNG(w, h uint32) []byte {
+	var buf bytes.Buffer
+	buf.WriteString("\x89PNG\r\n\x1a\n")
+	ihdr := make([]byte, 13)
+	binary.BigEndian.PutUint32(ihdr[0:], w)
+	binary.BigEndian.PutUint32(ihdr[4:], h)
+	ihdr[8], ihdr[9] = 8, 0 // 8-bit grayscale
+	_ = binary.Write(&buf, binary.BigEndian, uint32(len(ihdr)))
+	chunk := append([]byte("IHDR"), ihdr...)
+	buf.Write(chunk)
+	_ = binary.Write(&buf, binary.BigEndian, crc32.ChecksumIEEE(chunk))
+	return buf.Bytes()
+}
+
+func TestProcessRejectsHugeDimensionsWithoutDecoding(t *testing.T) {
+	if _, err := images.Process(hugeHeaderPNG(30000, 30000)); !errors.Is(err, images.ErrTooLarge) {
+		t.Fatalf("err = %v, want ErrTooLarge", err)
+	}
+	if _, err := images.Process(hugeHeaderPNG(7000, 6000)); !errors.Is(err, images.ErrTooLarge) {
+		t.Fatalf("42MP: err = %v, want ErrTooLarge", err)
+	}
+}
+
+func TestProcessKeepsOpaqueColours(t *testing.T) {
+	p, err := images.Process(pngBytes(t, 1600, 800, color.NRGBA{10, 200, 30, 255}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, g, _, _ := decodeJPEG(t, p.Large).At(5, 5).RGBA()
+	if g>>8 < 150 {
+		t.Fatalf("green = %d", g>>8)
 	}
 }

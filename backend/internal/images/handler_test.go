@@ -119,6 +119,7 @@ func TestUploadRejections(t *testing.T) {
 		status int
 		code   string
 	}{
+		{"huge dimensions", map[string]string{"listing_id": id(dress)}, hugeHeaderPNG(30000, 30000), 422, "image_too_large"},
 		{"not an image", map[string]string{"listing_id": id(dress)}, []byte("plain text, not an image"), 422, "invalid_image"},
 		{"too large", map[string]string{"listing_id": id(dress)}, bytes.Repeat([]byte{0}, 10<<20+512<<10), 413, "file_too_large"},
 		{"no owner", map[string]string{}, img, 400, "validation_failed"},
