@@ -8,6 +8,8 @@ export interface UploadDeps {
   onUnauthorized: () => void;
 }
 
+const UPLOAD_TIMEOUT_MS = 180_000;
+
 /** Uploads one photo with XMLHttpRequest, because fetch cannot report upload progress. */
 export function createUploader(deps: UploadDeps) {
   return function upload(file: File, owner: UploadOwner, onProgress: (fraction: number) => void): Promise<Image> {
@@ -24,7 +26,12 @@ export function createUploader(deps: UploadDeps) {
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) onProgress(e.loaded / e.total);
       };
-      xhr.onerror = () => reject(new ApiError(0, "network_error", "network request failed"));
+      // 10 MB on a slow mobile connection takes a while.
+      xhr.timeout = UPLOAD_TIMEOUT_MS;
+      const failNetwork = () => reject(new ApiError(0, "network_error", "network request failed"));
+      xhr.onerror = failNetwork;
+      xhr.ontimeout = failNetwork;
+      xhr.onabort = failNetwork;
       xhr.onload = () => {
         let data: unknown = null;
         try {
@@ -38,7 +45,7 @@ export function createUploader(deps: UploadDeps) {
           return;
         }
         if (xhr.status === 401) deps.onUnauthorized();
-        reject(toApiError(xhr.status, data, xhr.statusText));
+        reject(toApiError(xhr.status, data, xhr.statusText, "file_too_large"));
       };
       xhr.send(form);
     });

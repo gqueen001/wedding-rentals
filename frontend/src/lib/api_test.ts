@@ -116,3 +116,16 @@ Deno.test("login returns the token and reorderImages sends the ids", async () =>
 Deno.test("ApiError is an Error", () => {
   assertInstanceOf(new ApiError(404, "not_found", "x"), Error);
 });
+
+Deno.test("a 413 without a JSON body becomes body_too_large", async () => {
+  const { api } = setup(() => new Response("<html>too big</html>", { status: 413 }));
+  const err = await assertRejects(() => api.admin.createShop(shopInput), ApiError);
+  assertEquals(err.status, 413);
+  assertEquals(err.code, "body_too_large");
+});
+
+Deno.test("requests carry a timeout signal", async () => {
+  const { api, calls } = setup(() => json(200, { items: [] }));
+  await api.cities();
+  assertInstanceOf(calls[0].init.signal, AbortSignal);
+});

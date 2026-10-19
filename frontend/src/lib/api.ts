@@ -19,9 +19,16 @@ interface ErrorBody {
 }
 
 /** Turns an error response body (or anything else) into an ApiError. */
-export function toApiError(status: number, data: unknown, fallbackMessage: string): ApiError {
+export function toApiError(
+  status: number,
+  data: unknown,
+  fallbackMessage: string,
+  tooLargeCode = "body_too_large",
+): ApiError {
   const e = (data as ErrorBody | null)?.error;
-  return new ApiError(status, e?.code ?? "internal_error", e?.message ?? fallbackMessage, e?.fields ?? {});
+  // A proxy rejects an oversized body with its own page, not our JSON envelope.
+  const fallbackCode = status === 413 ? tooLargeCode : "internal_error";
+  return new ApiError(status, e?.code ?? fallbackCode, e?.message ?? fallbackMessage, e?.fields ?? {});
 }
 
 export interface ApiDeps {
@@ -34,6 +41,8 @@ interface RequestOptions {
   body?: unknown;
   auth?: boolean;
 }
+
+const REQUEST_TIMEOUT_MS = 20_000;
 
 function withQuery(path: string, query?: URLSearchParams): string {
   const qs = query?.toString() ?? "";
@@ -54,6 +63,7 @@ export function createApi(deps: ApiDeps) {
         method,
         headers,
         body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS), // a timeout rejects, so it becomes network_error
       });
     } catch {
       throw new ApiError(0, "network_error", "network request failed");
