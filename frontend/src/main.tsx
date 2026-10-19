@@ -16,6 +16,8 @@ const AdminLayout = lazy(() => import("./pages/admin/AdminLayout.tsx"));
 const Login = lazy(() => import("./pages/admin/Login.tsx"));
 const AdminShops = lazy(() => import("./pages/admin/Shops.tsx"));
 const ShopEdit = lazy(() => import("./pages/admin/ShopEdit.tsx"));
+const AdminDresses = lazy(() => import("./pages/admin/Dresses.tsx"));
+const DressEdit = lazy(() => import("./pages/admin/DressEdit.tsx"));
 
 document.documentElement.lang = i18n.lang();
 
@@ -33,7 +35,9 @@ render(
         <Route path="/shops" component={AdminShops} />
         <Route path="/shops/new" component={ShopEdit} />
         <Route path="/shops/:id" component={ShopEdit} />
-        {/* admin dress routes: Task 11 */}
+        <Route path="/dresses" component={AdminDresses} />
+        <Route path="/dresses/new" component={DressEdit} />
+        <Route path="/dresses/:id" component={DressEdit} />
       </Route>
       <Route path="*404" component={NotFound} />
     </Router>
