@@ -92,7 +92,7 @@ All tables have `created_at` and `updated_at` (`timestamptz`). IDs are `bigint` 
 - Enable the `pg_trgm` extension.
 - An immutable SQL function `norm(text)` lowercases and maps Turkmen letters to Latin base letters: `ä→a, ç→c, ň→n, ö→o, ş→s, ü→u, ý→y, ž→z`.
 - GIN trigram indexes on `norm(shops.name)`, `norm(shop_aliases.alias)` and `norm(listings.title)`.
-- The query `q` matches when `norm(q)` is similar to (`%` operator) or a substring of (`ILIKE`) any of those fields. Results are ordered by best similarity, then newest.
+- The query `q` matches when `norm(q)` is word-similar to (`<%` operator, pg_trgm word similarity, default threshold 0.6) or a substring of (`LIKE` on the normalized text) any of those fields, so a typo in one word of a multi-word name still matches (e.g. "ak gelyn" → "Ak Gelin Wedding House"). Results are ordered by best word similarity, then newest.
 - Cyrillic and other spellings are covered by admin-entered aliases. Automatic transliteration is out of scope.
 
 ## 7. API

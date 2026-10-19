@@ -1,0 +1,5 @@
+.DS_Store
+backend/.env
+backend/uploads/
+frontend/dist/
+frontend/node_modules/
