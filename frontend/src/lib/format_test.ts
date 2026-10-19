@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { cityName, formatPrice, telHref } from "./format.ts";
 
-const NBSP = " ";
+const NBSP = "\u00A0";
 
 Deno.test("formatPrice groups thousands with a no-break space", () => {
   assertEquals(formatPrice(0), "0");

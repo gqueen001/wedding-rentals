@@ -2,7 +2,7 @@ import type { CityRef, Lang } from "./types.ts";
 
 /** Groups thousands with a no-break space: 12500 → "12 500". */
 export function formatPrice(n: number): string {
-  return Math.trunc(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return Math.trunc(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "\u00A0");
 }
 
 export function cityName(city: CityRef, lang: Lang): string {
