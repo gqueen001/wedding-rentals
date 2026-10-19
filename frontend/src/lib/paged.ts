@@ -1,5 +1,12 @@
-import { type Accessor, createSignal } from "solid-js";
+import { type Accessor, batch, createSignal } from "solid-js";
 import type { Page } from "./types.ts";
+
+/** What is loaded so far; enough to bring a list back without fetching. */
+export interface PagedSnapshot<T> {
+  items: T[];
+  total: number;
+  loaded: number;
+}
 
 export interface PagedList<T> {
   items: Accessor<T[]>;
@@ -7,6 +14,10 @@ export interface PagedList<T> {
   loading: Accessor<boolean>;
   error: Accessor<unknown>;
   hasMore: () => boolean;
+  /** The loaded pages, to hand to restore() later. */
+  snapshot(): PagedSnapshot<T>;
+  /** Replaces the list with a snapshot without fetching; a request in flight is ignored. */
+  restore(s: PagedSnapshot<T>): void;
   /** Clears everything and loads page 1. */
   reset(): Promise<void>;
   /** Loads the next page unless one is loading, the last one failed, or there is none. */
@@ -32,10 +43,12 @@ export function createPagedList<T>(fetchPage: (page: number) => Promise<Page<T>>
       const p = await fetchPage(pageNumber);
       if (gen !== generation) return;
       const next = pageNumber === 1 ? p.items : [...items(), ...p.items];
-      setItems(() => next);
-      // An empty page means the server has nothing more, whatever total says.
-      setTotal(p.items.length === 0 ? next.length : p.total);
-      setLoaded(pageNumber);
+      batch(() => {
+        setItems(() => next);
+        // An empty page means the server has nothing more, whatever total says.
+        setTotal(p.items.length === 0 ? next.length : p.total);
+        setLoaded(pageNumber);
+      });
     } catch (e) {
       if (gen === generation) setError(() => e);
     } finally {
@@ -51,12 +64,25 @@ export function createPagedList<T>(fetchPage: (page: number) => Promise<Page<T>>
     loading,
     error,
     hasMore,
+    snapshot: () => ({ items: items(), total: total(), loaded: loaded() }),
+    restore(s) {
+      generation++;
+      batch(() => {
+        setItems(() => s.items);
+        setTotal(s.total);
+        setLoaded(s.loaded);
+        setError(null);
+        setLoading(false);
+      });
+    },
     reset() {
       generation++;
-      setItems(() => []);
-      setTotal(0);
-      setLoaded(0);
-      setError(null);
+      batch(() => {
+        setItems(() => []);
+        setTotal(0);
+        setLoaded(0);
+        setError(null);
+      });
       return load(1);
     },
     loadMore() {

@@ -23,7 +23,7 @@ document.documentElement.lang = i18n.lang();
 
 render(
   () => (
-    <Router root={App}>
+    <Router root={App} scrollRestoration>
       <Route path="/" component={Home} />
       <Route path="/dresses" component={Dresses} />
       <Route path="/dresses/:id" component={Dress} />

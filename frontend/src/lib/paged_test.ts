@@ -91,3 +91,36 @@ Deno.test("two quick retry calls fetch the failed page once", async () => {
   await list.retry(); // nothing failed any more
   assertEquals(requested, [1, 2, 2]);
 });
+
+Deno.test("snapshot reports what is loaded and restore brings it back without fetching", async () => {
+  const list = createPagedList((n) => Promise.resolve(n === 1 ? page(1, [1, 2], 5) : page(2, [3, 4], 5)));
+  await list.reset();
+  await list.loadMore();
+  const snap = list.snapshot();
+  assertEquals(snap, { items: [1, 2, 3, 4], total: 5, loaded: 2 });
+
+  const requested: number[] = [];
+  const again = createPagedList((n) => {
+    requested.push(n);
+    return Promise.resolve(page(n, [n * 10], 5));
+  });
+  again.restore(snap);
+  assertEquals(again.items(), [1, 2, 3, 4]);
+  assertEquals(again.total(), 5);
+  assertEquals(again.hasMore(), true);
+  assertEquals(again.error(), null);
+  await again.loadMore();
+  assertEquals(requested, [3]);
+  assertEquals(again.items(), [1, 2, 3, 4, 30]);
+});
+
+Deno.test("a response that arrives after a restore is ignored", async () => {
+  const first = deferred<Page<number>>();
+  const list = createPagedList(() => first.promise);
+  const stale = list.reset();
+  list.restore({ items: [7], total: 1, loaded: 1 });
+  first.resolve(page(1, [1, 2], 2));
+  await stale;
+  assertEquals(list.items(), [7]);
+  assertEquals(list.loading(), false);
+});

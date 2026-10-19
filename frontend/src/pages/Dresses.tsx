@@ -11,10 +11,14 @@ import { GridSkeleton } from "../components/Skeleton.tsx";
 import { t } from "../i18n/i18n.ts";
 import { api } from "../lib/client.ts";
 import { countActiveFilters, EMPTY_FILTERS, type Filters, filtersToQuery, parseFilters } from "../lib/filters.ts";
-import { createPagedList } from "../lib/paged.ts";
+import { createPagedList, type PagedSnapshot } from "../lib/paged.ts";
 import { usePageTitle } from "../lib/title.ts";
+import type { ListItem } from "../lib/types.ts";
 
 const PER_PAGE = "24";
+
+/** The last list shown, so Back from a dress finds the same pages instead of a fresh first page. */
+let saved: { key: string; snapshot: PagedSnapshot<ListItem> } | undefined;
 
 export default function Dresses() {
   usePageTitle(() => t("dresses.title"));
@@ -31,7 +35,18 @@ export default function Dresses() {
     query.set("per_page", PER_PAGE);
     return api.dresses(query);
   });
-  createEffect(on(filters, () => void list.reset()));
+  // The query the items on screen belong to.
+  let listKey = "";
+  createEffect(on(filters, (f) => {
+    const key = filtersToQuery(f).toString();
+    listKey = key;
+    if (saved?.key === key) list.restore(saved.snapshot);
+    else void list.reset();
+  }));
+  createEffect(() => {
+    const snapshot = list.snapshot();
+    if (snapshot.items.length > 0) saved = { key: listKey, snapshot };
+  });
 
   const apply = (f: Filters) => {
     setSheetOpen(false);
