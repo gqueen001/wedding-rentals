@@ -1,7 +1,8 @@
 {
   "name": "Gelin",
   "short_name": "Gelin",
-  "description": "Wedding dresses from rental shops across Turkmenistan",
+  "id": "/",
+  "description": "Toý köýnekleri: Türkmenistanyň kireý salonlaryndan köýnekler bir ýerde.",
   "lang": "tk",
   "start_url": "/",
   "scope": "/",

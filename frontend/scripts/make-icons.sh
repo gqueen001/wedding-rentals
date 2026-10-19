@@ -14,7 +14,7 @@ render() { # source.svg size output.png
 
 render icons-src/icon.svg 512 icon-512.png
 render icons-src/icon.svg 192 icon-192.png
-render icons-src/icon.svg 180 apple-touch-icon.png
+render icons-src/maskable.svg 180 apple-touch-icon.png
 render icons-src/maskable.svg 512 maskable-512.png
 cp icons-src/icon.svg public/favicon.svg
 rm -rf "$tmp"
