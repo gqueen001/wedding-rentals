@@ -15,11 +15,12 @@ export default function Header() {
         <A href="/" class="mr-auto font-display text-3xl leading-none text-garnet">
           {t("app.name")}
         </A>
-        <nav class="order-last flex w-full items-center text-sm sm:order-none sm:w-auto">
+        <nav class="flex items-center text-sm">
           <A
             href="/dresses"
             class="inline-flex min-h-11 items-center rounded-full px-3 hover:bg-veil"
             activeClass="text-garnet font-semibold"
+            aria-label={`${t("nav.dresses")}: ${t("search.label")}`}
           >
             {t("nav.dresses")}
           </A>
@@ -36,7 +37,9 @@ export default function Header() {
             </Show>
           </A>
         </nav>
-        <LanguageSwitch />
+        <div class="ml-auto sm:ml-0">
+          <LanguageSwitch />
+        </div>
       </div>
     </header>
   );
