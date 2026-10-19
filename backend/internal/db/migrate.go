@@ -15,6 +15,7 @@ import (
 // safe when several processes start at once.
 func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
 	sqlDB := stdlib.OpenDBFromPool(pool)
+	defer sqlDB.Close()
 	locker, err := lock.NewPostgresSessionLocker()
 	if err != nil {
 		return err
