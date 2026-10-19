@@ -104,3 +104,34 @@ func TestOpenGraphEscapesMarkup(t *testing.T) {
 		t.Fatalf("escaped title missing: %s", body)
 	}
 }
+
+func TestMissingAssetIsJSON404(t *testing.T) {
+	r, _ := setup(t, true)
+	for _, p := range []string{"/assets/gone-abc123.js", "/assets/", "/assets"} {
+		rec := testutil.Request(t, r, http.MethodGet, p, nil, "")
+		if rec.Code != 404 || testutil.Decode[testutil.ErrorBody](t, rec).Error.Code != "not_found" {
+			t.Errorf("%s: got %d %q", p, rec.Code, rec.Body)
+		}
+	}
+}
+
+func TestAssetsAreCachedForever(t *testing.T) {
+	r, _ := setup(t, true)
+	rec := testutil.Request(t, r, http.MethodGet, "/assets/app.js", nil, "")
+	if got := rec.Header().Get("Cache-Control"); rec.Code != 200 || got != "public, max-age=31536000, immutable" {
+		t.Fatalf("asset: %d Cache-Control %q", rec.Code, got)
+	}
+	if got := testutil.Request(t, r, http.MethodGet, "/", nil, "").Header().Get("Cache-Control"); got == "public, max-age=31536000, immutable" {
+		t.Fatalf("index must not be immutable: %q", got)
+	}
+}
+
+func TestIndexIsNotCached(t *testing.T) {
+	r, _ := setup(t, true)
+	for _, p := range []string{"/", "/dresses", "/index.html"} {
+		rec := testutil.Request(t, r, http.MethodGet, p, nil, "")
+		if got := rec.Header().Get("Cache-Control"); rec.Code != 200 || got != "no-cache" {
+			t.Errorf("%s: %d Cache-Control %q", p, rec.Code, got)
+		}
+	}
+}

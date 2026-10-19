@@ -42,12 +42,23 @@ func (h *Handler) Serve(c *gin.Context) {
 		return
 	}
 	fsys := os.DirFS(h.Dir)
-	name := strings.TrimPrefix(path.Clean("/"+p), "/")
+	clean := path.Clean("/" + p)
+	name := strings.TrimPrefix(clean, "/")
+	// Vite content-hashes everything under /assets, so a stale page asking for
+	// a file from an older build must fail loudly rather than get index.html.
+	inAssets := clean == "/assets" || strings.HasPrefix(clean, "/assets/")
 	if name != "" && name != "index.html" {
 		if st, err := fs.Stat(fsys, name); err == nil && !st.IsDir() {
+			if inAssets {
+				c.Header("Cache-Control", "public, max-age=31536000, immutable")
+			}
 			c.FileFromFS(name, http.FS(fsys))
 			return
 		}
+	}
+	if inAssets {
+		httpx.Abort(c, httpx.ErrNotFound)
+		return
 	}
 	index, err := fs.ReadFile(fsys, "index.html")
 	if err != nil {
@@ -59,6 +70,7 @@ func (h *Handler) Serve(c *gin.Context) {
 			index = h.injectOG(c.Request.Context(), index, id)
 		}
 	}
+	c.Header("Cache-Control", "no-cache")
 	c.Data(http.StatusOK, "text/html; charset=utf-8", index)
 }
 
