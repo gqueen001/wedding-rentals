@@ -212,7 +212,7 @@ export default function PhotoManager(props: {
                   src={img.small}
                   alt={`${props.title}, ${i() + 1}`}
                   draggable={false}
-                  class="aspect-[3/4] w-full rounded-sm bg-veil object-cover"
+                  class="aspect-[3/4] w-full rounded-xs bg-veil object-cover"
                 />
                 <Show when={i() === 0}>
                   <span class="absolute left-1 top-1 rounded-full bg-garnet px-2 py-0.5 text-xs text-white">

@@ -58,7 +58,7 @@ export default function AdminDresses() {
                   {(d) => (
                     <li>
                       <A href={`/admin/dresses/${d.id}`} class="flex items-center gap-4 px-4 py-3 hover:bg-veil/60">
-                        <div class="h-16 w-12 shrink-0 overflow-hidden rounded-sm bg-veil">
+                        <div class="h-16 w-12 shrink-0 overflow-hidden rounded-xs bg-veil">
                           <Show when={d.images[0]}>
                             {(img) => <img src={img().small} alt="" class="h-full w-full object-cover" />}
                           </Show>

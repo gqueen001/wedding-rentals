@@ -8,7 +8,7 @@ export function GridSkeleton(props: { count?: number }) {
       <For each={Array.from({ length: props.count ?? 8 })}>
         {() => (
           <li>
-            <div class="aspect-[3/4] animate-pulse rounded-sm bg-veil" />
+            <div class="aspect-[3/4] animate-pulse rounded-xs bg-veil" />
             <div class="mt-3 h-4 w-1/2 animate-pulse rounded bg-veil" />
             <div class="mt-2 h-3 w-3/4 animate-pulse rounded bg-veil" />
           </li>
