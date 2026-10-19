@@ -11,7 +11,7 @@ export interface PagedList<T> {
   reset(): Promise<void>;
   /** Loads the next page unless one is loading, the last one failed, or there is none. */
   loadMore(): Promise<void>;
-  /** Loads the page that failed. */
+  /** Loads the page that failed; does nothing while loading or when nothing failed. */
   retry(): Promise<void>;
 }
 
@@ -64,6 +64,7 @@ export function createPagedList<T>(fetchPage: (page: number) => Promise<Page<T>>
       return load(loaded() + 1);
     },
     retry() {
+      if (loading() || error() === null) return Promise.resolve();
       return load(loaded() + 1);
     },
   };

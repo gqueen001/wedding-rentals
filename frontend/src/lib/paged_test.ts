@@ -73,3 +73,21 @@ Deno.test("an empty page stops paging even if total says otherwise", async () =>
   assertEquals(list.items(), [1, 2]);
   assertEquals(list.hasMore(), false);
 });
+
+Deno.test("two quick retry calls fetch the failed page once", async () => {
+  let fail = true;
+  const requested: number[] = [];
+  const list = createPagedList((n) => {
+    requested.push(n);
+    if (n === 2 && fail) return Promise.reject(new Error("offline"));
+    return Promise.resolve(page(n, n === 1 ? [1, 2] : [3, 4], 4));
+  });
+  await list.reset();
+  await list.loadMore();
+  fail = false;
+  await Promise.all([list.retry(), list.retry()]);
+  assertEquals(requested, [1, 2, 2]);
+  assertEquals(list.items(), [1, 2, 3, 4]);
+  await list.retry(); // nothing failed any more
+  assertEquals(requested, [1, 2, 2]);
+});
