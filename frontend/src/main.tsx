@@ -1,4 +1,5 @@
-import { Route, Router } from "@solidjs/router";
+import { Navigate, Route, Router } from "@solidjs/router";
+import { lazy } from "solid-js";
 import { render } from "solid-js/web";
 import App from "./app/App.tsx";
 import { i18n } from "./i18n/i18n.ts";
@@ -10,6 +11,12 @@ import NotFound from "./pages/NotFound.tsx";
 import Shop from "./pages/Shop.tsx";
 import "./index.css";
 
+// Admin pages load on demand so brides never download them.
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout.tsx"));
+const Login = lazy(() => import("./pages/admin/Login.tsx"));
+const AdminShops = lazy(() => import("./pages/admin/Shops.tsx"));
+const ShopEdit = lazy(() => import("./pages/admin/ShopEdit.tsx"));
+
 document.documentElement.lang = i18n.lang();
 
 render(
@@ -20,7 +27,14 @@ render(
       <Route path="/dresses/:id" component={Dress} />
       <Route path="/shops/:slug" component={Shop} />
       <Route path="/favorites" component={Favorites} />
-      {/* admin routes: Task 10 */}
+      <Route path="/admin/login" component={Login} />
+      <Route path="/admin" component={AdminLayout}>
+        <Route path="/" component={() => <Navigate href="/admin/shops" />} />
+        <Route path="/shops" component={AdminShops} />
+        <Route path="/shops/new" component={ShopEdit} />
+        <Route path="/shops/:id" component={ShopEdit} />
+        {/* admin dress routes: Task 11 */}
+      </Route>
       <Route path="*404" component={NotFound} />
     </Router>
   ),
