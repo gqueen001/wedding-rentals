@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -95,5 +96,31 @@ func TestParseIDRejectsNonNumeric(t *testing.T) {
 		if rec.Code != want {
 			t.Errorf("%s: status = %d, want %d", path, rec.Code, want)
 		}
+	}
+}
+
+func TestBindJSONRejectsOversizedBody(t *testing.T) {
+	r := gin.New()
+	r.POST("/x", func(c *gin.Context) {
+		var in struct{ A string }
+		if httpx.BindJSON(c, &in) {
+			c.Status(200)
+		}
+	})
+	post := func(body string) *httptest.ResponseRecorder {
+		rec := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/x", strings.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(rec, req)
+		return rec
+	}
+	if rec := post(`{"a":"ok"}`); rec.Code != 200 {
+		t.Fatalf("small body: %d", rec.Code)
+	}
+	rec := post(`{"a":"` + strings.Repeat("x", 2<<20) + `"}`)
+	var body errBody
+	_ = json.Unmarshal(rec.Body.Bytes(), &body)
+	if rec.Code != 413 || body.Error.Code != "body_too_large" {
+		t.Fatalf("got %d %s", rec.Code, rec.Body)
 	}
 }

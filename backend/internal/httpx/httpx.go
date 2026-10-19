@@ -67,9 +67,19 @@ func ParseID(c *gin.Context, name string) (int64, bool) {
 	return id, true
 }
 
-// BindJSON decodes the request body into dst; it answers 400 invalid_json on failure.
+// MaxJSONBytes caps JSON request bodies.
+const MaxJSONBytes = 1 << 20
+
+// BindJSON decodes the request body into dst; it answers 400 invalid_json on
+// failure and 413 body_too_large when the body exceeds MaxJSONBytes.
 func BindJSON(c *gin.Context, dst any) bool {
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, MaxJSONBytes)
 	if err := c.ShouldBindJSON(dst); err != nil {
+		var mbe *http.MaxBytesError
+		if errors.As(err, &mbe) {
+			Abort(c, New(http.StatusRequestEntityTooLarge, "body_too_large", "request body is too large"))
+			return false
+		}
 		Abort(c, New(http.StatusBadRequest, "invalid_json", "request body is not valid JSON"))
 		return false
 	}
