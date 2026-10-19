@@ -25,7 +25,7 @@ export function cleanShopInput(f: ShopInput): ShopInput {
   const aliases: string[] = [];
   for (const raw of f.aliases) {
     const alias = raw.trim();
-    const key = alias.toLocaleLowerCase();
+    const key = alias.toLowerCase();
     if (alias && !seen.has(key)) {
       seen.add(key);
       aliases.push(alias);

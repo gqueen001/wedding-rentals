@@ -89,7 +89,7 @@ export function SelectField(
         aria-describedby={described(props, `${id}-note`)}
         onChange={(e) => props.onChange(e.currentTarget.value)}
       >
-        <For each={props.options}>{(o) => <option value={o.value}>{o.label}</option>}</For>
+        <For each={props.options}>{(o) => <option value={o.value} selected={o.value === props.value}>{o.label}</option>}</For>
       </select>
       <Note id={`${id}-note`} error={props.error} hint={props.hint} />
     </div>

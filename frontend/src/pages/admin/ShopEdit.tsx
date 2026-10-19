@@ -14,11 +14,10 @@ import { cleanShopInput, EMPTY_SHOP_INPUT, shopToInput } from "../../lib/forms.t
 import { usePageTitle } from "../../lib/title.ts";
 import type { ShopInput } from "../../lib/types.ts";
 
-/** Both /admin/shops/new and /admin/shops/:id. */
-export default function ShopEdit() {
-  const params = useParams();
+/** The editor for one shop (or a new one); remounted per shop by ShopEdit below. */
+function ShopEditor(props: { id: number | null }) {
   const navigate = useNavigate();
-  const id = () => (params.id ? Number(params.id) : null);
+  const id = () => props.id;
   const [shop, { mutate }] = createResource(id, (shopId) => api.admin.shop(shopId));
   const [form, setForm] = createStore<ShopInput>({ ...EMPTY_SHOP_INPUT, aliases: [] });
   // Refill the form only when the saved shop changes, not when just its logo does.
@@ -156,5 +155,15 @@ export default function ShopEdit() {
         </Match>
       </Switch>
     </div>
+  );
+}
+
+/** Both /admin/shops/new and /admin/shops/:id; a fresh editor per shop, so no state leaks between shops. */
+export default function ShopEdit() {
+  const params = useParams();
+  return (
+    <Show when={params.id ?? "new"} keyed>
+      {(key) => <ShopEditor id={key === "new" ? null : Number(key)} />}
+    </Show>
   );
 }
