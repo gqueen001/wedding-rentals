@@ -13,8 +13,9 @@ export default function LanguageSwitch() {
             type="button"
             lang={lang}
             title={t(`lang.${lang}`)}
+            aria-label={t(`lang.${lang}`)}
             aria-pressed={i18n.lang() === lang}
-            class="min-h-11 px-2 text-xs"
+            class="min-h-11 min-w-11 px-2 text-xs"
             classList={{
               "font-semibold text-garnet underline underline-offset-4": i18n.lang() === lang,
               "text-silver-ink hover:text-ink": i18n.lang() !== lang,
