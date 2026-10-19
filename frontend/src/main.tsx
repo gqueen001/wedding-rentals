@@ -3,6 +3,7 @@ import { lazy } from "solid-js";
 import { render } from "solid-js/web";
 import App from "./app/App.tsx";
 import { i18n } from "./i18n/i18n.ts";
+import { trackTraversals } from "./lib/history.ts";
 import Dress from "./pages/Dress.tsx";
 import Dresses from "./pages/Dresses.tsx";
 import Favorites from "./pages/Favorites.tsx";
@@ -19,6 +20,7 @@ const ShopEdit = lazy(() => import("./pages/admin/ShopEdit.tsx"));
 const AdminDresses = lazy(() => import("./pages/admin/Dresses.tsx"));
 const DressEdit = lazy(() => import("./pages/admin/DressEdit.tsx"));
 
+trackTraversals();
 document.documentElement.lang = i18n.lang();
 
 render(
