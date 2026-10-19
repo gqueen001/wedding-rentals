@@ -1,6 +1,7 @@
 package dresses
 
 import (
+	"math"
 	"slices"
 	"strings"
 	"time"
@@ -63,6 +64,8 @@ func (in Input) validate() map[string]string {
 	}
 	if in.PriceManat <= 0 {
 		errs["price_manat"] = "must_be_positive"
+	} else if in.PriceManat > math.MaxInt32 {
+		errs["price_manat"] = "too_large"
 	}
 	if !slices.Contains(Colors, in.Color) {
 		errs["color"] = "invalid"

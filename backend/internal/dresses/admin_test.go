@@ -67,6 +67,12 @@ func TestCreateDressValidation(t *testing.T) {
 			t.Errorf("fields[%s] = %q, want %q", f, body.Error.Fields[f], v)
 		}
 	}
+	huge := validDress(1)
+	huge["price_manat"] = 2147483648
+	body = testutil.Decode[testutil.ErrorBody](t, testutil.Request(t, e.r, http.MethodPost, "/api/admin/dresses", huge, ""))
+	if body.Error.Fields["price_manat"] != "too_large" {
+		t.Errorf("price overflow: fields = %v", body.Error.Fields)
+	}
 	in := validDress(999999999)
 	in["sizes"] = []string{"M", "XXXL"}
 	body = testutil.Decode[testutil.ErrorBody](t, testutil.Request(t, e.r, http.MethodPost, "/api/admin/dresses", in, ""))
