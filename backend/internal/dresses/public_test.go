@@ -81,7 +81,11 @@ func TestListPublicSearch(t *testing.T) {
 		"zzzzqqq":             {},
 	}
 	for q, want := range cases {
-		p := testutil.Decode[dresses.Page](t, testutil.Request(t, e.r, http.MethodGet, "/api/dresses?q="+q, nil, ""))
+		rec := testutil.Request(t, e.r, http.MethodGet, "/api/dresses?q="+q, nil, "")
+		if rec.Code != http.StatusOK {
+			t.Fatalf("q=%s: status = %d: %s", q, rec.Code, rec.Body)
+		}
+		p := testutil.Decode[dresses.Page](t, rec)
 		if got := ids(p); !slices.Equal(got, want) {
 			t.Errorf("q=%s: ids = %v, want %v", q, got, want)
 		}
@@ -104,7 +108,7 @@ func TestListPublicPagination(t *testing.T) {
 
 func TestListPublicInvalidParams(t *testing.T) {
 	e := setup(t)
-	for _, q := range []string{"size=XXXL", "price_min=abc", "color=purple", "page=0", "ids=1,x"} {
+	for _, q := range []string{"size=XXXL", "price_min=abc", "color=purple", "page=0", "ids=1,x", "page=99999999999999999", "page=10001", "price_min=3000000000"} {
 		rec := testutil.Request(t, e.r, http.MethodGet, "/api/dresses?"+q, nil, "")
 		if rec.Code != http.StatusBadRequest {
 			t.Errorf("%s: status = %d", q, rec.Code)
@@ -118,6 +122,9 @@ func TestListItemShape(t *testing.T) {
 	testutil.InsertImage(t, e.tx, c.d1, 1, "second")
 	testutil.InsertImage(t, e.tx, c.d1, 0, "first")
 	p := testutil.Decode[dresses.Page](t, testutil.Request(t, e.r, http.MethodGet, "/api/dresses?style=ball_gown", nil, ""))
+	if len(p.Items) != 1 {
+		t.Fatalf("items = %+v, want exactly one", p.Items)
+	}
 	it := p.Items[0]
 	if it.Photo == nil || *it.Photo != "/uploads/first_s.jpg" {
 		t.Fatalf("photo = %v", it.Photo)

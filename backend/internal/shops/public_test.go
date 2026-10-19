@@ -20,6 +20,8 @@ func TestGetPublicShop(t *testing.T) {
 	testutil.InsertDress(t, tx, testutil.DressFixture{ShopID: shop.ID, Title: "One"})
 	testutil.InsertDress(t, tx, testutil.DressFixture{ShopID: shop.ID, Title: "Two"})
 	testutil.InsertDress(t, tx, testutil.DressFixture{ShopID: shop.ID, Title: "Draft", Hidden: true})
+	other := testutil.InsertShop(t, tx, testutil.ShopFixture{Name: "Other Shop"})
+	testutil.InsertDress(t, tx, testutil.DressFixture{ShopID: other.ID, Title: "Elsewhere"})
 	hidden := testutil.InsertShop(t, tx, testutil.ShopFixture{Hidden: true})
 
 	rec := testutil.Request(t, r, http.MethodGet, "/api/shops/"+shop.Slug, nil, "")
