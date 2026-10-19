@@ -18,7 +18,7 @@ import type { ShopInput } from "../../lib/types.ts";
 function ShopEditor(props: { id: number | null }) {
   const navigate = useNavigate();
   const id = () => props.id;
-  const [shop, { mutate }] = createResource(id, (shopId) => api.admin.shop(shopId));
+  const [shop, { mutate, refetch }] = createResource(id, (shopId) => api.admin.shop(shopId));
   const [form, setForm] = createStore<ShopInput>({ ...EMPTY_SHOP_INPUT, aliases: [] });
   // Refill the form only when the saved shop changes, not when just its logo does.
   createEffect(on(() => (shop.state === "ready" ? shop()?.updated_at : undefined), (stamp) => {
@@ -76,7 +76,7 @@ function ShopEditor(props: { id: number | null }) {
       <h1 class="mt-2 text-3xl">{id() ? form.name || t("admin.edit") : t("admin.new_shop")}</h1>
       <Switch>
         <Match when={shop.error}>
-          <ErrorState error={shop.error} />
+          <ErrorState error={shop.error} onRetry={() => void refetch()} />
         </Match>
         <Match when={id() !== null && !shop()}>
           <p class="mt-6 text-silver-ink">{t("common.loading")}</p>

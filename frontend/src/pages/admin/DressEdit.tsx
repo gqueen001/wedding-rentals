@@ -16,7 +16,7 @@ function DressEditor(props: { id: number | null }) {
   const navigate = useNavigate();
   const [search] = useSearchParams();
   const id = () => props.id;
-  const [dress, { mutate }] = createResource(id, (dressId) => api.admin.dress(dressId));
+  const [dress, { mutate, refetch }] = createResource(id, (dressId) => api.admin.dress(dressId));
   const [shops] = createResource(() => api.admin.shops());
   const [form, setForm] = createStore<DressForm>({
     ...EMPTY_DRESS_FORM,
@@ -79,7 +79,7 @@ function DressEditor(props: { id: number | null }) {
       <h1 class="mt-2 text-3xl">{id() ? form.title || t("admin.edit") : t("admin.new_dress")}</h1>
       <Switch>
         <Match when={dress.error}>
-          <ErrorState error={dress.error} />
+          <ErrorState error={dress.error} onRetry={() => void refetch()} />
         </Match>
         <Match when={id() !== null && !dress()}>
           <p class="mt-6 text-silver-ink">{t("common.loading")}</p>
