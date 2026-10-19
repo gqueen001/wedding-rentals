@@ -27,7 +27,7 @@ function price(v: string | null): number | null {
   const s = v?.trim() ?? "";
   if (!/^\d+$/.test(s)) return null;
   const n = Number(s);
-  return n <= MAX_PRICE ? n : null;
+  return n > 0 && n <= MAX_PRICE ? n : null;
 }
 
 /** What the price fields make of typed text: only the digits count ("1 500" is 1500). */

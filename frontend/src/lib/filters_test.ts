@@ -41,4 +41,12 @@ Deno.test("parsePriceInput keeps the digits and drops everything else", () => {
   assertEquals(parsePriceInput("abc"), null);
   assertEquals(parsePriceInput(""), null);
   assertEquals(parsePriceInput("99999999999"), null);
+  assertEquals(parsePriceInput("0"), null);
+  assertEquals(parsePriceInput("000"), null);
+});
+
+Deno.test("a price of 0 in the URL is not a filter", () => {
+  const f = parseFilters(new URLSearchParams("price_min=0&price_max=0"));
+  assertEquals(f, EMPTY_FILTERS);
+  assertEquals(countActiveFilters(f), 0);
 });
