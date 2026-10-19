@@ -34,6 +34,7 @@ export default function App(props: RouteSectionProps) {
     <Show when={!isAdmin()} fallback={<Guard>{props.children}</Guard>}>
       <a
         href="#main"
+        rel="external" // keeps the router out of it, so the browser focuses <main> itself
         class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-white focus:px-4 focus:py-2"
       >
         {t("common.skip")}
