@@ -5,13 +5,10 @@ import Header from "../components/Header.tsx";
 import { t } from "../i18n/i18n.ts";
 import { focusMain, mainRef } from "../lib/dom.ts";
 
-/** A lazy chunk that failed to download: only a full reload fetches a fresh build. */
-function isChunkError(err: unknown): boolean {
-  return err instanceof Error &&
-    (err.name === "ChunkLoadError" || err.message.includes("Failed to fetch dynamically imported module"));
-}
-
-/** A render or chunk-load failure shows a message with a retry button, never a blank page. */
+/**
+ * A render or chunk-load failure shows a message with a retry button, never a blank page.
+ * Retry reloads the page: it recovers from a stale lazy chunk in every browser, whatever its message.
+ */
 function Guard(props: { children: JSX.Element }) {
   const where = useLocation();
   return (
@@ -19,7 +16,7 @@ function Guard(props: { children: JSX.Element }) {
       fallback={(err, reset) => {
         // Following a link to another page clears the error.
         createEffect(on(() => where.pathname, reset, { defer: true }));
-        return <ErrorState error={err} onRetry={() => (isChunkError(err) ? location.reload() : reset())} />;
+        return <ErrorState error={err} onRetry={() => location.reload()} />;
       }}
     >
       {props.children}
