@@ -1,0 +1,20 @@
+{
+  "nodeModulesDir": "manual",
+  "tasks": {
+    "dev": "deno run -A node_modules/vite/bin/vite.js",
+    "build": "deno run -A node_modules/vite/bin/vite.js build",
+    "preview": "deno run -A node_modules/vite/bin/vite.js preview",
+    "test": "deno test src",
+    "check": "deno check src"
+  },
+  "compilerOptions": {
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "lib": ["dom", "dom.iterable", "esnext", "deno.ns"]
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1.0.19"
+  },
+  "fmt": { "lineWidth": 100 },
+  "exclude": ["dist", "node_modules"]
+}

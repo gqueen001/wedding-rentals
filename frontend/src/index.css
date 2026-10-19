@@ -1,0 +1,152 @@
+@import "tailwindcss";
+@import "@fontsource/forum";
+@import "@fontsource-variable/manrope";
+
+@theme {
+  --color-white: #ffffff;
+  --color-veil: #f4f2f5;
+  --color-ink: #241b27;
+  --color-garnet: #8e1b2e;
+  --color-garnet-deep: #6b1222;
+  --color-silver: #a7acb4;
+  --color-silver-ink: #5d6370;
+  --color-blush: #f8e7ea;
+  --font-display: "Forum", "Times New Roman", serif;
+  --font-sans: "Manrope Variable", "Segoe UI", system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--color-white);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--color-ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-garnet);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--color-blush);
+  }
+}
+
+@layer components {
+  .btn {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding: 0 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--color-garnet);
+    color: var(--color-white);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-garnet-deep);
+  }
+  .btn-outline {
+    border: 1px solid var(--color-silver);
+    background: var(--color-white);
+    color: var(--color-ink);
+  }
+  .btn-outline:hover:not(:disabled) {
+    border-color: var(--color-ink);
+  }
+  .btn-quiet {
+    padding: 0 0.75rem;
+    color: var(--color-garnet);
+  }
+  .btn-quiet:hover:not(:disabled) {
+    background: var(--color-veil);
+  }
+  .btn-icon {
+    display: inline-flex;
+    height: 2.75rem;
+    width: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+  }
+  .btn-icon:hover:not(:disabled) {
+    background: var(--color-veil);
+  }
+  .field-input {
+    width: 100%;
+    min-height: 2.75rem;
+    border: 1px solid var(--color-silver);
+    border-radius: 0.5rem;
+    background: var(--color-white);
+    padding: 0.5rem 0.75rem;
+    color: var(--color-ink);
+  }
+  .field-input:focus {
+    outline: 2px solid var(--color-garnet);
+    outline-offset: 1px;
+  }
+  .field-input[aria-invalid="true"] {
+    border-color: var(--color-garnet);
+  }
+  .chip {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid var(--color-silver);
+    border-radius: 9999px;
+    padding: 0 0.9rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+  .chip:has(:checked) {
+    border-color: var(--color-garnet);
+    background: var(--color-blush);
+    color: var(--color-garnet-deep);
+    font-weight: 600;
+  }
+  .chip:has(:focus-visible) {
+    outline: 2px solid var(--color-garnet);
+    outline-offset: 2px;
+  }
+  .sheet-enter {
+    animation: sheet-up 0.22s ease-out;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
