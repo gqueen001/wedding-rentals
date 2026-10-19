@@ -89,7 +89,8 @@ export default function FilterSheet(props: {
           role="dialog"
           aria-modal="true"
           aria-labelledby="filters-title"
-          class="sheet-enter absolute inset-x-0 bottom-0 mx-auto flex max-h-[88vh] max-w-lg flex-col rounded-t-2xl bg-white"
+          tabindex="-1"
+          class="sheet-enter outline-none absolute inset-x-0 bottom-0 mx-auto flex max-h-[88vh] max-w-lg flex-col rounded-t-2xl bg-white"
         >
           <div class="flex items-center justify-between border-b border-veil px-5 py-2">
             <h2 id="filters-title" class="text-2xl">{t("filters.title")}</h2>

@@ -60,7 +60,7 @@ export default function Dresses() {
         </button>
       </div>
       <p class="mt-4 min-h-6 text-sm text-silver-ink" aria-live="polite">
-        <Show when={!(list.loading() && firstLoad())}>{t("dresses.found", { count: list.total() })}</Show>
+        <Show when={!(list.loading() && firstLoad()) && list.error() === null}>{t("dresses.found", { count: list.total() })}</Show>
       </p>
 
       <div class="mt-4">
