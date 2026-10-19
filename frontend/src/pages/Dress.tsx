@@ -80,7 +80,7 @@ export default function Dress() {
       <Match when={!dress()}>
         <DetailSkeleton />
       </Match>
-      <Match when={dress()}>{(d) => <DressView dress={d()} />}</Match>
+      <Match when={dress()} keyed>{(d) => <DressView dress={d} />}</Match>
     </Switch>
   );
 }

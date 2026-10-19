@@ -13,6 +13,11 @@ function PhotoViewer(props: { images: Image[]; start: number; title: string; onC
   const go = (delta: number) => {
     setZoomed(false);
     setIndex((i) => Math.min(total() - 1, Math.max(0, i + delta)));
+    // A nav button that just became disabled drops keyboard focus; keep it in the dialog.
+    queueMicrotask(() => {
+      const active = document.activeElement;
+      if (active instanceof HTMLButtonElement && active.disabled) dialog.focus();
+    });
   };
   let dialog!: HTMLDivElement;
   let closeButton!: HTMLButtonElement;

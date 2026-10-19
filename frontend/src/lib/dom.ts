@@ -8,10 +8,12 @@ export function trapTab(e: KeyboardEvent, container: HTMLElement) {
   if (items.length === 0) return;
   const first = items[0];
   const last = items[items.length - 1];
-  if (e.shiftKey && document.activeElement === first) {
+  const active = document.activeElement;
+  const inside = active instanceof Node && container.contains(active) && active !== container;
+  if (e.shiftKey && (!inside || active === first)) {
     e.preventDefault();
     last.focus();
-  } else if (!e.shiftKey && document.activeElement === last) {
+  } else if (!e.shiftKey && (!inside || active === last)) {
     e.preventDefault();
     first.focus();
   }
