@@ -4,17 +4,18 @@ import type { ListItem } from "../lib/types.ts";
 import { FavoriteIconButton } from "./FavoriteButton.tsx";
 import { priceText } from "./price.ts";
 
-export default function DressTile(props: { item: ListItem }) {
+export default function DressTile(props: { item: ListItem; eager?: boolean }) {
   return (
     <article class="relative">
       <A href={`/dresses/${props.item.id}`} class="block">
-        <div class="aspect-[3/4] overflow-hidden rounded-sm bg-veil">
+        <div class="aspect-[3/4] overflow-hidden rounded-xs bg-veil">
           <Show when={props.item.photo}>
             {(src) => (
               <img
                 src={src()}
                 alt={props.item.title}
-                loading="lazy"
+                loading={props.eager ? "eager" : "lazy"}
+                fetchpriority={props.eager ? "high" : undefined}
                 decoding="async"
                 class="h-full w-full object-cover"
               />
