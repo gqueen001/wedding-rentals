@@ -3,3 +3,5 @@ backend/.env
 backend/uploads/
 frontend/dist/
 frontend/node_modules/
+# Private notes such as passwords: never commit them (the repo is public)
+*.local.md
