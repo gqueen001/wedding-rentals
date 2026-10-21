@@ -26,17 +26,23 @@ type Response struct {
 	Days []string `json:"days"`
 }
 
+// Busy days belong to any listing: /items/… serves every category, and /dresses/…
+// stays for links and pages made before other categories existed.
 func (h *Handler) RegisterPublic(g *gin.RouterGroup) {
-	g.GET("/dresses/:id/busy-days", h.listPublic)
+	for _, base := range []string{"/dresses", "/items"} {
+		g.GET(base+"/:id/busy-days", h.listPublic)
+	}
 }
 
 func (h *Handler) RegisterAdmin(g *gin.RouterGroup) {
 	if h.Scope != nil {
 		g = g.Group("", httpx.RequireScope(h.Scope))
 	}
-	g.GET("/dresses/:id/busy-days", h.listAdmin)
-	g.PUT("/dresses/:id/busy-days/:day", h.mark)
-	g.DELETE("/dresses/:id/busy-days/:day", h.unmark)
+	for _, base := range []string{"/dresses", "/items"} {
+		g.GET(base+"/:id/busy-days", h.listAdmin)
+		g.PUT(base+"/:id/busy-days/:day", h.mark)
+		g.DELETE(base+"/:id/busy-days/:day", h.unmark)
+	}
 }
 
 func (h *Handler) window() Window {
@@ -51,7 +57,7 @@ func (h *Handler) listPublic(c *gin.Context) { h.list(c, true) }
 func (h *Handler) listAdmin(c *gin.Context)  { h.list(c, false) }
 
 func (h *Handler) list(c *gin.Context, publicOnly bool) {
-	id, ok := h.dress(c, publicOnly)
+	id, ok := h.listing(c, publicOnly)
 	if !ok {
 		return
 	}
@@ -64,8 +70,8 @@ func (h *Handler) list(c *gin.Context, publicOnly bool) {
 	c.JSON(http.StatusOK, Response{From: formatDay(w.From), To: formatDay(w.To), Days: days})
 }
 
-// dress reads :id and answers 404 unless it names a dress (a visible one when publicOnly).
-func (h *Handler) dress(c *gin.Context, publicOnly bool) (int64, bool) {
+// listing reads :id and answers 404 unless it names a listing (a visible one when publicOnly).
+func (h *Handler) listing(c *gin.Context, publicOnly bool) (int64, bool) {
 	id, ok := httpx.ParseID(c, "id")
 	if !ok {
 		return 0, false
@@ -74,7 +80,7 @@ func (h *Handler) dress(c *gin.Context, publicOnly bool) (int64, bool) {
 	if h.Scope != nil && !publicOnly {
 		shopID = h.Scope(c)
 	}
-	exists, err := dressExists(c.Request.Context(), h.DB, id, publicOnly, shopID)
+	exists, err := listingExists(c.Request.Context(), h.DB, id, publicOnly, shopID)
 	if err != nil {
 		httpx.Abort(c, err)
 		return 0, false
@@ -90,7 +96,7 @@ func (h *Handler) mark(c *gin.Context)   { h.change(c, Mark) }
 func (h *Handler) unmark(c *gin.Context) { h.change(c, Unmark) }
 
 func (h *Handler) change(c *gin.Context, apply func(context.Context, db.DBTX, int64, time.Time) error) {
-	id, ok := h.dress(c, false)
+	id, ok := h.listing(c, false)
 	if !ok {
 		return
 	}

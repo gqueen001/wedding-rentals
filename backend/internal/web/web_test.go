@@ -77,6 +77,21 @@ func TestInjectsOpenGraphForPublishedDress(t *testing.T) {
 	}
 }
 
+func TestInjectsOpenGraphForPublishedItem(t *testing.T) {
+	r, h := setup(t, true)
+	shop := testutil.InsertShop(t, h.DB, testutil.ShopFixture{Name: "Toý Maşyn"})
+	car := testutil.InsertItem(t, h.DB, testutil.ItemFixture{ShopID: shop.ID, Category: "cars", Title: "Ak limuzin", Price: 900})
+	body := testutil.Request(t, r, http.MethodGet, "/items/"+strconv.FormatInt(car, 10), nil, "").Body.String()
+	for _, want := range []string{
+		`<meta property="og:title" content="Ak limuzin · Toý Maşyn">`,
+		`<meta property="og:url" content="https://toy.example/items/` + strconv.FormatInt(car, 10) + `">`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("missing %s in %s", want, body)
+		}
+	}
+}
+
 func TestMissingIndexIs404(t *testing.T) {
 	r, _ := setup(t, false)
 	if rec := testutil.Request(t, r, http.MethodGet, "/dresses", nil, ""); rec.Code != 404 {

@@ -2,6 +2,7 @@ package busydays_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"slices"
 	"strconv"
@@ -194,27 +195,40 @@ func TestDayValidation(t *testing.T) {
 	}
 }
 
-func TestUnknownOrNonDressListing(t *testing.T) {
+func TestUnknownListing(t *testing.T) {
+	e := setup(t)
+	for _, req := range []struct{ method, path string }{
+		{http.MethodGet, path("/api", 999999999, "")},
+		{http.MethodGet, path("/api/admin", 999999999, "")},
+		{http.MethodPut, path("/api/admin", 999999999, "2026-11-14")},
+		{http.MethodDelete, path("/api/admin", 999999999, "2026-11-14")},
+	} {
+		if rec := testutil.Request(t, e.r, req.method, req.path, nil, ""); rec.Code != http.StatusNotFound {
+			t.Errorf("%s %s: status = %d, want 404", req.method, req.path, rec.Code)
+		}
+	}
+}
+
+// Every category has busy days, under /items and (for older links) /dresses alike.
+func TestAnyListingHasBusyDays(t *testing.T) {
 	e := setup(t)
 	shop := testutil.InsertShop(t, e.tx, testutil.ShopFixture{})
-	var bare int64 // a listing with no dress_details row is not a dress
+	var tent int64
 	err := e.tx.QueryRow(context.Background(), `
-		INSERT INTO listings (shop_id, category_id, title, price_manat, is_published)
-		VALUES ($1, (SELECT id FROM categories WHERE slug = 'dresses'), 'No details', 1000, true)
-		RETURNING id`, shop.ID).Scan(&bare)
+		INSERT INTO listings (shop_id, category_id, title, price_manat, is_published, attributes)
+		VALUES ($1, (SELECT id FROM categories WHERE slug = 'tents'), 'Ak çadyr', 5000, true, '{"guests": 150}')
+		RETURNING id`, shop.ID).Scan(&tent)
 	if err != nil {
 		t.Fatal(err)
 	}
-	for name, id := range map[string]int64{"missing": 999999999, "no dress details": bare} {
-		for _, req := range []struct{ method, path string }{
-			{http.MethodGet, path("/api", id, "")},
-			{http.MethodGet, path("/api/admin", id, "")},
-			{http.MethodPut, path("/api/admin", id, "2026-11-14")},
-			{http.MethodDelete, path("/api/admin", id, "2026-11-14")},
-		} {
-			if rec := testutil.Request(t, e.r, req.method, req.path, nil, ""); rec.Code != http.StatusNotFound {
-				t.Errorf("%s: %s %s: status = %d, want 404", name, req.method, req.path, rec.Code)
-			}
+	items := fmt.Sprintf("/api/admin/items/%d/busy-days/2026-11-14", tent)
+	if rec := testutil.Request(t, e.r, http.MethodPut, items, nil, ""); rec.Code != http.StatusNoContent {
+		t.Fatalf("PUT %s: status = %d", items, rec.Code)
+	}
+	for _, p := range []string{fmt.Sprintf("/api/items/%d/busy-days", tent), path("/api", tent, "")} {
+		got := testutil.Decode[busydays.Response](t, testutil.Request(t, e.r, http.MethodGet, p, nil, ""))
+		if len(got.Days) != 1 || got.Days[0] != "2026-11-14" {
+			t.Errorf("GET %s: days = %v", p, got.Days)
 		}
 	}
 }

@@ -13,6 +13,7 @@ import (
 	"wedding-rentals/backend/internal/dresses"
 	"wedding-rentals/backend/internal/httpx"
 	"wedding-rentals/backend/internal/images"
+	"wedding-rentals/backend/internal/items"
 	"wedding-rentals/backend/internal/owners"
 	"wedding-rentals/backend/internal/shops"
 	"wedding-rentals/backend/internal/web"
@@ -52,6 +53,7 @@ func New(d Deps) (*gin.Engine, error) {
 	dressesH := &dresses.Handler{DB: d.DB, Storage: d.Storage}
 	imagesH := &images.Handler{DB: d.DB, Storage: d.Storage}
 	busyH := &busydays.Handler{DB: d.DB}
+	itemsH := &items.Handler{DB: d.DB, Storage: d.Storage}
 	if d.ShopLimiter == nil {
 		d.ShopLimiter = auth.NewLimiter(5, time.Minute)
 	}
@@ -65,6 +67,7 @@ func New(d Deps) (*gin.Engine, error) {
 	shopsH.RegisterPublic(api)
 	dressesH.RegisterPublic(api)
 	busyH.RegisterPublic(api)
+	itemsH.RegisterPublic(api)
 	ownersH.RegisterPublic(api)
 
 	admin := api.Group("/admin", auth.Middleware(d.Tokens))
@@ -72,6 +75,7 @@ func New(d Deps) (*gin.Engine, error) {
 	dressesH.RegisterAdmin(admin)
 	imagesH.RegisterAdmin(admin)
 	busyH.RegisterAdmin(admin)
+	itemsH.RegisterAdmin(admin)
 	ownersH.RegisterAdmin(admin)
 
 	// Shop owners reuse the admin handlers, scoped to their own shop.
@@ -80,6 +84,7 @@ func New(d Deps) (*gin.Engine, error) {
 	(&dresses.Handler{DB: d.DB, Storage: d.Storage, Scope: owners.ShopID}).RegisterAdmin(shop)
 	(&images.Handler{DB: d.DB, Storage: d.Storage, Scope: owners.ShopID}).RegisterAdmin(shop)
 	(&busydays.Handler{DB: d.DB, Scope: owners.ShopID}).RegisterAdmin(shop)
+	(&items.Handler{DB: d.DB, Storage: d.Storage, Scope: owners.ShopID}).RegisterAdmin(shop)
 
 	r.Static("/uploads", d.UploadDir)
 	webH := &web.Handler{Dir: d.WebDir, DB: d.DB, BaseURL: d.BaseURL, ContactPhone: d.ContactPhone}

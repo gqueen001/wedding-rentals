@@ -7,9 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"wedding-rentals/backend/internal/db"
-	"wedding-rentals/backend/internal/dresses"
 	"wedding-rentals/backend/internal/httpx"
 	"wedding-rentals/backend/internal/images"
+	"wedding-rentals/backend/internal/items"
+	"wedding-rentals/backend/internal/listing"
 )
 
 type PublicShop struct {
@@ -21,8 +22,10 @@ type PublicShop struct {
 	TikTokURL    *string         `json:"tiktok_url"`
 	Description  *string         `json:"description"`
 	Logo         *string         `json:"logo"`
-	City         dresses.CityRef `json:"city"`
-	Dresses      dresses.Page    `json:"dresses"`
+	City         listing.CityRef `json:"city"`
+	Items        items.Page      `json:"items"`
+	// Categories the shop has published listings in, for the page's category chips.
+	Categories []string `json:"categories"`
 }
 
 func GetPublicBySlug(ctx context.Context, d db.DBTX, slug string) (PublicShop, error) {
@@ -46,10 +49,10 @@ func GetPublicBySlug(ctx context.Context, d db.DBTX, slug string) (PublicShop, e
 	return s, nil
 }
 
-// getPublic returns the shop and a page of its published dresses
-// (supports the same query params as GET /dresses).
+// getPublic returns the shop and a page of its published listings in every category
+// (supports the same query params as GET /items, including category).
 func (h *Handler) getPublic(c *gin.Context) {
-	f, errs := dresses.ParseFilter(c.Request.URL.Query())
+	f, errs := items.ParseFilter(c.Request.URL.Query())
 	if len(errs) > 0 {
 		httpx.Abort(c, httpx.Validation(errs))
 		return
@@ -61,7 +64,11 @@ func (h *Handler) getPublic(c *gin.Context) {
 		return
 	}
 	f.ShopSlug = s.Slug
-	if s.Dresses, err = dresses.ListPublic(ctx, h.DB, f); err != nil {
+	if s.Items, err = items.ListPublic(ctx, h.DB, f); err != nil {
+		httpx.Abort(c, err)
+		return
+	}
+	if s.Categories, err = items.ShopCategories(ctx, h.DB, s.Slug); err != nil {
 		httpx.Abort(c, err)
 		return
 	}

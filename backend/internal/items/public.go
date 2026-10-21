@@ -3,6 +3,7 @@ package items
 import (
 	"context"
 
+	"wedding-rentals/backend/internal/catalog"
 	"wedding-rentals/backend/internal/db"
 	"wedding-rentals/backend/internal/images"
 	"wedding-rentals/backend/internal/listing"
@@ -83,4 +84,30 @@ func photoURL(path *string) *string {
 	}
 	u := images.URL(*path)
 	return &u
+}
+
+// ShopCategories returns the categories the shop has published listings in, in the
+// catalog's display order.
+func ShopCategories(ctx context.Context, dbx db.DBTX, shopSlug string) ([]string, error) {
+	rows, err := dbx.Query(ctx, `SELECT DISTINCT cat.slug`+publicFrom+`
+		WHERE l.is_published AND s.is_published AND s.slug = $1`, shopSlug)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	has := map[string]bool{}
+	for rows.Next() {
+		var slug string
+		if err := rows.Scan(&slug); err != nil {
+			return nil, err
+		}
+		has[slug] = true
+	}
+	out := []string{}
+	for _, c := range catalog.Categories {
+		if has[c.Slug] {
+			out = append(out, c.Slug)
+		}
+	}
+	return out, rows.Err()
 }
