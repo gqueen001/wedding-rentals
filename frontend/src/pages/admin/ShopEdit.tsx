@@ -1,15 +1,13 @@
 import { A, useNavigate, useParams } from "@solidjs/router";
 import { createEffect, createResource, createSignal, Match, on, Show, Switch } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
-import AliasEditor from "../../components/admin/AliasEditor.tsx";
-import { CheckboxField, FormActions, SelectField, TextArea, TextField } from "../../components/admin/Field.tsx";
+import { CheckboxField, FormActions } from "../../components/admin/Field.tsx";
 import LogoUpload from "../../components/admin/LogoUpload.tsx";
+import ShopFields from "../../components/admin/ShopFields.tsx";
 import ErrorState from "../../components/ErrorState.tsx";
-import { i18n, t } from "../../i18n/i18n.ts";
-import { useCities } from "../../lib/cities.ts";
+import { t } from "../../i18n/i18n.ts";
 import { api } from "../../lib/client.ts";
 import { validationFields } from "../../lib/errors.ts";
-import { cityName } from "../../lib/format.ts";
 import { cleanShopInput, EMPTY_SHOP_INPUT, shopToInput } from "../../lib/forms.ts";
 import { usePageTitle } from "../../lib/title.ts";
 import type { ShopInput } from "../../lib/types.ts";
@@ -25,12 +23,10 @@ function ShopEditor(props: { id: number | null }) {
     const s = shop.state === "ready" ? shop() : undefined;
     if (stamp && s) setForm(reconcile(shopToInput(s)));
   }));
-  const cities = useCities();
   const [errors, setErrors] = createSignal<Record<string, string>>({});
   const [error, setError] = createSignal<unknown>(null);
   const [saving, setSaving] = createSignal(false);
   const [saved, setSaved] = createSignal(false);
-  const err = (field: string) => errors()[field];
   usePageTitle(() => (id() ? form.name || t("admin.edit") : t("admin.new_shop")));
 
   async function save(e: SubmitEvent) {
@@ -65,11 +61,6 @@ function ShopEditor(props: { id: number | null }) {
     }
   }
 
-  const cityOptions = () => [
-    { value: "", label: t("admin.choose") },
-    ...cities().map((c) => ({ value: String(c.id), label: cityName(c, i18n.lang()) })),
-  ];
-
   return (
     <div class="max-w-2xl">
       <A href="/admin/shops" class="text-sm text-silver-ink hover:text-ink">{t("common.back")}</A>
@@ -83,55 +74,7 @@ function ShopEditor(props: { id: number | null }) {
         </Match>
         <Match when={id() === null || shop()}>
           <form class="mt-6 space-y-5 rounded-lg bg-white p-5" novalidate onSubmit={save}>
-            <TextField label={t("shopform.name")} value={form.name} onInput={(v) => setForm("name", v)} error={err("name")} />
-            <SelectField
-              label={t("shopform.city")}
-              value={form.city_id ? String(form.city_id) : ""}
-              options={cityOptions()}
-              onChange={(v) => setForm("city_id", Number(v) || 0)}
-              error={err("city_id")}
-            />
-            <TextField
-              label={t("shopform.address")}
-              value={form.address}
-              onInput={(v) => setForm("address", v)}
-              error={err("address")}
-            />
-            <TextField
-              label={t("shopform.phone")}
-              type="tel"
-              inputmode="tel"
-              value={form.phone}
-              onInput={(v) => setForm("phone", v)}
-              error={err("phone")}
-            />
-            <div class="grid gap-5 sm:grid-cols-2">
-              <TextField
-                label={t("shopform.instagram_url")}
-                type="url"
-                inputmode="url"
-                hint={t("shopform.url_hint")}
-                value={form.instagram_url}
-                onInput={(v) => setForm("instagram_url", v)}
-                error={err("instagram_url")}
-              />
-              <TextField
-                label={t("shopform.tiktok_url")}
-                type="url"
-                inputmode="url"
-                hint={t("shopform.url_hint")}
-                value={form.tiktok_url}
-                onInput={(v) => setForm("tiktok_url", v)}
-                error={err("tiktok_url")}
-              />
-            </div>
-            <TextArea
-              label={t("shopform.description")}
-              value={form.description}
-              onInput={(v) => setForm("description", v)}
-              error={err("description")}
-            />
-            <AliasEditor aliases={form.aliases} onChange={(list) => setForm("aliases", list)} error={err("aliases")} />
+            <ShopFields form={form} setForm={setForm} errors={errors()} />
             <CheckboxField
               label={t("admin.published")}
               hint={t("admin.published_hint")}

@@ -1,7 +1,7 @@
 import { createEffect, createResource, createSignal, Match, Show, Switch } from "solid-js";
 import { t } from "../../i18n/i18n.ts";
 import { ApiError } from "../../lib/api.ts";
-import { api } from "../../lib/client.ts";
+import { useManage } from "../../lib/manage.ts";
 import ErrorState from "../ErrorState.tsx";
 import MonthCalendar, { dayLabel } from "../MonthCalendar.tsx";
 
@@ -14,7 +14,8 @@ const withDay = (set: ReadonlySet<string>, day: string, on: boolean): ReadonlySe
 
 /** Tap a day to mark it busy or free; every tap saves at once and reverts if the save fails. */
 export default function AvailabilityEditor(props: { dressId: number }) {
-  const [data, { refetch }] = createResource(() => props.dressId, (id) => api.admin.busyDays(id));
+  const m = useManage();
+  const [data, { refetch }] = createResource(() => props.dressId, (id) => m.calls.busyDays(id));
   const [busy, setBusy] = createSignal<ReadonlySet<string>>(new Set());
   const [pending, setPending] = createSignal<ReadonlySet<string>>(new Set());
   const [status, setStatus] = createSignal("");
@@ -33,7 +34,7 @@ export default function AvailabilityEditor(props: { dressId: number }) {
     setPending((s) => withDay(s, day, true));
     setFailure("");
     try {
-      await (makeBusy ? api.admin.markBusy(props.dressId, day) : api.admin.markFree(props.dressId, day));
+      await (makeBusy ? m.calls.markBusy(props.dressId, day) : m.calls.markFree(props.dressId, day));
       setStatus(t(makeBusy ? "avail.marked_busy" : "avail.marked_free", { date: dayLabel(day) }));
     } catch (e) {
       setBusy((s) => withDay(s, day, !makeBusy));
