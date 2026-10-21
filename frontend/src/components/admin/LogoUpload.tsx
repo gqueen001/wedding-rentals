@@ -1,7 +1,7 @@
 import { createSignal, Show } from "solid-js";
 import { t, tr } from "../../i18n/i18n.ts";
-import { uploadImage } from "../../lib/client.ts";
 import { errorMessage } from "../../lib/errors.ts";
+import { useManage } from "../../lib/manage.ts";
 import type { Image } from "../../lib/types.ts";
 import ShopLogo from "../ShopLogo.tsx";
 
@@ -11,6 +11,7 @@ export default function LogoUpload(props: {
   logo: Image | null;
   onUploaded: (logo: Image) => void;
 }) {
+  const m = useManage();
   const [progress, setProgress] = createSignal<number | null>(null);
   const [error, setError] = createSignal<unknown>(null);
 
@@ -21,7 +22,7 @@ export default function LogoUpload(props: {
     setError(null);
     setProgress(0);
     try {
-      props.onUploaded(await uploadImage(file, { shopId: props.shopId }, setProgress));
+      props.onUploaded(await m.upload(file, { shopId: props.shopId }, setProgress));
     } catch (err) {
       setError(() => err);
     } finally {

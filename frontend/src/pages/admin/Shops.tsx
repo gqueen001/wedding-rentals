@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router";
-import { createResource, For, Match, Switch } from "solid-js";
+import { createResource, For, Match, Show, Switch } from "solid-js";
 import StatusBadge from "../../components/admin/StatusBadge.tsx";
 import ErrorState from "../../components/ErrorState.tsx";
 import { PlusIcon } from "../../components/icons.tsx";
@@ -50,6 +50,11 @@ export default function AdminShops() {
                           <p class="truncate font-semibold">{s.name}</p>
                           <p class="truncate text-sm text-silver-ink">{city(s.city_id)}</p>
                         </div>
+                        <Show when={s.owner}>
+                          <span class="shrink-0 rounded-full bg-veil px-2.5 py-0.5 text-xs font-semibold text-ink">
+                            {t("owner.badge")}
+                          </span>
+                        </Show>
                         <StatusBadge published={s.is_published} />
                       </A>
                     </li>

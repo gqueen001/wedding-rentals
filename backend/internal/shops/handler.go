@@ -1,6 +1,7 @@
 package shops
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -32,23 +33,33 @@ func (h *Handler) bindInput(c *gin.Context) (Input, bool) {
 	if !httpx.BindJSON(c, &in) {
 		return in, false
 	}
-	in.normalize()
-	errs := in.validate()
-	if _, bad := errs["city_id"]; !bad {
-		var exists bool
-		if err := h.DB.QueryRow(c.Request.Context(), `SELECT EXISTS(SELECT 1 FROM cities WHERE id = $1)`, in.CityID).Scan(&exists); err != nil {
-			httpx.Abort(c, err)
-			return in, false
-		}
-		if !exists {
-			errs["city_id"] = "invalid"
-		}
+	errs, err := Check(c.Request.Context(), h.DB, &in)
+	if err != nil {
+		httpx.Abort(c, err)
+		return in, false
 	}
 	if len(errs) > 0 {
 		httpx.Abort(c, httpx.Validation(errs))
 		return in, false
 	}
 	return in, true
+}
+
+// Check normalizes in and returns its field errors, including whether the city exists.
+// Admins and shop owners save shops through the same rules.
+func Check(ctx context.Context, d db.DBTX, in *Input) (map[string]string, error) {
+	in.normalize()
+	errs := in.validate()
+	if _, bad := errs["city_id"]; !bad {
+		var exists bool
+		if err := d.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM cities WHERE id = $1)`, in.CityID).Scan(&exists); err != nil {
+			return nil, err
+		}
+		if !exists {
+			errs["city_id"] = "invalid"
+		}
+	}
+	return errs, nil
 }
 
 func (h *Handler) list(c *gin.Context) {

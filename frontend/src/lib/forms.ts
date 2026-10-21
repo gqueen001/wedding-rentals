@@ -46,6 +46,12 @@ export function cleanShopInput(f: ShopInput): ShopInput {
   };
 }
 
+/** Where a shop owner goes after signing in: only back into "My shop", never to another site. */
+export function ownerReturnPath(next: string): string {
+  const inside = next === "/shop" || next.startsWith("/shop/") || next.startsWith("/shop?");
+  return inside && !next.startsWith("/shop/login") && !next.startsWith("/shop/signup") ? next : "/shop";
+}
+
 /** Router search params can hold one value or a list; take the first. */
 export function firstParam(v: string | string[] | undefined): string {
   return (Array.isArray(v) ? v[0] : v) ?? "";

@@ -116,8 +116,25 @@ export interface AdminShop {
   is_published: boolean;
   logo: Image | null;
   aliases: string[];
+  /** The shop-owner account that runs this shop, if any. */
+  owner: { id: number; phone: string } | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface SignupInput {
+  shop_name: string;
+  city_id: number;
+  address: string;
+  phone: string;
+  password: string;
+}
+
+/** The signed-in shop owner and their shop. */
+export interface ShopMe {
+  id: number;
+  phone: string;
+  shop: AdminShop;
 }
 
 export interface DressInput {

@@ -24,12 +24,29 @@ var (
 	errInvalidImage = httpx.New(http.StatusUnprocessableEntity, "invalid_image", "file must be a JPEG, PNG or WebP image")
 )
 
+// processSlots caps parallel decodes: a small, highly compressed image can expand to
+// hundreds of MB of pixels, so only a couple may be decoded at once.
+var processSlots = make(chan struct{}, 2)
+
 type Handler struct {
 	DB      db.DBTX
 	Storage Storage
+	// Scope, when set, limits the admin routes to the signed-in shop owner's shop:
+	// only that shop's logo and its own dresses' photos can be changed.
+	Scope func(*gin.Context) int64
+}
+
+func (h *Handler) scope(c *gin.Context) int64 {
+	if h.Scope == nil {
+		return 0
+	}
+	return h.Scope(c)
 }
 
 func (h *Handler) RegisterAdmin(g *gin.RouterGroup) {
+	if h.Scope != nil {
+		g = g.Group("", httpx.RequireScope(h.Scope))
+	}
 	g.POST("/images", h.upload)
 	g.PATCH("/images/order", h.reorder)
 	g.DELETE("/images/:id", h.delete)
@@ -74,7 +91,14 @@ func (h *Handler) upload(c *gin.Context) {
 		httpx.Abort(c, err)
 		return
 	}
+	select {
+	case processSlots <- struct{}{}:
+	case <-ctx.Done():
+		httpx.Abort(c, ctx.Err())
+		return
+	}
 	p, err := Process(data)
+	<-processSlots
 	if errors.Is(err, ErrUnsupported) {
 		httpx.Abort(c, errInvalidImage)
 		return
@@ -114,6 +138,22 @@ func (h *Handler) parseOwner(c *gin.Context) (owner, bool) {
 	if (l > 0) == (s > 0) {
 		httpx.Abort(c, httpx.Validation(map[string]string{"owner": "exactly_one_of_listing_id_or_shop_id"}))
 		return owner{}, false
+	}
+	if scoped := h.scope(c); scoped != 0 {
+		// A shop owner may only add their own logo or photos of their own dresses.
+		var mine bool
+		err := h.DB.QueryRow(c.Request.Context(), `
+			SELECT CASE WHEN $1::bigint > 0 THEN EXISTS(SELECT 1 FROM listings WHERE id = $1 AND shop_id = $3)
+			            ELSE $2::bigint = $3 END`, l, s, scoped).Scan(&mine)
+		if err != nil {
+			httpx.Abort(c, err)
+			return owner{}, false
+		}
+		if !mine {
+			httpx.Abort(c, httpx.ErrNotFound)
+			return owner{}, false
+		}
+		return owner{listingID: l, shopID: s}, true
 	}
 	table, field, id := "listings", "listing_id", l
 	if s > 0 {
@@ -183,6 +223,7 @@ func (h *Handler) reorder(c *gin.Context) {
 		return
 	}
 	ctx := c.Request.Context()
+	scoped := h.scope(c)
 	err := db.InTx(ctx, h.DB, func(tx pgx.Tx) error {
 		var listings, found int
 		var listingID *int64
@@ -194,6 +235,16 @@ func (h *Handler) reorder(c *gin.Context) {
 		}
 		if listings != 1 || found != len(in.IDs) {
 			return invalid
+		}
+		if scoped != 0 {
+			var mine bool
+			if err := tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM listings WHERE id = $1 AND shop_id = $2)`,
+				*listingID, scoped).Scan(&mine); err != nil {
+				return err
+			}
+			if !mine {
+				return httpx.ErrNotFound
+			}
 		}
 		var total int
 		if err := tx.QueryRow(ctx, `SELECT count(*) FROM images WHERE listing_id = $1`, *listingID).Scan(&total); err != nil {
@@ -221,7 +272,11 @@ func (h *Handler) delete(c *gin.Context) {
 		return
 	}
 	var small, large string
-	err := h.DB.QueryRow(c.Request.Context(), `DELETE FROM images WHERE id = $1 RETURNING path_small, path_large`, id).Scan(&small, &large)
+	// For a shop owner, only images of their own shop (its logo or its dresses' photos) match.
+	err := h.DB.QueryRow(c.Request.Context(), `
+		DELETE FROM images WHERE id = $1 AND ($2::bigint = 0
+			OR shop_id = $2 OR listing_id IN (SELECT id FROM listings WHERE shop_id = $2))
+		RETURNING path_small, path_large`, id, h.scope(c)).Scan(&small, &large)
 	if err != nil {
 		httpx.Abort(c, err)
 		return

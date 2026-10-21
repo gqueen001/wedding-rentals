@@ -29,6 +29,8 @@ type Handler struct {
 	Dir     string
 	DB      db.DBTX
 	BaseURL string
+	// ContactPhone, when set, is published to the SPA in a <meta name="wr-contact-phone"> tag.
+	ContactPhone string
 }
 
 var dressPath = regexp.MustCompile(`^/dresses/(\d+)/?$`)
@@ -69,6 +71,10 @@ func (h *Handler) Serve(c *gin.Context) {
 		if id, err := strconv.ParseInt(m[1], 10, 64); err == nil {
 			index = h.injectOG(c.Request.Context(), index, id)
 		}
+	}
+	if h.ContactPhone != "" {
+		tag := `<meta name="wr-contact-phone" content="` + html.EscapeString(h.ContactPhone) + `">` + "\n"
+		index = bytes.Replace(index, []byte("</head>"), []byte(tag+"</head>"), 1)
 	}
 	c.Header("Cache-Control", "no-cache")
 	c.Data(http.StatusOK, "text/html; charset=utf-8", index)

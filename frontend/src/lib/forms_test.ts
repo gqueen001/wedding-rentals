@@ -1,11 +1,11 @@
 import { assertEquals } from "@std/assert";
-import { cleanShopInput, EMPTY_SHOP_INPUT, firstParam, shopToInput } from "./forms.ts";
+import { cleanShopInput, EMPTY_SHOP_INPUT, firstParam, ownerReturnPath, shopToInput } from "./forms.ts";
 import type { AdminShop } from "./types.ts";
 
 const shop: AdminShop = {
   id: 3, slug: "ak-gelin", name: "Ak Gelin", city_id: 2, address: "Mary", phone: "+99365",
   instagram_url: null, tiktok_url: "https://tiktok.com/@akgelin", description: null, is_published: true,
-  logo: null, aliases: ["Ак Гелин"], created_at: "2026-10-19T00:00:00Z", updated_at: "2026-10-19T00:00:00Z",
+  logo: null, aliases: ["Ак Гелин"], owner: null, created_at: "2026-10-19T00:00:00Z", updated_at: "2026-10-19T00:00:00Z",
 };
 
 Deno.test("shopToInput turns null fields into empty strings", () => {
@@ -60,4 +60,13 @@ Deno.test("dressToForm and dressFormToInput round-trip a saved dress", () => {
     shop_id: 2, title: "Lale", price_manat: 2400, price_is_from: true, description: "", is_published: true,
     color: "blush", silhouette: "mermaid", sleeves: "long", sizes: ["S", "M"],
   });
+});
+
+Deno.test("ownerReturnPath stays inside My shop", () => {
+  for (const path of ["/shop", "/shop/dresses/4", "/shop/dresses/new", "/shop?x=1"]) {
+    assertEquals(ownerReturnPath(path), path);
+  }
+  for (const path of ["", "/shops/ak-gelin", "/shopping", "/admin/shops", "https://evil.example/shop", "//evil.example", "/shop/login", "/shop/signup"]) {
+    assertEquals(ownerReturnPath(path), "/shop", path);
+  }
 });

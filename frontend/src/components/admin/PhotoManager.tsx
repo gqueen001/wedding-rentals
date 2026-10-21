@@ -1,8 +1,8 @@
 import { createSignal, For, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { t, tr } from "../../i18n/i18n.ts";
-import { api, uploadImage } from "../../lib/client.ts";
 import { errorMessage } from "../../lib/errors.ts";
+import { useManage } from "../../lib/manage.ts";
 import type { Image } from "../../lib/types.ts";
 import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, TrashIcon } from "../icons.tsx";
 
@@ -23,6 +23,7 @@ export default function PhotoManager(props: {
   images: Image[];
   onChange: (images: Image[]) => void;
 }) {
+  const m = useManage();
   const [uploads, setUploads] = createStore<Upload[]>([]);
   const [dragging, setDragging] = createSignal<number | null>(null);
   const [dropActive, setDropActive] = createSignal(false);
@@ -54,7 +55,7 @@ export default function PhotoManager(props: {
       setUploads(uploads.length, { key, name: file.name, progress: 0, error: null });
       queue = queue.then(async () => {
         try {
-          const img = await uploadImage(
+          const img = await m.upload(
             file,
             { listingId: props.listingId },
             (p) => setUploads((u) => u.key === key, "progress", p),
@@ -78,7 +79,7 @@ export default function PhotoManager(props: {
     setError(null);
     setWorking(true);
     try {
-      await api.admin.reorderImages(next.map((i) => i.id));
+      await m.calls.reorderImages(next.map((i) => i.id));
       setStatus(t("photos.moved", { n: to + 1 }));
       if (action) focusTile(to, action);
     } catch (err) {
@@ -95,7 +96,7 @@ export default function PhotoManager(props: {
     setError(null);
     setWorking(true);
     try {
-      await api.admin.deleteImage(img.id);
+      await m.calls.deleteImage(img.id);
       props.onChange(props.images.filter((i) => i.id !== img.id));
       setStatus(t("photos.deleted"));
       focusTile(index, "delete");

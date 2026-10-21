@@ -85,3 +85,15 @@ func BindJSON(c *gin.Context, dst any) bool {
 	}
 	return true
 }
+
+// RequireScope fails closed for scoped handlers: when scope returns no positive shop id,
+// the request is refused instead of being treated as unrestricted admin access.
+func RequireScope(scope func(*gin.Context) int64) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if scope(c) <= 0 {
+			Abort(c, New(http.StatusUnauthorized, "unauthorized", "login required"))
+			return
+		}
+		c.Next()
+	}
+}

@@ -4,11 +4,15 @@ import type { Image } from "./types.ts";
 export type UploadOwner = { listingId: number } | { shopId: number };
 
 export interface UploadDeps {
+  /** The upload endpoint, e.g. "/api/admin/images". */
+  path: string;
   token: () => string | null;
   onUnauthorized: () => void;
 }
 
 const UPLOAD_TIMEOUT_MS = 180_000;
+
+export type Uploader = ReturnType<typeof createUploader>;
 
 /** Uploads one photo with XMLHttpRequest, because fetch cannot report upload progress. */
 export function createUploader(deps: UploadDeps) {
@@ -20,7 +24,7 @@ export function createUploader(deps: UploadDeps) {
       else form.append("shop_id", String(owner.shopId));
 
       const xhr = new XMLHttpRequest();
-      xhr.open("POST", "/api/admin/images");
+      xhr.open("POST", deps.path);
       const token = deps.token();
       if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
       xhr.upload.onprogress = (e) => {

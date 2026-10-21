@@ -159,3 +159,54 @@ Deno.test("busy days: public and admin reads, and marking a day busy or free", a
   assertEquals((calls[0].init.headers as Record<string, string>).Authorization, undefined);
   assertEquals((calls[2].init.headers as Record<string, string>).Authorization, "Bearer tok");
 });
+
+Deno.test("owner sign-up and sign-in send no token and return the token", async () => {
+  const { api, calls } = setup(() => json(200, { token: "shop-jwt" }));
+  const input = { shop_name: "Ak Gelin", city_id: 1, address: "Aşgabat", phone: "65123456", password: "long-enough-1" };
+  assertEquals(await api.owner.signup(input), "shop-jwt");
+  assertEquals(await api.owner.login("65123456", "long-enough-1"), "shop-jwt");
+  assertEquals(calls.map((c) => `${c.init.method} ${c.url}`), ["POST /api/shop/signup", "POST /api/shop/login"]);
+  assertEquals(JSON.parse(String(calls[0].init.body)), input);
+  assertEquals(JSON.parse(String(calls[1].init.body)), { phone: "65123456", password: "long-enough-1" });
+  for (const c of calls) assertEquals((c.init.headers as Record<string, string>).Authorization, undefined);
+});
+
+Deno.test("a failed owner sign-in does not trigger onUnauthorized, an expired owner session does", async () => {
+  const s = setup(() => json(401, { error: { code: "invalid_credentials", message: "wrong" } }));
+  await assertRejects(() => s.api.owner.login("65123456", "x"), ApiError);
+  assertEquals(s.unauthorized(), 0);
+  await assertRejects(() => s.api.owner.me(), ApiError);
+  assertEquals(s.unauthorized(), 1);
+});
+
+Deno.test("owner calls go to /api/shop with the bearer token", async () => {
+  const { api, calls } = setup((_url, init) =>
+    init.method === "GET" ? json(200, { items: [] }) : new Response(null, { status: 204 })
+  );
+  await api.owner.me();
+  await api.owner.updateShop(shopInput);
+  await api.owner.dresses();
+  await api.owner.deleteDress(5);
+  await api.owner.reorderImages([2, 1]);
+  await api.owner.deleteImage(9);
+  await api.owner.markBusy(5, "2026-11-14");
+  await api.owner.markFree(5, "2026-11-14");
+  assertEquals(calls.map((c) => `${c.init.method} ${c.url}`), [
+    "GET /api/shop/me",
+    "PUT /api/shop/me/shop",
+    "GET /api/shop/dresses",
+    "DELETE /api/shop/dresses/5",
+    "PATCH /api/shop/images/order",
+    "DELETE /api/shop/images/9",
+    "PUT /api/shop/dresses/5/busy-days/2026-11-14",
+    "DELETE /api/shop/dresses/5/busy-days/2026-11-14",
+  ]);
+  for (const c of calls) assertEquals((c.init.headers as Record<string, string>).Authorization, "Bearer tok");
+});
+
+Deno.test("an admin sets a shop owner's password", async () => {
+  const { api, calls } = setup(() => new Response(null, { status: 204 }));
+  assertEquals(await api.admin.setOwnerPassword(4, "brand-new-pass"), undefined);
+  assertEquals(`${calls[0].init.method} ${calls[0].url}`, "POST /api/admin/shops/4/owner-password");
+  assertEquals(JSON.parse(String(calls[0].init.body)), { password: "brand-new-pass" });
+});

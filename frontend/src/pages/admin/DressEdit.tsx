@@ -6,19 +6,23 @@ import { CheckboxField, FormActions, SelectField, TextArea, TextField } from "..
 import PhotoManager from "../../components/admin/PhotoManager.tsx";
 import ErrorState from "../../components/ErrorState.tsx";
 import { t, tr } from "../../i18n/i18n.ts";
-import { api } from "../../lib/client.ts";
 import { fieldMessage, validationFields } from "../../lib/errors.ts";
 import { type DressForm, dressFormToInput, dressToForm, EMPTY_DRESS_FORM, firstParam } from "../../lib/forms.ts";
+import { useManage } from "../../lib/manage.ts";
 import { usePageTitle } from "../../lib/title.ts";
 import { COLORS, SILHOUETTES, SIZES, SLEEVES } from "../../lib/types.ts";
 
-/** The editor for one dress (or a new one); remounted per dress by DressEdit below. */
+/**
+ * The editor for one dress (or a new one); remounted per dress by DressEdit below.
+ * Admins and shop owners share it: useManage() says where it saves and links to.
+ */
 function DressEditor(props: { id: number | null }) {
+  const m = useManage();
   const navigate = useNavigate();
   const [search] = useSearchParams();
   const id = () => props.id;
-  const [dress, { mutate, refetch }] = createResource(id, (dressId) => api.admin.dress(dressId));
-  const [shops] = createResource(() => api.admin.shops());
+  const [dress, { mutate, refetch }] = createResource(id, (dressId) => m.calls.dress(dressId));
+  const [shops] = createResource(() => m.shops?.() ?? Promise.resolve([]));
   const [form, setForm] = createStore<DressForm>({
     ...EMPTY_DRESS_FORM,
     sizes: [],
@@ -45,10 +49,10 @@ function DressEditor(props: { id: number | null }) {
     try {
       const input = dressFormToInput({ ...form, sizes: [...form.sizes] });
       const current = id();
-      const result = current ? await api.admin.updateDress(current, input) : await api.admin.createDress(input);
+      const result = current ? await m.calls.updateDress(current, input) : await m.calls.createDress(input);
       setSaved(true);
       if (current) mutate((prev) => ({ ...result, images: prev?.images ?? result.images }));
-      else navigate(`/admin/dresses/${result.id}`, { replace: true });
+      else navigate(m.dressHref(result.id), { replace: true });
     } catch (e) {
       setErrors(validationFields(e));
       setError(() => e);
@@ -61,8 +65,8 @@ function DressEditor(props: { id: number | null }) {
     const current = id();
     if (!current || !confirm(t("admin.delete_dress_confirm"))) return;
     try {
-      await api.admin.deleteDress(current);
-      navigate(`/admin/dresses?shop_id=${form.shop_id}`, { replace: true });
+      await m.calls.deleteDress(current);
+      navigate(m.dressesHref(form.shop_id), { replace: true });
     } catch (e) {
       setError(() => e);
     }
@@ -76,7 +80,7 @@ function DressEditor(props: { id: number | null }) {
 
   return (
     <div class="max-w-2xl">
-      <A href="/admin/dresses" class="text-sm text-silver-ink hover:text-ink">{t("common.back")}</A>
+      <A href={m.dressesHref()} class="text-sm text-silver-ink hover:text-ink">{t("common.back")}</A>
       <h1 class="mt-2 text-3xl">{id() ? form.title || t("admin.edit") : t("admin.new_dress")}</h1>
       <Switch>
         <Match when={dress.error}>
@@ -87,13 +91,15 @@ function DressEditor(props: { id: number | null }) {
         </Match>
         <Match when={id() === null || dress()}>
           <form class="mt-6 space-y-5 rounded-lg bg-white p-5" novalidate onSubmit={save}>
-            <SelectField
-              label={t("admin.shop")}
-              value={form.shop_id ? String(form.shop_id) : ""}
-              options={shopOptions()}
-              onChange={(v) => setForm("shop_id", Number(v) || 0)}
-              error={err("shop_id")}
-            />
+            <Show when={m.shops}>
+              <SelectField
+                label={t("admin.shop")}
+                value={form.shop_id ? String(form.shop_id) : ""}
+                options={shopOptions()}
+                onChange={(v) => setForm("shop_id", Number(v) || 0)}
+                error={err("shop_id")}
+              />
+            </Show>
             <TextField
               label={t("dressform.title")}
               value={form.title}
@@ -213,7 +219,10 @@ function DressEditor(props: { id: number | null }) {
   );
 }
 
-/** Both /admin/dresses/new (optionally ?shop_id=) and /admin/dresses/:id; a fresh editor per dress. */
+/**
+ * /admin/dresses/new (optionally ?shop_id=), /admin/dresses/:id, /shop/dresses/new and
+ * /shop/dresses/:id; a fresh editor per dress.
+ */
 export default function DressEdit() {
   const params = useParams();
   return (

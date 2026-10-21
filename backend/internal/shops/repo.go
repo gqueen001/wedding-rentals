@@ -15,24 +15,31 @@ const selectShop = `
 	SELECT s.id, s.slug, s.name, s.city_id, s.address, s.phone, s.instagram_url, s.tiktok_url,
 	       s.description, s.is_published, s.created_at, s.updated_at,
 	       COALESCE((SELECT array_agg(a.alias ORDER BY a.id) FROM shop_aliases a WHERE a.shop_id = s.id), '{}'),
-	       li.id, li.position, li.path_small, li.path_large, li.width, li.height
+	       li.id, li.position, li.path_small, li.path_large, li.width, li.height,
+	       o.id, o.phone
 	FROM shops s
-	LEFT JOIN images li ON li.id = s.logo_image_id`
+	LEFT JOIN images li ON li.id = s.logo_image_id
+	LEFT JOIN shop_owners o ON o.shop_id = s.id`
 
 func scanShop(row pgx.Row) (Shop, error) {
 	var s Shop
 	var logoID *int64
 	var logoPos, logoW, logoH *int
 	var logoSmall, logoLarge *string
+	var ownerID *int64
+	var ownerPhone *string
 	err := row.Scan(&s.ID, &s.Slug, &s.Name, &s.CityID, &s.Address, &s.Phone, &s.InstagramURL, &s.TikTokURL,
 		&s.Description, &s.IsPublished, &s.CreatedAt, &s.UpdatedAt, &s.Aliases,
-		&logoID, &logoPos, &logoSmall, &logoLarge, &logoW, &logoH)
+		&logoID, &logoPos, &logoSmall, &logoLarge, &logoW, &logoH, &ownerID, &ownerPhone)
 	if err != nil {
 		return Shop{}, err
 	}
 	if logoID != nil {
 		s.Logo = &images.Image{ID: *logoID, Position: *logoPos, Small: images.URL(*logoSmall),
 			Large: images.URL(*logoLarge), Width: *logoW, Height: *logoH}
+	}
+	if ownerID != nil {
+		s.Owner = &Owner{ID: *ownerID, Phone: *ownerPhone}
 	}
 	return s, nil
 }
@@ -59,13 +66,24 @@ func Create(ctx context.Context, d db.DBTX, in Input) (int64, error) {
 
 // Update changes everything except the slug, which stays stable for shared links.
 func Update(ctx context.Context, d db.DBTX, id int64, in Input) error {
+	return update(ctx, d, id, in, true)
+}
+
+// UpdateDetails is for shop owners, who cannot publish or hide their shop: it changes
+// everything Update does except is_published, which stays as it is in the row.
+func UpdateDetails(ctx context.Context, d db.DBTX, id int64, in Input) error {
+	return update(ctx, d, id, in, false)
+}
+
+func update(ctx context.Context, d db.DBTX, id int64, in Input, setPublished bool) error {
 	return db.InTx(ctx, d, func(tx pgx.Tx) error {
 		tag, err := tx.Exec(ctx, `
 			UPDATE shops SET name = $2, city_id = $3, address = $4, phone = $5, instagram_url = $6,
-			       tiktok_url = $7, description = $8, is_published = $9, updated_at = now()
+			       tiktok_url = $7, description = $8,
+			       is_published = CASE WHEN $10 THEN $9 ELSE is_published END, updated_at = now()
 			WHERE id = $1`,
 			id, in.Name, in.CityID, in.Address, in.Phone, nullIfEmpty(in.InstagramURL),
-			nullIfEmpty(in.TikTokURL), nullIfEmpty(in.Description), in.IsPublished)
+			nullIfEmpty(in.TikTokURL), nullIfEmpty(in.Description), in.IsPublished, setPublished)
 		if err != nil {
 			return err
 		}

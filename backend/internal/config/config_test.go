@@ -15,6 +15,7 @@ func setBase(t *testing.T) {
 	t.Setenv("PORT", "")
 	t.Setenv("PUBLIC_BASE_URL", "")
 	t.Setenv("TRUSTED_PROXIES", "")
+	t.Setenv("CONTACT_PHONE", "")
 }
 
 func TestLoadDefaults(t *testing.T) {
@@ -62,5 +63,18 @@ func TestLoadTrustedProxies(t *testing.T) {
 	t.Setenv("TRUSTED_PROXIES", "10.0.0.1,not-an-ip")
 	if _, err := config.Load(); err == nil {
 		t.Fatal("expected error for invalid proxy entry")
+	}
+}
+
+func TestLoadContactPhone(t *testing.T) {
+	setBase(t)
+	c, err := config.Load()
+	if err != nil || c.ContactPhone != "" {
+		t.Fatalf("empty: %+v %v", c, err)
+	}
+	t.Setenv("CONTACT_PHONE", "  +993 12 34 56 78 ")
+	c, err = config.Load()
+	if err != nil || c.ContactPhone != "+993 12 34 56 78" {
+		t.Fatalf("set: %q %v", c.ContactPhone, err)
 	}
 }

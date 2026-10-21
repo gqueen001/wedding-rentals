@@ -34,8 +34,15 @@ type Shop struct {
 	IsPublished  bool          `json:"is_published"`
 	Logo         *images.Image `json:"logo"`
 	Aliases      []string      `json:"aliases"`
+	Owner        *Owner        `json:"owner"`
 	CreatedAt    time.Time     `json:"created_at"`
 	UpdatedAt    time.Time     `json:"updated_at"`
+}
+
+// Owner is the shop-owner account that manages a shop, if it has one.
+type Owner struct {
+	ID    int64  `json:"id"`
+	Phone string `json:"phone"`
 }
 
 var phoneRe = regexp.MustCompile(`^\+?[0-9 ()-]{6,20}$`)
