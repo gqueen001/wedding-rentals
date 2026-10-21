@@ -72,6 +72,7 @@ The response's error envelope is the existing one. Field errors use the key `att
   - A row of five category buttons, each with a simple icon: Köýnekler (to `/dresses`), Maşynlar, Milli eşikler, Çadyrlar and Maşyn bezegleri (each to `/c/<slug>`).
   - The "New" section shows the newest published items from **all** categories.
   - The search box goes to `/search?q=`.
+  - The city picker still opens the dress list for that city, as before.
 - **Category page `/c/:slug`:** the same grid and "Show more" paging as the dress list.
   - **Filters:** city, price from and to, and the category's filters from §4. A choice filter takes one value, like the dress filters. A number filter is "at least N".
   - **Unknown slug:** an unknown category, or `dresses`, which has its own page, shows the not-found page.
@@ -80,15 +81,15 @@ The response's error envelope is the existing one. Field errors use the key `att
   - It also has the description, the busy/free calendar, the shop card with Call, Instagram and TikTok, favorite and share.
   - **Dresses:** a dress opened at `/items/:id` redirects to `/dresses/:id`.
   - **Link previews:** shared links to `/items/:id` get Open Graph tags, like dress links.
-- **Search `/search?q=`:** finds items from all categories with the existing matching. It searches the title, the shop name and the shop aliases, ignores Turkmen letters versus plain Latin, and tolerates misspellings. Category chips ("All", then each category that has results) narrow the results.
+- **Search `/search?q=`:** finds items from all categories with the existing matching. It searches the title, the shop name and the shop aliases, ignores Turkmen letters versus plain Latin, and tolerates misspellings. Category chips ("All", then every category) narrow the results.
 - **Tiles everywhere:** item tiles link to `/dresses/:id` for dresses and `/items/:id` for everything else. Prices show the car unit.
 - **Favorites:** any listing can be a favorite. Listing ids are unique across categories, so the stored ids stay as they are. The favorites page loads them through the all-category list.
-- **Shop page `/shops/:slug`:** shows all of the shop's published items, with category chips. A chip appears only for categories the shop has.
+- **Shop page `/shops/:slug`:** shows all of the shop's published items. When the shop has more than one category, chips ("All", then each category it has) narrow the list.
 
 ## 6. What shops and admins see
 
 - **Listing lists:**
-  - **Admin:** the "Dresses" menu becomes **"Listings"**. It shows all categories, with a category filter next to the existing shop filter.
+  - **Admin:** the "Dresses" menu becomes **"Listings"** (`/admin/listings`). It shows all categories, with a category filter next to the existing shop filter. The old `/admin/dresses` link opens Listings filtered to dresses.
   - **My shop:** "My dresses" becomes **"My listings"**.
   - **Rows:** each row shows a small category label.
 - **New listing:** "New listing" first asks for the category.
@@ -109,11 +110,10 @@ All responses use the existing error envelope.
 
 | Method and path | Result |
 |---|---|
-| `GET /api/categories` | `{items: [{slug, name_tk, name_ru, name_en}]}` in a fixed order (dresses first). |
 | `GET /api/items` | A page of published listings from published shops, in all categories or `category=<slug>`. Parameters: `q`, `city`, `price_min`, `price_max`, `ids`, `page`, `per_page`, plus the category's filters (§4) when `category` is a non-dress category. An unknown category or filter value gives 400 `validation_failed`. Each item is the existing list item plus `category` (slug) and `attributes`; for dresses, `attributes` is `{}`. |
 | `GET /api/items/:id` | One published item: the list fields plus description, all images, the shop card, `category` and `attributes`. A dress answers with `category: "dresses"`, so the frontend can redirect. |
-| `GET /api/items/:id/busy-days` | The same contract as `/api/dresses/:id/busy-days`, for any published listing. |
-| `GET /api/shops/:slug` | Now returns `items` (a page of all the shop's published items, accepting `category`) in place of `dresses`. |
+| `GET /api/items/:id/busy-days` | The same contract as `/api/dresses/:id/busy-days`, for any published listing. Both paths now accept any listing. |
+| `GET /api/shops/:slug` | Now returns `items` (a page of all the shop's published items, accepting `category`) in place of `dresses`, plus `categories`: the slugs of the categories it has published items in, in display order. |
 
 ### 7.2 Admin (`/api/admin`) and shop owner (`/api/shop`)
 
@@ -124,9 +124,9 @@ Both prefixes have the same routes. Under `/api/shop`, everything is scoped to t
 | `GET /items` | All of the shop's listings in every category, including dresses, for the lists in §6. Admins may filter by `shop_id` and `category`. |
 | `POST /items` | Creates a non-dress item. The body has `{shop_id, category, title, price_manat, price_is_from, description, is_published, attributes}`. `category: "dresses"` gives `category: "invalid"`, because dresses keep `/dresses`. Owners' `shop_id` is ignored. |
 | `GET/PUT/DELETE /items/:id` | A non-dress item. A dress id answers 404 here. `PUT` cannot change `category`. `DELETE` removes the photos (files too) and the busy days, as for dresses. |
-| `GET /items/:id/busy-days`, `PUT/DELETE /items/:id/busy-days/:day` | The existing busy-days contract, for any listing (dresses included). |
+| `GET /items/:id/busy-days`, `PUT/DELETE /items/:id/busy-days/:day` | The existing busy-days contract, for any listing (dresses included). The editors use these paths for every category. |
 
-The images endpoints already work for any listing. They are unchanged.
+The images endpoints already work for any listing. They are unchanged. `DELETE /dresses/:id` now answers 404 for a non-dress listing, as `GET` and `PUT` already did.
 
 ## 8. Code structure
 
@@ -142,7 +142,11 @@ The images endpoints already work for any listing. They are unchanged.
   - `ParseFilters(slug, query)`, which returns SQL conditions on `attributes` and the field errors.
   - **Field-definitions file for the frontend:** a golden-file test writes the definitions to `frontend/src/lib/catalog.json` with `-update`, and fails when the file is out of date.
 - **`internal/items`, a new package:** the public list and get, and the admin and shop CRUD, with the same `Scope` pattern as dresses (fail-closed `RequireScope`).
-  - **Shared code with dresses:** the search condition and its ranking, the city/price/ids filters and the page size move into a small shared helper that both packages use. The dress behaviour stays the same, which the existing dress tests prove.
+  - **Shared code with dresses:** a new `internal/listing` package holds what both use:
+    - the public card types and the page type;
+    - the browse query (city, price, ids, paging), the search condition and its ranking;
+    - the basic field checks, the shop-exists check, the `?shop_id=` parameter and the ownership check.
+    The dress behaviour stays the same, which the existing dress tests prove.
 - **`internal/busydays`:**
   - `dressExists` becomes `listingExists`, which accepts any listing;
   - the routes are also registered under `/items/:id/busy-days`.
@@ -158,7 +162,7 @@ The images endpoints already work for any listing. They are unchanged.
     - options from `attr.<slug>.<key>.<option>`;
     - the price units from `price.per_hour` and `price.per_day`.
   - **i18n test:** it checks that every one of these keys exists in tk, ru and en.
-- **API client:** it gains `categories`, `items`, `item`, `itemBusyDays`, and the item CRUD in the shared `manage(base)` set.
+- **API client:** it gains `items`, `item`, and `listings` plus the item create, read, update and delete in the shared `manage(base)` set. Busy days use the `/items/:id/busy-days` paths for every listing.
 - **New components:**
   - `CategoryBar`, with icons;
   - `ItemFilters`, the generic filter sheet built from the definitions;
