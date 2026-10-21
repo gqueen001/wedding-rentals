@@ -46,7 +46,6 @@ function Day(props: DayProps) {
       <button
         type="button"
         classList={{ ...look(), "hover:bg-veil": !props.busy }}
-        aria-pressed={props.busy}
         aria-busy={props.pending}
         aria-label={`${label()}. ${t(props.busy ? "avail.mark_free" : "avail.mark_busy")}`}
         onClick={() => {
