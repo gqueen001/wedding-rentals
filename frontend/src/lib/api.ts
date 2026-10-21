@@ -1,4 +1,6 @@
-import type { AdminDress, AdminShop, BusyDays, City, DressInput, Page, PublicDress, PublicShop, ShopInput } from "./types.ts";
+import type {
+  AdminDress, AdminShop, BusyDays, City, DressInput, Page, PublicDress, PublicShop, ShopInput, ShopMe, SignupInput,
+} from "./types.ts";
 
 export class ApiError extends Error {
   readonly status: number;
@@ -93,7 +95,31 @@ export function createApi(deps: ApiDeps) {
     }
   }
 
-  const admin = { auth: true } as const;
+  const signedIn = { auth: true } as const;
+
+  /** Dresses, photos and busy days: the same calls under /api/admin and /api/shop. */
+  function manage(base: string) {
+    return {
+      dresses: (shopId?: number) =>
+        request<{ items: AdminDress[] }>(
+          "GET",
+          withQuery(`${base}/dresses`, shopId ? new URLSearchParams({ shop_id: String(shopId) }) : undefined),
+          signedIn,
+        ).then((r) => r.items),
+      dress: (id: number) => request<AdminDress>("GET", `${base}/dresses/${id}`, signedIn),
+      createDress: (input: DressInput) => request<AdminDress>("POST", `${base}/dresses`, { ...signedIn, body: input }),
+      updateDress: (id: number, input: DressInput) =>
+        request<AdminDress>("PUT", `${base}/dresses/${id}`, { ...signedIn, body: input }),
+      deleteDress: (id: number) => request<void>("DELETE", `${base}/dresses/${id}`, signedIn),
+      reorderImages: (ids: number[]) => request<void>("PATCH", `${base}/images/order`, { ...signedIn, body: { ids } }),
+      deleteImage: (id: number) => request<void>("DELETE", `${base}/images/${id}`, signedIn),
+      busyDays: (dressId: number) => request<BusyDays>("GET", `${base}/dresses/${dressId}/busy-days`, signedIn),
+      markBusy: (dressId: number, day: string) =>
+        request<void>("PUT", `${base}/dresses/${dressId}/busy-days/${day}`, signedIn),
+      markFree: (dressId: number, day: string) =>
+        request<void>("DELETE", `${base}/dresses/${dressId}/busy-days/${day}`, signedIn),
+    };
+  }
 
   return {
     cities: () => request<{ items: City[] }>("GET", "/api/cities").then((r) => r.items),
@@ -105,32 +131,29 @@ export function createApi(deps: ApiDeps) {
     login: (email: string, password: string) =>
       request<{ token: string }>("POST", "/api/admin/login", { body: { email, password } }).then((r) => r.token),
     admin: {
-      shops: () => request<{ items: AdminShop[] }>("GET", "/api/admin/shops", admin).then((r) => r.items),
-      shop: (id: number) => request<AdminShop>("GET", `/api/admin/shops/${id}`, admin),
-      createShop: (input: ShopInput) => request<AdminShop>("POST", "/api/admin/shops", { ...admin, body: input }),
+      shops: () => request<{ items: AdminShop[] }>("GET", "/api/admin/shops", signedIn).then((r) => r.items),
+      shop: (id: number) => request<AdminShop>("GET", `/api/admin/shops/${id}`, signedIn),
+      createShop: (input: ShopInput) => request<AdminShop>("POST", "/api/admin/shops", { ...signedIn, body: input }),
       updateShop: (id: number, input: ShopInput) =>
-        request<AdminShop>("PUT", `/api/admin/shops/${id}`, { ...admin, body: input }),
-      deleteShop: (id: number) => request<void>("DELETE", `/api/admin/shops/${id}`, admin),
-      dresses: (shopId?: number) =>
-        request<{ items: AdminDress[] }>(
-          "GET",
-          withQuery("/api/admin/dresses", shopId ? new URLSearchParams({ shop_id: String(shopId) }) : undefined),
-          admin,
-        ).then((r) => r.items),
-      dress: (id: number) => request<AdminDress>("GET", `/api/admin/dresses/${id}`, admin),
-      createDress: (input: DressInput) => request<AdminDress>("POST", "/api/admin/dresses", { ...admin, body: input }),
-      updateDress: (id: number, input: DressInput) =>
-        request<AdminDress>("PUT", `/api/admin/dresses/${id}`, { ...admin, body: input }),
-      deleteDress: (id: number) => request<void>("DELETE", `/api/admin/dresses/${id}`, admin),
-      reorderImages: (ids: number[]) => request<void>("PATCH", "/api/admin/images/order", { ...admin, body: { ids } }),
-      deleteImage: (id: number) => request<void>("DELETE", `/api/admin/images/${id}`, admin),
-      busyDays: (dressId: number) => request<BusyDays>("GET", `/api/admin/dresses/${dressId}/busy-days`, admin),
-      markBusy: (dressId: number, day: string) =>
-        request<void>("PUT", `/api/admin/dresses/${dressId}/busy-days/${day}`, admin),
-      markFree: (dressId: number, day: string) =>
-        request<void>("DELETE", `/api/admin/dresses/${dressId}/busy-days/${day}`, admin),
+        request<AdminShop>("PUT", `/api/admin/shops/${id}`, { ...signedIn, body: input }),
+      deleteShop: (id: number) => request<void>("DELETE", `/api/admin/shops/${id}`, signedIn),
+      setOwnerPassword: (shopId: number, password: string) =>
+        request<void>("POST", `/api/admin/shops/${shopId}/owner-password`, { ...signedIn, body: { password } }),
+      ...manage("/api/admin"),
+    },
+    /** A shop owner's own account; every call acts on the signed-in owner's shop only. */
+    owner: {
+      signup: (input: SignupInput) =>
+        request<{ token: string }>("POST", "/api/shop/signup", { body: input }).then((r) => r.token),
+      login: (phone: string, password: string) =>
+        request<{ token: string }>("POST", "/api/shop/login", { body: { phone, password } }).then((r) => r.token),
+      me: () => request<ShopMe>("GET", "/api/shop/me", signedIn),
+      updateShop: (input: ShopInput) => request<AdminShop>("PUT", "/api/shop/me/shop", { ...signedIn, body: input }),
+      ...manage("/api/shop"),
     },
   };
 }
 
 export type Api = ReturnType<typeof createApi>;
+/** The calls the shared dress, photo and calendar editors make, for an admin or an owner. */
+export type ManageCalls = Omit<Api["owner"], "signup" | "login" | "me" | "updateShop">;

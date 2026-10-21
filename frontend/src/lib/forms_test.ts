@@ -5,7 +5,7 @@ import type { AdminShop } from "./types.ts";
 const shop: AdminShop = {
   id: 3, slug: "ak-gelin", name: "Ak Gelin", city_id: 2, address: "Mary", phone: "+99365",
   instagram_url: null, tiktok_url: "https://tiktok.com/@akgelin", description: null, is_published: true,
-  logo: null, aliases: ["Ак Гелин"], created_at: "2026-10-19T00:00:00Z", updated_at: "2026-10-19T00:00:00Z",
+  logo: null, aliases: ["Ак Гелин"], owner: null, created_at: "2026-10-19T00:00:00Z", updated_at: "2026-10-19T00:00:00Z",
 };
 
 Deno.test("shopToInput turns null fields into empty strings", () => {

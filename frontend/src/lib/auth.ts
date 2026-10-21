@@ -1,7 +1,7 @@
 import { type Accessor, createSignal } from "solid-js";
 import { type KV, safeKV } from "./storage.ts";
 
-const TOKEN_KEY = "wr.admin_token";
+const ADMIN_TOKEN_KEY = "wr.admin_token";
 
 export interface Auth {
   token: Accessor<string | null>;
@@ -9,16 +9,17 @@ export interface Auth {
   clear(): void;
 }
 
-export function createAuth(kv: KV): Auth {
-  const [token, setToken] = createSignal<string | null>(kv.get(TOKEN_KEY));
+/** A signed-in session kept in storage under key; admins and shop owners each have their own. */
+export function createAuth(kv: KV, key = ADMIN_TOKEN_KEY): Auth {
+  const [token, setToken] = createSignal<string | null>(kv.get(key));
   return {
     token,
     set(next) {
-      kv.set(TOKEN_KEY, next);
+      kv.set(key, next);
       setToken(next);
     },
     clear() {
-      kv.remove(TOKEN_KEY);
+      kv.remove(key);
       setToken(null);
     },
   };
