@@ -209,7 +209,7 @@
   "cal.prev": "Previous month",
   "cal.next": "Next month",
   "cal.day": "{day} {month}",
-  "avail.title": "Availability",
+  "avail.title": "Busy and free days",
   "avail.busy": "Busy",
   "avail.free": "Free",
   "avail.note": "Busy days are updated by the shop. Call to confirm your date.",
