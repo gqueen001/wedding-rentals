@@ -18,6 +18,8 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"wedding-rentals/backend/internal/auth"
+	"wedding-rentals/backend/internal/busydays"
+	"wedding-rentals/backend/internal/dresses"
 	"wedding-rentals/backend/internal/images"
 	"wedding-rentals/backend/internal/server"
 	"wedding-rentals/backend/internal/testutil"
@@ -29,18 +31,21 @@ type shopEnv struct {
 	tokens *auth.Tokens
 }
 
-func newShopEnv(t *testing.T) shopEnv {
+func newShopEnv(t *testing.T) shopEnv { return newShopEnvWith(t, nil) }
+
+func newShopEnvWith(t *testing.T, uploads *auth.Limiter) shopEnv {
 	tx := testutil.Tx(t)
 	tokens := auth.NewTokens(strings.Repeat("k", 32), auth.TokenTTL)
 	r, err := server.New(server.Deps{
-		DB:          tx,
-		Tokens:      tokens,
-		Limiter:     auth.NewLimiter(100, time.Minute),
-		ShopLimiter: auth.NewLimiter(100, time.Minute),
-		Storage:     images.LocalStorage{Dir: t.TempDir()},
-		UploadDir:   t.TempDir(),
-		WebDir:      t.TempDir(),
-		BaseURL:     "http://localhost:8080",
+		DB:            tx,
+		Tokens:        tokens,
+		Limiter:       auth.NewLimiter(100, time.Minute),
+		ShopLimiter:   auth.NewLimiter(100, time.Minute),
+		UploadLimiter: uploads,
+		Storage:       images.LocalStorage{Dir: t.TempDir()},
+		UploadDir:     t.TempDir(),
+		WebDir:        t.TempDir(),
+		BaseURL:       "http://localhost:8080",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -140,10 +145,15 @@ func TestShopOwnersOnlyReachTheirOwnShop(t *testing.T) {
 	imageID := testutil.Decode[struct {
 		ID int64 `json:"id"`
 	}](t, photo).ID
-	if rec := upload(t, e, a.token, "shop_id", a.shopID); rec.Code != http.StatusCreated {
-		t.Fatalf("own logo: %d %s", rec.Code, rec.Body)
+	logo := upload(t, e, a.token, "shop_id", a.shopID)
+	if logo.Code != http.StatusCreated {
+		t.Fatalf("own logo: %d %s", logo.Code, logo.Body)
 	}
-	if rec := testutil.Request(t, e.r, http.MethodPut, dressPath+"/busy-days/"+time.Now().Add(48*time.Hour).Format("2006-01-02"), nil, a.token); rec.Code != http.StatusNoContent {
+	logoID := testutil.Decode[struct {
+		ID int64 `json:"id"`
+	}](t, logo).ID
+	busyDay := dressPath + "/busy-days/" + time.Now().Add(48*time.Hour).Format("2006-01-02")
+	if rec := testutil.Request(t, e.r, http.MethodPut, busyDay, nil, a.token); rec.Code != http.StatusNoContent {
 		t.Fatalf("own busy day: %d %s", rec.Code, rec.Body)
 	}
 	if rec := testutil.Request(t, e.r, http.MethodPut, dressPath, dressBody(a.shopID), a.token); rec.Code != http.StatusOK {
@@ -159,6 +169,8 @@ func TestShopOwnersOnlyReachTheirOwnShop(t *testing.T) {
 		{http.MethodGet, dressPath + "/busy-days"},
 		{http.MethodPut, dressPath + "/busy-days/" + time.Now().Add(72*time.Hour).Format("2006-01-02")},
 		{http.MethodDelete, imagePath},
+		{http.MethodDelete, "/api/shop/images/" + strconv.FormatInt(logoID, 10)},
+		{http.MethodDelete, busyDay},
 	} {
 		var body any
 		if req.method == http.MethodPut && !strings.Contains(req.path, "busy-days") {
@@ -176,6 +188,11 @@ func TestShopOwnersOnlyReachTheirOwnShop(t *testing.T) {
 	}
 	if rec := upload(t, e, b.token, "shop_id", a.shopID); rec.Code != http.StatusNotFound {
 		t.Errorf("B logo on A's shop: status = %d, want 404", rec.Code)
+	}
+
+	var logos int
+	if err := e.tx.QueryRow(context.Background(), `SELECT count(*) FROM images WHERE id = $1 AND shop_id = $2`, logoID, a.shopID).Scan(&logos); err != nil || logos != 1 {
+		t.Errorf("A's logo after B's attempts: count = %d, err = %v", logos, err)
 	}
 
 	// Each owner's list shows only their own dresses, even when asking for another shop.
@@ -210,5 +227,44 @@ func TestAdminAndShopTokensDoNotCross(t *testing.T) {
 	}
 	if rec := testutil.Request(t, e.r, http.MethodGet, "/api/shop/dresses", nil, ""); rec.Code != http.StatusUnauthorized {
 		t.Errorf("no token on shop route: status = %d, want 401", rec.Code)
+	}
+}
+
+func TestUploadsAreLimitedPerOwner(t *testing.T) {
+	e := newShopEnvWith(t, auth.NewLimiter(1, time.Minute))
+	a := signUp(t, e, "Ak Gelin", "+99365111111")
+	b := signUp(t, e, "Gelin Öýi", "+99365222222")
+	if rec := upload(t, e, a.token, "shop_id", a.shopID); rec.Code != http.StatusCreated {
+		t.Fatalf("A first upload: %d %s", rec.Code, rec.Body)
+	}
+	if rec := upload(t, e, a.token, "shop_id", a.shopID); rec.Code != http.StatusTooManyRequests {
+		t.Errorf("A second upload: status = %d, want 429", rec.Code)
+	}
+	if rec := upload(t, e, b.token, "shop_id", b.shopID); rec.Code != http.StatusCreated {
+		t.Errorf("B first upload: %d %s", rec.Code, rec.Body)
+	}
+	// Only uploads are counted: A can still read and edit.
+	if rec := testutil.Request(t, e.r, http.MethodGet, "/api/shop/dresses", nil, a.token); rec.Code != http.StatusOK {
+		t.Errorf("A list after limit: %d", rec.Code)
+	}
+}
+
+func TestScopeThatReturnsNoShopFailsClosed(t *testing.T) {
+	e := newShopEnv(t)
+	r := gin.New()
+	zero := func(*gin.Context) int64 { return 0 }
+	g := r.Group("/x")
+	(&dresses.Handler{DB: e.tx, Storage: images.LocalStorage{Dir: t.TempDir()}, Scope: zero}).RegisterAdmin(g)
+	(&images.Handler{DB: e.tx, Storage: images.LocalStorage{Dir: t.TempDir()}, Scope: zero}).RegisterAdmin(g)
+	(&busydays.Handler{DB: e.tx, Scope: zero}).RegisterAdmin(g)
+	for _, req := range []struct{ method, path string }{
+		{http.MethodGet, "/x/dresses"},
+		{http.MethodDelete, "/x/dresses/1"},
+		{http.MethodDelete, "/x/images/1"},
+		{http.MethodGet, "/x/dresses/1/busy-days"},
+	} {
+		if rec := testutil.Request(t, r, req.method, req.path, nil, ""); rec.Code != http.StatusUnauthorized {
+			t.Errorf("%s %s: status = %d, want 401", req.method, req.path, rec.Code)
+		}
 	}
 }
