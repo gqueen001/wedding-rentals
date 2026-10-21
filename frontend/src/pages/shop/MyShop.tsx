@@ -10,12 +10,15 @@ import { PlusIcon } from "../../components/icons.tsx";
 import { priceText } from "../../components/price.ts";
 import { t } from "../../i18n/i18n.ts";
 import { ownerApi } from "../../lib/client.ts";
+import { contactPhone } from "../../lib/contact.ts";
 import { validationFields } from "../../lib/errors.ts";
 import { cleanShopInput, EMPTY_SHOP_INPUT, shopToInput } from "../../lib/forms.ts";
+import { usePageTitle } from "../../lib/title.ts";
 import type { ShopInput } from "../../lib/types.ts";
 
 /** "My shop": the owner's dresses and shop details. */
 export default function MyShop() {
+  usePageTitle(() => t("myshop.title"));
   const [me, { mutate, refetch }] = createResource(() => ownerApi.owner.me());
   const [dresses, dressList] = createResource(() => ownerApi.owner.dresses());
   const shop = () => (me.state === "ready" ? me()?.shop : undefined);
@@ -37,7 +40,9 @@ export default function MyShop() {
     setErrors({});
     setError(null);
     try {
-      const result = await ownerApi.owner.updateShop(cleanShopInput({ ...form, aliases: [...form.aliases] }));
+      const result = await ownerApi.owner.updateShop(
+        cleanShopInput({ ...form, aliases: [...form.aliases] }),
+      );
       setSaved(true);
       mutate((prev) => (prev ? { ...prev, shop: result } : prev));
     } catch (e) {
@@ -62,9 +67,26 @@ export default function MyShop() {
             <h1 class="text-3xl">{s().name}</h1>
             <Show
               when={s().is_published}
-              fallback={<p class="mt-4 rounded-lg bg-blush p-4 text-garnet-deep">{t("myshop.hidden")}</p>}
+              fallback={
+                <p class="mt-4 rounded-lg bg-blush p-4 text-garnet-deep">
+                  {t("myshop.hidden")}
+                  <Show when={contactPhone()}>
+                    {(p) => (
+                      <>
+                        {" "}
+                        <a href={`tel:${p().replace(/\s/g, "")}`} class="font-semibold text-garnet">
+                          {p()}
+                        </a>
+                      </>
+                    )}
+                  </Show>
+                </p>
+              }
             >
-              <A href={`/shops/${s().slug}`} class="mt-2 inline-block text-sm font-semibold text-garnet">
+              <A
+                href={`/shops/${s().slug}`}
+                class="mt-2 inline-block text-sm font-semibold text-garnet"
+              >
                 {t("myshop.view_page")}
               </A>
             </Show>
@@ -94,10 +116,19 @@ export default function MyShop() {
                         <For each={list()}>
                           {(d) => (
                             <li>
-                              <A href={`/shop/dresses/${d.id}`} class="flex items-center gap-4 px-4 py-3 hover:bg-veil/60">
+                              <A
+                                href={`/shop/dresses/${d.id}`}
+                                class="flex items-center gap-4 px-4 py-3 hover:bg-veil/60"
+                              >
                                 <div class="h-16 w-12 shrink-0 overflow-hidden rounded-xs bg-veil">
                                   <Show when={d.images[0]}>
-                                    {(img) => <img src={img().small} alt="" class="h-full w-full object-cover" />}
+                                    {(img) => (
+                                      <img
+                                        src={img().small}
+                                        alt=""
+                                        class="h-full w-full object-cover"
+                                      />
+                                    )}
                                   </Show>
                                 </div>
                                 <div class="min-w-0 flex-1">
@@ -127,7 +158,8 @@ export default function MyShop() {
                   shopId={s().id}
                   name={s().name}
                   logo={s().logo}
-                  onUploaded={(logo) => mutate((prev) => (prev ? { ...prev, shop: { ...prev.shop, logo } } : prev))}
+                  onUploaded={(logo) =>
+                    mutate((prev) => (prev ? { ...prev, shop: { ...prev.shop, logo } } : prev))}
                 />
               </div>
             </section>

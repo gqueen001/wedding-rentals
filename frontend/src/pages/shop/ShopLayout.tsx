@@ -23,23 +23,41 @@ export default function ShopLayout(props: RouteSectionProps) {
   return (
     <Show
       when={shopAuth.token()}
-      fallback={<Navigate href={`/shop/login?next=${encodeURIComponent(location.pathname + location.search)}`} />}
+      fallback={
+        <Navigate
+          href={`/shop/login?next=${encodeURIComponent(location.pathname + location.search)}`}
+        />
+      }
     >
       <div class="min-h-screen bg-veil">
         <header class="bg-white">
           <GolBand />
           <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2">
             <A href="/" class="font-display text-2xl text-garnet">{t("app.name")}</A>
-            <A href="/shop" end class="text-sm text-silver-ink hover:text-ink" activeClass="font-semibold">
-              {t("myshop.title")}
-            </A>
+            <nav class="flex text-sm" aria-label={t("myshop.title")}>
+              <A
+                href="/shop"
+                end
+                class="inline-flex min-h-11 items-center rounded-full px-3 text-silver-ink hover:bg-veil hover:text-ink"
+                activeClass="font-semibold"
+              >
+                {t("myshop.title")}
+              </A>
+            </nav>
             <div class="ml-auto flex items-center gap-1">
               <LanguageSwitch />
-              <button type="button" class="btn btn-quiet" onClick={signOut}>{t("admin.sign_out")}</button>
+              <button type="button" class="btn btn-quiet" onClick={signOut}>
+                {t("admin.sign_out")}
+              </button>
             </div>
           </div>
         </header>
-        <main ref={mainRef} id="main" tabindex="-1" class="mx-auto max-w-6xl px-4 py-8 outline-none">
+        <main
+          ref={mainRef}
+          id="main"
+          tabindex="-1"
+          class="mx-auto max-w-6xl px-4 py-8 outline-none"
+        >
           <ManageContext.Provider value={manage}>{props.children}</ManageContext.Provider>
         </main>
       </div>

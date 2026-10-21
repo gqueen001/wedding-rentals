@@ -135,3 +135,35 @@ func TestIndexIsNotCached(t *testing.T) {
 		}
 	}
 }
+
+func TestInjectsContactPhoneMeta(t *testing.T) {
+	r, h := setup(t, true)
+	h.ContactPhone = "+993 12 34 56 78"
+	body := testutil.Request(t, r, http.MethodGet, "/shop/login", nil, "").Body.String()
+	if !strings.Contains(body, `<meta name="wr-contact-phone" content="+993 12 34 56 78">`) {
+		t.Fatalf("meta missing: %s", body)
+	}
+	shop := testutil.InsertShop(t, h.DB, testutil.ShopFixture{Name: "Gelin"})
+	dress := testutil.InsertDress(t, h.DB, testutil.DressFixture{ShopID: shop.ID, Title: "Princess", Price: 1500})
+	body = testutil.Request(t, r, http.MethodGet, "/dresses/"+strconv.FormatInt(dress, 10), nil, "").Body.String()
+	if !strings.Contains(body, "wr-contact-phone") || !strings.Contains(body, "og:title") {
+		t.Fatalf("dress page needs both: %s", body)
+	}
+}
+
+func TestContactPhoneMetaIsEscaped(t *testing.T) {
+	r, h := setup(t, true)
+	h.ContactPhone = `1"><script>x</script>`
+	body := testutil.Request(t, r, http.MethodGet, "/shop/login", nil, "").Body.String()
+	if strings.Contains(body, "<script>") || !strings.Contains(body, `content="1&#34;&gt;&lt;script&gt;x&lt;/script&gt;"`) {
+		t.Fatalf("not escaped: %s", body)
+	}
+}
+
+func TestNoContactPhoneMetaWhenEmpty(t *testing.T) {
+	r, _ := setup(t, true)
+	body := testutil.Request(t, r, http.MethodGet, "/shop/login", nil, "").Body.String()
+	if strings.Contains(body, "wr-contact-phone") {
+		t.Fatalf("unexpected meta: %s", body)
+	}
+}

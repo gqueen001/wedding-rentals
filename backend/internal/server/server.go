@@ -23,11 +23,12 @@ type Deps struct {
 	Tokens  *auth.Tokens
 	Limiter *auth.Limiter
 	// ShopLimiter rate-limits shop sign-up and sign-in; nil gets its own 5-per-minute limiter.
-	ShopLimiter *auth.Limiter
-	Storage     images.Storage
-	UploadDir   string
-	WebDir      string
-	BaseURL     string
+	ShopLimiter  *auth.Limiter
+	Storage      images.Storage
+	UploadDir    string
+	WebDir       string
+	BaseURL      string
+	ContactPhone string
 	// TrustedProxies are IPs/CIDRs allowed to set X-Forwarded-For; empty trusts none.
 	TrustedProxies []string
 }
@@ -76,7 +77,7 @@ func New(d Deps) (*gin.Engine, error) {
 	(&busydays.Handler{DB: d.DB, Scope: owners.ShopID}).RegisterAdmin(shop)
 
 	r.Static("/uploads", d.UploadDir)
-	webH := &web.Handler{Dir: d.WebDir, DB: d.DB, BaseURL: d.BaseURL}
+	webH := &web.Handler{Dir: d.WebDir, DB: d.DB, BaseURL: d.BaseURL, ContactPhone: d.ContactPhone}
 	r.NoRoute(webH.Serve)
 	return r, nil
 }

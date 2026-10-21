@@ -55,6 +55,7 @@ func run() error {
 		UploadDir:      cfg.UploadDir,
 		WebDir:         cfg.WebDir,
 		BaseURL:        cfg.BaseURL,
+		ContactPhone:   cfg.ContactPhone,
 		TrustedProxies: cfg.TrustedProxies,
 	})
 	if err != nil {

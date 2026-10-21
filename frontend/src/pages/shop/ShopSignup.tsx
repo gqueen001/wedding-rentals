@@ -7,6 +7,7 @@ import LanguageSwitch from "../../components/LanguageSwitch.tsx";
 import { i18n, t, tr } from "../../i18n/i18n.ts";
 import { useCities } from "../../lib/cities.ts";
 import { ownerApi } from "../../lib/client.ts";
+import { mainRef } from "../../lib/dom.ts";
 import { errorMessage, validationFields } from "../../lib/errors.ts";
 import { cityName } from "../../lib/format.ts";
 import { shopAuth } from "../../lib/shopAuth.ts";
@@ -18,7 +19,13 @@ export default function ShopSignup() {
   usePageTitle(() => t("signup.title"));
   const navigate = useNavigate();
   const cities = useCities();
-  const [form, setForm] = createStore<SignupInput>({ shop_name: "", city_id: 0, address: "", phone: "", password: "" });
+  const [form, setForm] = createStore<SignupInput>({
+    shop_name: "",
+    city_id: 0,
+    address: "",
+    phone: "",
+    password: "",
+  });
   const [errors, setErrors] = createSignal<Record<string, string>>({});
   const [error, setError] = createSignal<unknown>(null);
   const [busy, setBusy] = createSignal(false);
@@ -30,6 +37,7 @@ export default function ShopSignup() {
 
   async function submit(e: SubmitEvent) {
     e.preventDefault();
+    if (busy()) return;
     setBusy(true);
     setErrors({});
     setError(null);
@@ -54,7 +62,7 @@ export default function ShopSignup() {
   return (
     <div class="min-h-screen bg-veil">
       <GolBand />
-      <main class="mx-auto max-w-md px-4 py-12">
+      <main ref={mainRef} id="main" tabindex="-1" class="mx-auto max-w-md px-4 py-12 outline-none">
         <div class="flex items-center justify-between gap-3">
           <A href="/" class="font-display text-3xl text-garnet">{t("app.name")}</A>
           <LanguageSwitch />
@@ -106,12 +114,17 @@ export default function ShopSignup() {
           <Show when={error()}>
             <p role="alert" class="text-sm text-garnet">{errorMessage(error(), tr)}</p>
           </Show>
-          <button type="submit" class="btn btn-primary w-full" disabled={busy()}>
+          <button
+            type="submit"
+            class="btn btn-primary w-full"
+            aria-disabled={busy() ? "true" : undefined}
+          >
             {busy() ? t("signup.creating") : t("signup.submit")}
           </button>
         </form>
         <p class="mt-6 text-center text-sm">
-          {t("signup.have_account")} <A href="/shop/login" class="font-semibold text-garnet">{t("shoplogin.title")}</A>
+          {t("signup.have_account")}{" "}
+          <A href="/shop/login" class="font-semibold text-garnet">{t("shoplogin.title")}</A>
         </p>
       </main>
     </div>
