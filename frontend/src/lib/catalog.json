@@ -1,0 +1,156 @@
+{
+  "categories": [
+    {
+      "slug": "dresses",
+      "own_pages": true,
+      "fields": []
+    },
+    {
+      "slug": "cars",
+      "own_pages": false,
+      "fields": [
+        {
+          "key": "brand_model",
+          "kind": "text",
+          "required": true,
+          "max_len": 100
+        },
+        {
+          "key": "body",
+          "kind": "choice",
+          "required": true,
+          "options": [
+            "sedan",
+            "suv",
+            "limousine",
+            "minivan"
+          ],
+          "filter": {
+            "param": "body",
+            "kind": "eq"
+          }
+        },
+        {
+          "key": "color",
+          "kind": "choice",
+          "required": true,
+          "options": [
+            "white",
+            "black",
+            "silver",
+            "other"
+          ],
+          "filter": {
+            "param": "color",
+            "kind": "eq"
+          }
+        },
+        {
+          "key": "seats",
+          "kind": "number",
+          "required": false,
+          "min": 1,
+          "max": 60,
+          "filter": {
+            "param": "seats_min",
+            "kind": "min"
+          }
+        },
+        {
+          "key": "price_unit",
+          "kind": "choice",
+          "required": true,
+          "options": [
+            "hour",
+            "day"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "national-clothes",
+      "own_pages": false,
+      "fields": [
+        {
+          "key": "for_whom",
+          "kind": "choice",
+          "required": true,
+          "options": [
+            "bride",
+            "groom",
+            "woman",
+            "man",
+            "child"
+          ],
+          "filter": {
+            "param": "for_whom",
+            "kind": "eq"
+          }
+        },
+        {
+          "key": "sizes",
+          "kind": "choices",
+          "required": true,
+          "options": [
+            "XS",
+            "S",
+            "M",
+            "L",
+            "XL",
+            "XXL"
+          ],
+          "filter": {
+            "param": "size",
+            "kind": "has"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "tents",
+      "own_pages": false,
+      "fields": [
+        {
+          "key": "guests",
+          "kind": "number",
+          "required": true,
+          "min": 1,
+          "max": 5000,
+          "filter": {
+            "param": "guests_min",
+            "kind": "min"
+          }
+        },
+        {
+          "key": "area_m2",
+          "kind": "number",
+          "required": false,
+          "min": 1,
+          "max": 10000
+        }
+      ]
+    },
+    {
+      "slug": "car-decorations",
+      "own_pages": false,
+      "fields": [
+        {
+          "key": "color",
+          "kind": "choice",
+          "required": true,
+          "options": [
+            "white",
+            "red",
+            "pink",
+            "gold",
+            "other"
+          ],
+          "filter": {
+            "param": "color",
+            "kind": "eq"
+          }
+        }
+      ]
+    }
+  ]
+}
