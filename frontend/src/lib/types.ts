@@ -149,3 +149,10 @@ export interface AdminDress {
   created_at: string;
   updated_at: string;
 }
+
+/** One dress's calendar: the window (today in Turkmenistan to 12 months ahead) and its busy days. */
+export interface BusyDays {
+  from: string;
+  to: string;
+  days: string[];
+}
