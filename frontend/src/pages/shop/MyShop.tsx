@@ -65,6 +65,7 @@ export default function MyShop() {
         {(s) => (
           <div class="max-w-2xl">
             <h1 class="text-3xl">{s().name}</h1>
+            <p class="mt-1 text-sm text-silver-ink">{t("owner.phone")}: {me()?.phone}</p>
             <Show
               when={s().is_published}
               fallback={

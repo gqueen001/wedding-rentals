@@ -38,11 +38,14 @@ export default function OwnerPassword(props: { shopId: number; phone: string }) 
       </p>
       <TextField
         label={t("owner.new_password")}
-        type="password"
+        type="text"
         autocomplete="new-password"
         hint={t("owner.new_password_hint")}
         value={password()}
-        onInput={setPassword}
+        onInput={(v) => {
+          setSaved(false);
+          setPassword(v);
+        }}
         error={fieldError()}
       />
       <div class="flex flex-wrap items-center gap-3">
