@@ -2,13 +2,13 @@ package dresses
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 
 	"wedding-rentals/backend/internal/db"
 	"wedding-rentals/backend/internal/httpx"
 	"wedding-rentals/backend/internal/images"
+	"wedding-rentals/backend/internal/listing"
 )
 
 type Handler struct {
@@ -28,22 +28,7 @@ func (h *Handler) scope(c *gin.Context) int64 {
 
 // own answers 404 unless the dress id belongs to the scoped shop (always true for admins).
 func (h *Handler) own(c *gin.Context, id int64) bool {
-	shopID := h.scope(c)
-	if shopID == 0 {
-		return true
-	}
-	var mine bool
-	err := h.DB.QueryRow(c.Request.Context(),
-		`SELECT EXISTS(SELECT 1 FROM listings WHERE id = $1 AND shop_id = $2)`, id, shopID).Scan(&mine)
-	if err != nil {
-		httpx.Abort(c, err)
-		return false
-	}
-	if !mine {
-		httpx.Abort(c, httpx.ErrNotFound)
-		return false
-	}
-	return true
+	return listing.OwnedBy(c, h.DB, id, h.scope(c))
 }
 
 func (h *Handler) RegisterAdmin(g *gin.RouterGroup) {
@@ -99,15 +84,9 @@ func (h *Handler) bindInput(c *gin.Context) (Input, bool) {
 	}
 	in.normalize()
 	errs := in.validate()
-	if _, bad := errs["shop_id"]; !bad {
-		var exists bool
-		if err := h.DB.QueryRow(c.Request.Context(), `SELECT EXISTS(SELECT 1 FROM shops WHERE id = $1)`, in.ShopID).Scan(&exists); err != nil {
-			httpx.Abort(c, err)
-			return in, false
-		}
-		if !exists {
-			errs["shop_id"] = "invalid"
-		}
+	if err := listing.CheckShop(c.Request.Context(), h.DB, in.ShopID, errs); err != nil {
+		httpx.Abort(c, err)
+		return in, false
 	}
 	if len(errs) > 0 {
 		httpx.Abort(c, httpx.Validation(errs))
@@ -118,14 +97,9 @@ func (h *Handler) bindInput(c *gin.Context) (Input, bool) {
 }
 
 func (h *Handler) listAdmin(c *gin.Context) {
-	var shopID int64
-	if s := c.Query("shop_id"); s != "" {
-		n, err := strconv.ParseInt(s, 10, 64)
-		if err != nil || n <= 0 {
-			httpx.Abort(c, httpx.Validation(map[string]string{"shop_id": "invalid"}))
-			return
-		}
-		shopID = n
+	shopID, ok := listing.ShopIDParam(c)
+	if !ok {
+		return
 	}
 	if scoped := h.scope(c); scoped != 0 {
 		shopID = scoped
