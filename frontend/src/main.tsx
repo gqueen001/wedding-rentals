@@ -12,13 +12,17 @@ import NotFound from "./pages/NotFound.tsx";
 import Shop from "./pages/Shop.tsx";
 import "./index.css";
 
-// Admin pages load on demand so brides never download them.
+// Admin and "My shop" pages load on demand so brides never download them.
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout.tsx"));
 const Login = lazy(() => import("./pages/admin/Login.tsx"));
 const AdminShops = lazy(() => import("./pages/admin/Shops.tsx"));
 const ShopEdit = lazy(() => import("./pages/admin/ShopEdit.tsx"));
 const AdminDresses = lazy(() => import("./pages/admin/Dresses.tsx"));
 const DressEdit = lazy(() => import("./pages/admin/DressEdit.tsx"));
+const ShopLayout = lazy(() => import("./pages/shop/ShopLayout.tsx"));
+const ShopLogin = lazy(() => import("./pages/shop/ShopLogin.tsx"));
+const ShopSignup = lazy(() => import("./pages/shop/ShopSignup.tsx"));
+const MyShop = lazy(() => import("./pages/shop/MyShop.tsx"));
 
 trackTraversals();
 document.documentElement.lang = i18n.lang();
@@ -38,6 +42,13 @@ render(
         <Route path="/shops/new" component={ShopEdit} />
         <Route path="/shops/:id" component={ShopEdit} />
         <Route path="/dresses" component={AdminDresses} />
+        <Route path="/dresses/new" component={DressEdit} />
+        <Route path="/dresses/:id" component={DressEdit} />
+      </Route>
+      <Route path="/shop/signup" component={ShopSignup} />
+      <Route path="/shop/login" component={ShopLogin} />
+      <Route path="/shop" component={ShopLayout}>
+        <Route path="/" component={MyShop} />
         <Route path="/dresses/new" component={DressEdit} />
         <Route path="/dresses/:id" component={DressEdit} />
       </Route>

@@ -1,8 +1,9 @@
-import { type RouteSectionProps, useLocation } from "@solidjs/router";
+import { A, type RouteSectionProps, useLocation } from "@solidjs/router";
 import { createEffect, ErrorBoundary, type JSX, on, Show } from "solid-js";
 import ErrorState from "../components/ErrorState.tsx";
 import Header from "../components/Header.tsx";
 import { t } from "../i18n/i18n.ts";
+import { hasOwnChrome } from "../lib/areas.ts";
 import { focusMain, mainRef } from "../lib/dom.ts";
 
 /**
@@ -24,14 +25,13 @@ function Guard(props: { children: JSX.Element }) {
   );
 }
 
-/** Public pages get the header and footer; /admin pages bring their own chrome. */
+/** Public pages get the header and footer; admin and "My shop" pages bring their own. */
 export default function App(props: RouteSectionProps) {
   const location = useLocation();
-  const isAdmin = () => location.pathname === "/admin" || location.pathname.startsWith("/admin/");
   // Not on first load, and not when only the search string changes.
   createEffect(on(() => location.pathname, () => focusMain(), { defer: true }));
   return (
-    <Show when={!isAdmin()} fallback={<Guard>{props.children}</Guard>}>
+    <Show when={!hasOwnChrome(location.pathname)} fallback={<Guard>{props.children}</Guard>}>
       <a
         href="#main"
         rel="external" // keeps the router out of it, so the browser focuses <main> itself
@@ -44,7 +44,10 @@ export default function App(props: RouteSectionProps) {
         <Guard>{props.children}</Guard>
       </main>
       <footer class="border-t border-veil">
-        <p class="mx-auto max-w-6xl px-4 py-6 text-sm text-silver-ink">{t("app.tagline")}</p>
+        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-6 text-sm">
+          <p class="text-silver-ink">{t("app.tagline")}</p>
+          <A href="/shop/signup" class="font-semibold text-garnet">{t("footer.add_shop")}</A>
+        </div>
       </footer>
     </Show>
   );

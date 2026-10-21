@@ -16,7 +16,8 @@ const API_ERROR_CODES = [
 ];
 // Every value the Go API puts in error.fields.
 const FIELD_VALUES = [
-  "required", "invalid", "too_long", "too_many", "too_large", "must_be_positive", "out_of_range",
+  "required", "invalid", "too_long", "too_many", "too_large", "must_be_positive", "out_of_range", "taken",
+  "too_short",
   "exactly_one_of_listing_id_or_shop_id", "must_list_all_images_of_one_listing",
 ];
 

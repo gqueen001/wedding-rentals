@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { cleanShopInput, EMPTY_SHOP_INPUT, firstParam, shopToInput } from "./forms.ts";
+import { cleanShopInput, EMPTY_SHOP_INPUT, firstParam, ownerReturnPath, shopToInput } from "./forms.ts";
 import type { AdminShop } from "./types.ts";
 
 const shop: AdminShop = {
@@ -60,4 +60,13 @@ Deno.test("dressToForm and dressFormToInput round-trip a saved dress", () => {
     shop_id: 2, title: "Lale", price_manat: 2400, price_is_from: true, description: "", is_published: true,
     color: "blush", silhouette: "mermaid", sleeves: "long", sizes: ["S", "M"],
   });
+});
+
+Deno.test("ownerReturnPath stays inside My shop", () => {
+  for (const path of ["/shop", "/shop/dresses/4", "/shop/dresses/new", "/shop?x=1"]) {
+    assertEquals(ownerReturnPath(path), path);
+  }
+  for (const path of ["", "/shops/ak-gelin", "/shopping", "/admin/shops", "https://evil.example/shop", "//evil.example", "/shop/login", "/shop/signup"]) {
+    assertEquals(ownerReturnPath(path), "/shop", path);
+  }
 });
