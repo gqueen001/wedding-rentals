@@ -1,5 +1,6 @@
 import { createEffect, createResource, createSignal, Match, Show, Switch } from "solid-js";
 import { t } from "../../i18n/i18n.ts";
+import { ApiError } from "../../lib/api.ts";
 import { api } from "../../lib/client.ts";
 import ErrorState from "../ErrorState.tsx";
 import MonthCalendar, { dayLabel } from "../MonthCalendar.tsx";
@@ -22,6 +23,9 @@ export default function AvailabilityEditor(props: { dressId: number }) {
     if (data.state === "ready") setBusy(new Set(data()?.days ?? []));
   });
 
+  // Set when the server says a day left the window (the page stayed open past midnight).
+  let windowStale = false;
+
   async function toggle(day: string) {
     if (pending().has(day)) return;
     const makeBusy = !busy().has(day);
@@ -31,11 +35,17 @@ export default function AvailabilityEditor(props: { dressId: number }) {
     try {
       await (makeBusy ? api.admin.markBusy(props.dressId, day) : api.admin.markFree(props.dressId, day));
       setStatus(t(makeBusy ? "avail.marked_busy" : "avail.marked_free", { date: dayLabel(day) }));
-    } catch {
+    } catch (e) {
       setBusy((s) => withDay(s, day, !makeBusy));
       setFailure(t("avail.save_failed", { date: dayLabel(day) }));
+      if (e instanceof ApiError && e.fields.day === "out_of_range") windowStale = true;
     } finally {
       setPending((s) => withDay(s, day, false));
+      // Reload the window once nothing is saving, so optimistic days are not overwritten.
+      if (windowStale && pending().size === 0) {
+        windowStale = false;
+        void refetch();
+      }
     }
   }
 
