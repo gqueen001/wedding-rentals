@@ -3966,3 +3966,18 @@ The controller does this after Task 7, in headless Chrome, against a server buil
 | §7 API tables, `AdminShop.owner` | Tasks 2–4 |
 | §8.2 ManageApi context, lazy owner pages, admin additions, texts | Tasks 4–7 (see "Where this plan differs" above) |
 | §9 Go, Deno and browser tests | Tasks 1–7, Final verification |
+
+## Changes made during review
+
+The tasks above were built as written. The reviews then led to these approved changes, which are on the branch but not in the task code above:
+
+- **Task 2:** `shops.UpdateDetails` saves an owner's shop details without ever writing `is_published`, which closes a race where an owner could undo an admin hiding the shop. A password over bcrypt's 72-byte limit gets `password: "too_long"`. Two owner tests were tightened.
+- **Task 6:** an optional `CONTACT_PHONE` setting. The server adds it to every page as `<meta name="wr-contact-phone">`, and "Forgot your password?" and the hidden-shop banner show it as a `tel:` link. Also: the My shop page title; `aria-disabled` with a busy guard and a `#main` focus target on the owner sign-in and sign-up pages; a nav landmark in the owner header; wording fixes in tk and ru.
+- **Final review:**
+  - At most 2 photo decodes run at once.
+  - Owner uploads are limited to 30 per minute per owner.
+  - A scoped handler whose scope returns no shop refuses the request (`httpx.RequireScope`).
+  - The cross-shop tests also cover deleting a logo and deleting a busy day.
+  - Busy buttons look disabled.
+  - My shop shows the sign-in phone.
+  - The admin sees the new owner password as plain text.
