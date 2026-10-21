@@ -1,5 +1,6 @@
 import type {
-  AdminDress, AdminShop, BusyDays, City, DressInput, Page, PublicDress, PublicShop, ShopInput, ShopMe, SignupInput,
+  AdminDress, AdminItem, AdminShop, BusyDays, City, DressInput, ItemInput, ListingSummary, Page, PublicDress,
+  PublicItem, PublicShop, ShopInput, ShopMe, SignupInput,
 } from "./types.ts";
 
 export class ApiError extends Error {
@@ -97,7 +98,7 @@ export function createApi(deps: ApiDeps) {
 
   const signedIn = { auth: true } as const;
 
-  /** Dresses, photos and busy days: the same calls under /api/admin and /api/shop. */
+  /** Listings, photos and busy days: the same calls under /api/admin and /api/shop. */
   function manage(base: string) {
     return {
       dresses: (shopId?: number) =>
@@ -113,11 +114,25 @@ export function createApi(deps: ApiDeps) {
       deleteDress: (id: number) => request<void>("DELETE", `${base}/dresses/${id}`, signedIn),
       reorderImages: (ids: number[]) => request<void>("PATCH", `${base}/images/order`, { ...signedIn, body: { ids } }),
       deleteImage: (id: number) => request<void>("DELETE", `${base}/images/${id}`, signedIn),
-      busyDays: (dressId: number) => request<BusyDays>("GET", `${base}/dresses/${dressId}/busy-days`, signedIn),
-      markBusy: (dressId: number, day: string) =>
-        request<void>("PUT", `${base}/dresses/${dressId}/busy-days/${day}`, signedIn),
-      markFree: (dressId: number, day: string) =>
-        request<void>("DELETE", `${base}/dresses/${dressId}/busy-days/${day}`, signedIn),
+      /** Every listing in every category, dresses included, for the listing lists. */
+      listings: (filter: { shopId?: number; category?: string } = {}) => {
+        const query = new URLSearchParams();
+        if (filter.shopId) query.set("shop_id", String(filter.shopId));
+        if (filter.category) query.set("category", filter.category);
+        return request<{ items: ListingSummary[] }>("GET", withQuery(`${base}/items`, query), signedIn)
+          .then((r) => r.items);
+      },
+      item: (id: number) => request<AdminItem>("GET", `${base}/items/${id}`, signedIn),
+      createItem: (input: ItemInput) => request<AdminItem>("POST", `${base}/items`, { ...signedIn, body: input }),
+      updateItem: (id: number, input: ItemInput) =>
+        request<AdminItem>("PUT", `${base}/items/${id}`, { ...signedIn, body: input }),
+      deleteItem: (id: number) => request<void>("DELETE", `${base}/items/${id}`, signedIn),
+      // Busy days belong to any listing, dresses included.
+      busyDays: (listingId: number) => request<BusyDays>("GET", `${base}/items/${listingId}/busy-days`, signedIn),
+      markBusy: (listingId: number, day: string) =>
+        request<void>("PUT", `${base}/items/${listingId}/busy-days/${day}`, signedIn),
+      markFree: (listingId: number, day: string) =>
+        request<void>("DELETE", `${base}/items/${listingId}/busy-days/${day}`, signedIn),
     };
   }
 
@@ -125,7 +140,10 @@ export function createApi(deps: ApiDeps) {
     cities: () => request<{ items: City[] }>("GET", "/api/cities").then((r) => r.items),
     dresses: (query?: URLSearchParams) => request<Page>("GET", withQuery("/api/dresses", query)),
     dress: (id: number | string) => request<PublicDress>("GET", `/api/dresses/${encodeURIComponent(String(id))}`),
-    busyDays: (dressId: number) => request<BusyDays>("GET", `/api/dresses/${dressId}/busy-days`),
+    /** Published listings of every category, or of one with ?category=. */
+    items: (query?: URLSearchParams) => request<Page>("GET", withQuery("/api/items", query)),
+    item: (id: number | string) => request<PublicItem>("GET", `/api/items/${encodeURIComponent(String(id))}`),
+    busyDays: (listingId: number) => request<BusyDays>("GET", `/api/items/${listingId}/busy-days`),
     shop: (slug: string, query?: URLSearchParams) =>
       request<PublicShop>("GET", withQuery(`/api/shops/${encodeURIComponent(slug)}`, query)),
     login: (email: string, password: string) =>

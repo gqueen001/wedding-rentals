@@ -1,5 +1,8 @@
 import { assertEquals } from "@std/assert";
-import { cleanShopInput, EMPTY_SHOP_INPUT, firstParam, ownerReturnPath, shopToInput } from "./forms.ts";
+import { categoryDef } from "./catalog.ts";
+import {
+  cleanShopInput, EMPTY_SHOP_INPUT, emptyItemForm, firstParam, itemFormToInput, itemToForm, ownerReturnPath, shopToInput,
+} from "./forms.ts";
 import type { AdminShop } from "./types.ts";
 
 const shop: AdminShop = {
@@ -69,4 +72,34 @@ Deno.test("ownerReturnPath stays inside My shop", () => {
   for (const path of ["", "/shops/ak-gelin", "/shopping", "/admin/shops", "https://evil.example/shop", "//evil.example", "/shop/login", "/shop/signup"]) {
     assertEquals(ownerReturnPath(path), "/shop", path);
   }
+});
+
+Deno.test("itemFormToInput sends only filled fields, numbers as numbers, choices in order", () => {
+  const cars = categoryDef("cars")!.fields;
+  const form = {
+    ...emptyItemForm("cars", 3),
+    title: " Ak limuzin ",
+    price: "900",
+    attributes: { brand_model: " Lincoln ", body: "limousine", color: "", seats: "8", price_unit: "hour" },
+  };
+  assertEquals(itemFormToInput(form, cars), {
+    shop_id: 3, category: "cars", title: "Ak limuzin", price_manat: 900, price_is_from: false, description: "",
+    is_published: false, attributes: { brand_model: "Lincoln", body: "limousine", seats: 8, price_unit: "hour" },
+  });
+  // Text that is not a whole number goes as is, so the API answers with the field error.
+  assertEquals(itemFormToInput({ ...form, price: "9 00", attributes: { seats: "8.5" } }, cars).attributes, { seats: "8.5" });
+  assertEquals(itemFormToInput({ ...form, price: "9 00" }, cars).price_manat, 0);
+  const clothes = categoryDef("national-clothes")!.fields;
+  const robe = { ...emptyItemForm("national-clothes"), attributes: { for_whom: "bride", sizes: ["L", "S"] } };
+  assertEquals(itemFormToInput(robe, clothes).attributes, { for_whom: "bride", sizes: ["S", "L"] });
+  assertEquals(itemFormToInput({ ...robe, attributes: { sizes: [] } }, clothes).attributes, {});
+});
+
+Deno.test("itemToForm turns attributes into editable text", () => {
+  const form = itemToForm({
+    id: 9, shop_id: 3, category: "tents", title: "Ak çadyr", price_manat: 5000, price_is_from: true, description: null,
+    is_published: true, attributes: { guests: 200 }, images: [], created_at: "", updated_at: "",
+  });
+  assertEquals(form.attributes, { guests: "200" });
+  assertEquals([form.price, form.description, form.price_is_from], ["5000", "", true]);
 });

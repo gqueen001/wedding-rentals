@@ -151,10 +151,10 @@ Deno.test("busy days: public and admin reads, and marking a day busy or free", a
   assertEquals(await api.admin.markBusy(7, "2026-11-14"), undefined);
   assertEquals(await api.admin.markFree(7, "2026-11-14"), undefined);
   assertEquals(calls.map((c) => `${c.init.method} ${c.url}`), [
-    "GET /api/dresses/7/busy-days",
-    "GET /api/admin/dresses/7/busy-days",
-    "PUT /api/admin/dresses/7/busy-days/2026-11-14",
-    "DELETE /api/admin/dresses/7/busy-days/2026-11-14",
+    "GET /api/items/7/busy-days",
+    "GET /api/admin/items/7/busy-days",
+    "PUT /api/admin/items/7/busy-days/2026-11-14",
+    "DELETE /api/admin/items/7/busy-days/2026-11-14",
   ]);
   assertEquals((calls[0].init.headers as Record<string, string>).Authorization, undefined);
   assertEquals((calls[2].init.headers as Record<string, string>).Authorization, "Bearer tok");
@@ -198,8 +198,8 @@ Deno.test("owner calls go to /api/shop with the bearer token", async () => {
     "DELETE /api/shop/dresses/5",
     "PATCH /api/shop/images/order",
     "DELETE /api/shop/images/9",
-    "PUT /api/shop/dresses/5/busy-days/2026-11-14",
-    "DELETE /api/shop/dresses/5/busy-days/2026-11-14",
+    "PUT /api/shop/items/5/busy-days/2026-11-14",
+    "DELETE /api/shop/items/5/busy-days/2026-11-14",
   ]);
   for (const c of calls) assertEquals((c.init.headers as Record<string, string>).Authorization, "Bearer tok");
 });
@@ -209,4 +209,32 @@ Deno.test("an admin sets a shop owner's password", async () => {
   assertEquals(await api.admin.setOwnerPassword(4, "brand-new-pass"), undefined);
   assertEquals(`${calls[0].init.method} ${calls[0].url}`, "POST /api/admin/shops/4/owner-password");
   assertEquals(JSON.parse(String(calls[0].init.body)), { password: "brand-new-pass" });
+});
+
+Deno.test("items: the public all-category list, one item, and the shared listing calls", async () => {
+  const { api, calls } = setup((_url, init) =>
+    init.method === "GET" ? json(200, { items: [], page: 1, per_page: 24, total: 0 }) : json(201, { id: 9 })
+  );
+  await api.items(new URLSearchParams("category=cars&body=suv"));
+  await api.item(9);
+  await api.admin.listings({ shopId: 3, category: "tents" });
+  await api.owner.listings();
+  const input = {
+    shop_id: 3, category: "tents", title: "Ak çadyr", price_manat: 5000, price_is_from: false, description: "",
+    is_published: true, attributes: { guests: 200 },
+  };
+  await api.owner.createItem(input);
+  await api.admin.updateItem(9, input);
+  await api.owner.deleteItem(9);
+  assertEquals(calls.map((c) => `${c.init.method} ${c.url}`), [
+    "GET /api/items?category=cars&body=suv",
+    "GET /api/items/9",
+    "GET /api/admin/items?shop_id=3&category=tents",
+    "GET /api/shop/items",
+    "POST /api/shop/items",
+    "PUT /api/admin/items/9",
+    "DELETE /api/shop/items/9",
+  ]);
+  assertEquals(JSON.parse(String(calls[4].init.body)), input);
+  assertEquals((calls[0].init.headers as Record<string, string>).Authorization, undefined);
 });

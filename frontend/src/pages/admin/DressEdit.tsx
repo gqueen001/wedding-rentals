@@ -66,7 +66,7 @@ function DressEditor(props: { id: number | null }) {
     if (!current || !confirm(t("admin.delete_dress_confirm"))) return;
     try {
       await m.calls.deleteDress(current);
-      navigate(m.dressesHref(form.shop_id), { replace: true });
+      navigate(m.listingsHref(form.shop_id), { replace: true });
     } catch (e) {
       setError(() => e);
     }
@@ -80,7 +80,7 @@ function DressEditor(props: { id: number | null }) {
 
   return (
     <div class="max-w-2xl">
-      <A href={m.dressesHref()} class="text-sm text-silver-ink hover:text-ink">{t("common.back")}</A>
+      <A href={m.listingsHref()} class="text-sm text-silver-ink hover:text-ink">{t("common.back")}</A>
       <h1 class="mt-2 text-3xl">{id() ? form.title || t("admin.edit") : t("admin.new_dress")}</h1>
       <Switch>
         <Match when={dress.error}>

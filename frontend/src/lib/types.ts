@@ -35,8 +35,14 @@ export interface ShopRef {
   slug: string;
 }
 
+/** A listing's own fields (lib/catalog.ts defines them per category); {} for dresses. */
+export type Attributes = Record<string, string | number | string[]>;
+
 export interface ListItem {
   id: number;
+  /** A category slug; only the all-category list (/api/items) sends it. Dress lists leave it out. */
+  category?: string;
+  attributes?: Attributes;
   title: string;
   price_manat: number;
   price_is_from: boolean;
@@ -172,4 +178,59 @@ export interface BusyDays {
   from: string;
   to: string;
   days: string[];
+}
+
+/** One published listing of any category, for its public page. */
+export interface PublicItem {
+  id: number;
+  category: string;
+  title: string;
+  price_manat: number;
+  price_is_from: boolean;
+  description: string | null;
+  attributes: Attributes;
+  images: Image[];
+  shop: ShopCard;
+}
+
+/** One row of the admin and owner listing lists, in any category. */
+export interface ListingSummary {
+  id: number;
+  shop_id: number;
+  category: string;
+  title: string;
+  price_manat: number;
+  price_is_from: boolean;
+  is_published: boolean;
+  attributes: Attributes;
+  photo: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** A non-dress listing as admins and owners edit it. */
+export interface AdminItem {
+  id: number;
+  shop_id: number;
+  category: string;
+  title: string;
+  price_manat: number;
+  price_is_from: boolean;
+  description: string | null;
+  is_published: boolean;
+  attributes: Attributes;
+  images: Image[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ItemInput {
+  shop_id: number;
+  category: string;
+  title: string;
+  price_manat: number;
+  price_is_from: boolean;
+  description: string;
+  is_published: boolean;
+  attributes: Attributes;
 }
