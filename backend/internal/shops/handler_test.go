@@ -149,3 +149,34 @@ func TestDeleteShopRemovesImageFiles(t *testing.T) {
 		t.Fatalf("get after delete: %d", rec.Code)
 	}
 }
+
+func TestUpdateDetailsNeverTouchesIsPublished(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	shop := testutil.InsertShop(t, e.tx, testutil.ShopFixture{})
+	in := shops.Input{Name: "Renamed Shop", CityID: e.cityID, Address: "Täze salgy 1", Phone: "+99365123456", IsPublished: false}
+	if err := shops.UpdateDetails(ctx, e.tx, shop.ID, in); err != nil {
+		t.Fatal(err)
+	}
+	got, err := shops.Get(ctx, e.tx, shop.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Name != "Renamed Shop" || !got.IsPublished {
+		t.Fatalf("after first update: name = %q, published = %v", got.Name, got.IsPublished)
+	}
+	if _, err := e.tx.Exec(ctx, `UPDATE shops SET is_published = false WHERE id = $1`, shop.ID); err != nil {
+		t.Fatal(err)
+	}
+	in.IsPublished = true
+	if err := shops.UpdateDetails(ctx, e.tx, shop.ID, in); err != nil {
+		t.Fatal(err)
+	}
+	got, err = shops.Get(ctx, e.tx, shop.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.IsPublished {
+		t.Fatal("UpdateDetails re-published a hidden shop")
+	}
+}

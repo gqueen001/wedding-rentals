@@ -66,13 +66,24 @@ func Create(ctx context.Context, d db.DBTX, in Input) (int64, error) {
 
 // Update changes everything except the slug, which stays stable for shared links.
 func Update(ctx context.Context, d db.DBTX, id int64, in Input) error {
+	return update(ctx, d, id, in, true)
+}
+
+// UpdateDetails is for shop owners, who cannot publish or hide their shop: it changes
+// everything Update does except is_published, which stays as it is in the row.
+func UpdateDetails(ctx context.Context, d db.DBTX, id int64, in Input) error {
+	return update(ctx, d, id, in, false)
+}
+
+func update(ctx context.Context, d db.DBTX, id int64, in Input, setPublished bool) error {
 	return db.InTx(ctx, d, func(tx pgx.Tx) error {
 		tag, err := tx.Exec(ctx, `
 			UPDATE shops SET name = $2, city_id = $3, address = $4, phone = $5, instagram_url = $6,
-			       tiktok_url = $7, description = $8, is_published = $9, updated_at = now()
+			       tiktok_url = $7, description = $8,
+			       is_published = CASE WHEN $10 THEN $9 ELSE is_published END, updated_at = now()
 			WHERE id = $1`,
 			id, in.Name, in.CityID, in.Address, in.Phone, nullIfEmpty(in.InstagramURL),
-			nullIfEmpty(in.TikTokURL), nullIfEmpty(in.Description), in.IsPublished)
+			nullIfEmpty(in.TikTokURL), nullIfEmpty(in.Description), in.IsPublished, setPublished)
 		if err != nil {
 			return err
 		}

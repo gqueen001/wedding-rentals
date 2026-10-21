@@ -18,6 +18,8 @@ import (
 
 const minPassword = 10
 
+const maxPasswordBytes = 72 // bcrypt's limit
+
 var (
 	errInvalidCredentials = httpx.New(http.StatusUnauthorized, "invalid_credentials", "phone or password is wrong")
 	errRateLimited        = httpx.New(http.StatusTooManyRequests, "rate_limited", "too many attempts, try again in a minute")
@@ -94,6 +96,8 @@ func (h *Handler) signup(c *gin.Context) {
 	}
 	if utf8.RuneCountInString(in.Password) < minPassword {
 		errs["password"] = "too_short"
+	} else if len(in.Password) > maxPasswordBytes {
+		errs["password"] = "too_long"
 	}
 	if len(errs) > 0 {
 		httpx.Abort(c, httpx.Validation(errs))
@@ -173,20 +177,15 @@ func (h *Handler) me(c *gin.Context) {
 	c.JSON(http.StatusOK, Me{ID: c.GetInt64(ownerIDKey), Phone: c.GetString(ownerPhoneKey), Shop: s})
 }
 
-// updateShop saves the owner's shop details. Whether the shop is published stays as it is:
-// only admins can hide or show a shop.
+// updateShop saves the owner's shop details. It never writes is_published, so an admin
+// hiding the shop at any moment stays hidden: only admins can hide or show a shop.
 func (h *Handler) updateShop(c *gin.Context) {
 	var in shops.Input
 	if !httpx.BindJSON(c, &in) {
 		return
 	}
 	ctx := c.Request.Context()
-	current, err := shops.Get(ctx, h.DB, ShopID(c))
-	if err != nil {
-		httpx.Abort(c, err)
-		return
-	}
-	in.IsPublished = current.IsPublished
+	id := ShopID(c)
 	errs, err := shops.Check(ctx, h.DB, &in)
 	if err != nil {
 		httpx.Abort(c, err)
@@ -196,11 +195,11 @@ func (h *Handler) updateShop(c *gin.Context) {
 		httpx.Abort(c, httpx.Validation(errs))
 		return
 	}
-	if err := shops.Update(ctx, h.DB, current.ID, in); err != nil {
+	if err := shops.UpdateDetails(ctx, h.DB, id, in); err != nil {
 		httpx.Abort(c, err)
 		return
 	}
-	s, err := shops.Get(ctx, h.DB, current.ID)
+	s, err := shops.Get(ctx, h.DB, id)
 	if err != nil {
 		httpx.Abort(c, err)
 		return
@@ -221,6 +220,10 @@ func (h *Handler) setPassword(c *gin.Context) {
 	}
 	if utf8.RuneCountInString(in.Password) < minPassword {
 		httpx.Abort(c, httpx.Validation(map[string]string{"password": "too_short"}))
+		return
+	}
+	if len(in.Password) > maxPasswordBytes {
+		httpx.Abort(c, httpx.Validation(map[string]string{"password": "too_long"}))
 		return
 	}
 	hash, err := auth.HashPassword(in.Password)

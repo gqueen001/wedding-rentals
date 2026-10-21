@@ -157,13 +157,41 @@ func TestSignupAndLoginAreRateLimited(t *testing.T) {
 
 func TestShopMiddlewareRejectsOtherTokens(t *testing.T) {
 	e := setup(t)
-	signup(t, e, "+99365123456")
-	adminToken, _ := tokens.Issue(1)
-	otherSecret, _ := auth.NewTokens(strings.Repeat("x", 32), auth.TokenTTL).IssueShop(1, 0)
+	good := signup(t, e, "+99365123456")
+	id := me(t, e, good).ID
+	adminToken, _ := tokens.Issue(id)
+	otherSecret, _ := auth.NewTokens(strings.Repeat("x", 32), auth.TokenTTL).IssueShop(id, 0)
 	for name, token := range map[string]string{"none": "", "garbage": "abc", "admin token": adminToken, "other secret": otherSecret} {
 		if rec := testutil.Request(t, e.r, http.MethodGet, "/api/shop/me", nil, token); rec.Code != http.StatusUnauthorized {
 			t.Errorf("%s: status = %d, want 401", name, rec.Code)
 		}
+	}
+	valid, _ := tokens.IssueShop(id, 0)
+	if rec := testutil.Request(t, e.r, http.MethodGet, "/api/shop/me", nil, valid); rec.Code != http.StatusOK {
+		t.Errorf("valid shop token: status = %d, want 200", rec.Code)
+	}
+}
+
+func TestPasswordOverBcryptLimitGetsAFieldError(t *testing.T) {
+	e := setup(t)
+	long := strings.Repeat("я", 37) // 74 bytes
+	body := signupBody(t, e.tx, "+99365123456")
+	body["password"] = long
+	rec := testutil.Request(t, e.r, http.MethodPost, "/api/shop/signup", body, "")
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("signup: status = %d: %s", rec.Code, rec.Body)
+	}
+	if f := testutil.Decode[testutil.ErrorBody](t, rec).Error.Fields["password"]; f != "too_long" {
+		t.Fatalf("signup: password = %q, want too_long", f)
+	}
+	token := signup(t, e, "+99365123457")
+	path := "/api/admin/shops/" + strconv.FormatInt(me(t, e, token).Shop.ID, 10) + "/owner-password"
+	rec = testutil.Request(t, e.r, http.MethodPost, path, map[string]any{"password": long}, "")
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("set password: status = %d: %s", rec.Code, rec.Body)
+	}
+	if f := testutil.Decode[testutil.ErrorBody](t, rec).Error.Fields["password"]; f != "too_long" {
+		t.Fatalf("set password: password = %q, want too_long", f)
 	}
 }
 
@@ -214,7 +242,11 @@ func TestOwnerCannotChangeWhetherTheShopIsPublished(t *testing.T) {
 		t.Fatal(err)
 	}
 	update["is_published"] = true
-	got = testutil.Decode[shops.Shop](t, testutil.Request(t, e.r, http.MethodPut, "/api/shop/me/shop", update, token))
+	rec = testutil.Request(t, e.r, http.MethodPut, "/api/shop/me/shop", update, token)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("second update: status = %d: %s", rec.Code, rec.Body)
+	}
+	got = testutil.Decode[shops.Shop](t, rec)
 	if got.IsPublished {
 		t.Fatal("owner re-published a hidden shop")
 	}
