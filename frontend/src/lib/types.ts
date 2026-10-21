@@ -93,7 +93,9 @@ export interface PublicShop {
   description: string | null;
   logo: string | null;
   city: CityRef;
-  dresses: Page;
+  items: Page;
+  /** The categories the shop has published listings in, in display order. */
+  categories: string[];
 }
 
 /** Empty strings clear the optional text fields on the server. */
