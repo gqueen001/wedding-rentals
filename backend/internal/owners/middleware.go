@@ -3,6 +3,7 @@ package owners
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -54,3 +55,16 @@ func ShopMiddleware(t *auth.Tokens, d db.DBTX) gin.HandlerFunc {
 // ShopID is the signed-in owner's shop, or 0 outside ShopMiddleware. The scoped dresses,
 // images and busy-days handlers use it to touch nothing but the owner's own shop.
 func ShopID(c *gin.Context) int64 { return c.GetInt64(shopIDKey) }
+
+// UploadLimit rate-limits image uploads per signed-in owner. It runs after ShopMiddleware
+// and only counts POST /images; other routes pass through.
+func UploadLimit(l *auth.Limiter) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.Request.Method == http.MethodPost && strings.HasSuffix(c.FullPath(), "/images") &&
+			!l.Allow("owner:"+strconv.FormatInt(c.GetInt64(ownerIDKey), 10)) {
+			httpx.Abort(c, errRateLimited)
+			return
+		}
+		c.Next()
+	}
+}

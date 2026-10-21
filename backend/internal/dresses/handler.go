@@ -47,6 +47,9 @@ func (h *Handler) own(c *gin.Context, id int64) bool {
 }
 
 func (h *Handler) RegisterAdmin(g *gin.RouterGroup) {
+	if h.Scope != nil {
+		g = g.Group("", httpx.RequireScope(h.Scope))
+	}
 	g.GET("/dresses", h.listAdmin)
 	g.POST("/dresses", h.create)
 	g.GET("/dresses/:id", h.getAdmin)

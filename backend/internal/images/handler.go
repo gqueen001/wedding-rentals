@@ -24,6 +24,10 @@ var (
 	errInvalidImage = httpx.New(http.StatusUnprocessableEntity, "invalid_image", "file must be a JPEG, PNG or WebP image")
 )
 
+// processSlots caps parallel decodes: a small, highly compressed image can expand to
+// hundreds of MB of pixels, so only a couple may be decoded at once.
+var processSlots = make(chan struct{}, 2)
+
 type Handler struct {
 	DB      db.DBTX
 	Storage Storage
@@ -40,6 +44,9 @@ func (h *Handler) scope(c *gin.Context) int64 {
 }
 
 func (h *Handler) RegisterAdmin(g *gin.RouterGroup) {
+	if h.Scope != nil {
+		g = g.Group("", httpx.RequireScope(h.Scope))
+	}
 	g.POST("/images", h.upload)
 	g.PATCH("/images/order", h.reorder)
 	g.DELETE("/images/:id", h.delete)
@@ -84,7 +91,14 @@ func (h *Handler) upload(c *gin.Context) {
 		httpx.Abort(c, err)
 		return
 	}
+	select {
+	case processSlots <- struct{}{}:
+	case <-ctx.Done():
+		httpx.Abort(c, ctx.Err())
+		return
+	}
 	p, err := Process(data)
+	<-processSlots
 	if errors.Is(err, ErrUnsupported) {
 		httpx.Abort(c, errInvalidImage)
 		return

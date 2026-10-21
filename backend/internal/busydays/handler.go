@@ -31,6 +31,9 @@ func (h *Handler) RegisterPublic(g *gin.RouterGroup) {
 }
 
 func (h *Handler) RegisterAdmin(g *gin.RouterGroup) {
+	if h.Scope != nil {
+		g = g.Group("", httpx.RequireScope(h.Scope))
+	}
 	g.GET("/dresses/:id/busy-days", h.listAdmin)
 	g.PUT("/dresses/:id/busy-days/:day", h.mark)
 	g.DELETE("/dresses/:id/busy-days/:day", h.unmark)

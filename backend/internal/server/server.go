@@ -23,12 +23,14 @@ type Deps struct {
 	Tokens  *auth.Tokens
 	Limiter *auth.Limiter
 	// ShopLimiter rate-limits shop sign-up and sign-in; nil gets its own 5-per-minute limiter.
-	ShopLimiter  *auth.Limiter
-	Storage      images.Storage
-	UploadDir    string
-	WebDir       string
-	BaseURL      string
-	ContactPhone string
+	ShopLimiter *auth.Limiter
+	// UploadLimiter caps a shop owner's image uploads; nil gets 30 per minute per owner.
+	UploadLimiter *auth.Limiter
+	Storage       images.Storage
+	UploadDir     string
+	WebDir        string
+	BaseURL       string
+	ContactPhone  string
 	// TrustedProxies are IPs/CIDRs allowed to set X-Forwarded-For; empty trusts none.
 	TrustedProxies []string
 }
@@ -53,6 +55,9 @@ func New(d Deps) (*gin.Engine, error) {
 	if d.ShopLimiter == nil {
 		d.ShopLimiter = auth.NewLimiter(5, time.Minute)
 	}
+	if d.UploadLimiter == nil {
+		d.UploadLimiter = auth.NewLimiter(30, time.Minute)
+	}
 	ownersH := &owners.Handler{DB: d.DB, Tokens: d.Tokens, Limiter: d.ShopLimiter}
 
 	authH.RegisterPublic(api)
@@ -70,7 +75,7 @@ func New(d Deps) (*gin.Engine, error) {
 	ownersH.RegisterAdmin(admin)
 
 	// Shop owners reuse the admin handlers, scoped to their own shop.
-	shop := api.Group("/shop", owners.ShopMiddleware(d.Tokens, d.DB))
+	shop := api.Group("/shop", owners.ShopMiddleware(d.Tokens, d.DB), owners.UploadLimit(d.UploadLimiter))
 	ownersH.RegisterShop(shop)
 	(&dresses.Handler{DB: d.DB, Storage: d.Storage, Scope: owners.ShopID}).RegisterAdmin(shop)
 	(&images.Handler{DB: d.DB, Storage: d.Storage, Scope: owners.ShopID}).RegisterAdmin(shop)
