@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -12,18 +13,21 @@ import (
 	"wedding-rentals/backend/internal/dresses"
 	"wedding-rentals/backend/internal/httpx"
 	"wedding-rentals/backend/internal/images"
+	"wedding-rentals/backend/internal/owners"
 	"wedding-rentals/backend/internal/shops"
 	"wedding-rentals/backend/internal/web"
 )
 
 type Deps struct {
-	DB        db.DBTX
-	Tokens    *auth.Tokens
-	Limiter   *auth.Limiter
-	Storage   images.Storage
-	UploadDir string
-	WebDir    string
-	BaseURL   string
+	DB      db.DBTX
+	Tokens  *auth.Tokens
+	Limiter *auth.Limiter
+	// ShopLimiter rate-limits shop sign-up and sign-in; nil gets its own 5-per-minute limiter.
+	ShopLimiter *auth.Limiter
+	Storage     images.Storage
+	UploadDir   string
+	WebDir      string
+	BaseURL     string
 	// TrustedProxies are IPs/CIDRs allowed to set X-Forwarded-For; empty trusts none.
 	TrustedProxies []string
 }
@@ -45,18 +49,27 @@ func New(d Deps) (*gin.Engine, error) {
 	dressesH := &dresses.Handler{DB: d.DB, Storage: d.Storage}
 	imagesH := &images.Handler{DB: d.DB, Storage: d.Storage}
 	busyH := &busydays.Handler{DB: d.DB}
+	if d.ShopLimiter == nil {
+		d.ShopLimiter = auth.NewLimiter(5, time.Minute)
+	}
+	ownersH := &owners.Handler{DB: d.DB, Tokens: d.Tokens, Limiter: d.ShopLimiter}
 
 	authH.RegisterPublic(api)
 	citiesH.RegisterPublic(api)
 	shopsH.RegisterPublic(api)
 	dressesH.RegisterPublic(api)
 	busyH.RegisterPublic(api)
+	ownersH.RegisterPublic(api)
 
 	admin := api.Group("/admin", auth.Middleware(d.Tokens))
 	shopsH.RegisterAdmin(admin)
 	dressesH.RegisterAdmin(admin)
 	imagesH.RegisterAdmin(admin)
 	busyH.RegisterAdmin(admin)
+	ownersH.RegisterAdmin(admin)
+
+	shop := api.Group("/shop", owners.ShopMiddleware(d.Tokens, d.DB))
+	ownersH.RegisterShop(shop)
 
 	r.Static("/uploads", d.UploadDir)
 	webH := &web.Handler{Dir: d.WebDir, DB: d.DB, BaseURL: d.BaseURL}
