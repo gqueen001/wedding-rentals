@@ -16,7 +16,7 @@ const API_ERROR_CODES = [
 ];
 // Every value the Go API puts in error.fields.
 const FIELD_VALUES = [
-  "required", "invalid", "too_long", "too_many", "too_large", "must_be_positive",
+  "required", "invalid", "too_long", "too_many", "too_large", "must_be_positive", "out_of_range",
   "exactly_one_of_listing_id_or_shop_id", "must_list_all_images_of_one_listing",
 ];
 
@@ -71,4 +71,11 @@ Deno.test("createI18n defaults to Turkmen and remembers the chosen language", ()
   assertEquals(kv.get("wr.lang"), "ru");
   assertEquals(createI18n(kv).lang(), "ru");
   assertEquals(createI18n(memoryKV({ "wr.lang": "de" })).lang(), "tk");
+});
+
+Deno.test("every month and weekday has a name", () => {
+  for (let n = 1; n <= 12; n++) {
+    for (const key of [`cal.month.${n}`, `cal.month_of.${n}`]) assert(key in en, `missing ${key}`);
+  }
+  for (let n = 1; n <= 7; n++) assert(`cal.weekday.${n}` in en, `missing cal.weekday.${n}`);
 });

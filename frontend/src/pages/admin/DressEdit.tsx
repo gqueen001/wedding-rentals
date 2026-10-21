@@ -1,6 +1,7 @@
 import { A, useNavigate, useParams, useSearchParams } from "@solidjs/router";
 import { createEffect, createResource, createSignal, For, Match, on, Show, Switch } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
+import AvailabilityEditor from "../../components/admin/AvailabilityEditor.tsx";
 import { CheckboxField, FormActions, SelectField, TextArea, TextField } from "../../components/admin/Field.tsx";
 import PhotoManager from "../../components/admin/PhotoManager.tsx";
 import ErrorState from "../../components/ErrorState.tsx";
@@ -191,6 +192,18 @@ function DressEditor(props: { id: number | null }) {
                     onChange={(images) => mutate({ ...d(), images })}
                   />
                 )}
+              </Show>
+            </div>
+          </section>
+
+          <section class="mt-8 rounded-lg bg-white p-5">
+            <h2 class="text-2xl">{t("avail.title")}</h2>
+            <div class="mt-4">
+              <Show
+                when={id() !== null && dress()}
+                fallback={<p class="text-sm text-silver-ink">{t("avail.save_first")}</p>}
+              >
+                {(d) => <AvailabilityEditor dressId={d().id} />}
               </Show>
             </div>
           </section>

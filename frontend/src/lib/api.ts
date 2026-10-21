@@ -1,4 +1,4 @@
-import type { AdminDress, AdminShop, City, DressInput, Page, PublicDress, PublicShop, ShopInput } from "./types.ts";
+import type { AdminDress, AdminShop, BusyDays, City, DressInput, Page, PublicDress, PublicShop, ShopInput } from "./types.ts";
 
 export class ApiError extends Error {
   readonly status: number;
@@ -99,6 +99,7 @@ export function createApi(deps: ApiDeps) {
     cities: () => request<{ items: City[] }>("GET", "/api/cities").then((r) => r.items),
     dresses: (query?: URLSearchParams) => request<Page>("GET", withQuery("/api/dresses", query)),
     dress: (id: number | string) => request<PublicDress>("GET", `/api/dresses/${encodeURIComponent(String(id))}`),
+    busyDays: (dressId: number) => request<BusyDays>("GET", `/api/dresses/${dressId}/busy-days`),
     shop: (slug: string, query?: URLSearchParams) =>
       request<PublicShop>("GET", withQuery(`/api/shops/${encodeURIComponent(slug)}`, query)),
     login: (email: string, password: string) =>
@@ -123,6 +124,11 @@ export function createApi(deps: ApiDeps) {
       deleteDress: (id: number) => request<void>("DELETE", `/api/admin/dresses/${id}`, admin),
       reorderImages: (ids: number[]) => request<void>("PATCH", "/api/admin/images/order", { ...admin, body: { ids } }),
       deleteImage: (id: number) => request<void>("DELETE", `/api/admin/images/${id}`, admin),
+      busyDays: (dressId: number) => request<BusyDays>("GET", `/api/admin/dresses/${dressId}/busy-days`, admin),
+      markBusy: (dressId: number, day: string) =>
+        request<void>("PUT", `/api/admin/dresses/${dressId}/busy-days/${day}`, admin),
+      markFree: (dressId: number, day: string) =>
+        request<void>("DELETE", `/api/admin/dresses/${dressId}/busy-days/${day}`, admin),
     },
   };
 }

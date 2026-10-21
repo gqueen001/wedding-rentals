@@ -139,3 +139,23 @@ Deno.test("an OK response whose body cannot be read becomes network_error", asyn
   const err = await assertRejects(() => api.cities(), ApiError);
   assertEquals(err.code, "network_error");
 });
+
+Deno.test("busy days: public and admin reads, and marking a day busy or free", async () => {
+  const { api, calls } = setup((url, init) =>
+    init.method === "GET"
+      ? json(200, { from: "2026-10-20", to: "2027-10-20", days: ["2026-11-14"] })
+      : new Response(null, { status: 204 })
+  );
+  assertEquals((await api.busyDays(7)).days, ["2026-11-14"]);
+  assertEquals((await api.admin.busyDays(7)).to, "2027-10-20");
+  assertEquals(await api.admin.markBusy(7, "2026-11-14"), undefined);
+  assertEquals(await api.admin.markFree(7, "2026-11-14"), undefined);
+  assertEquals(calls.map((c) => `${c.init.method} ${c.url}`), [
+    "GET /api/dresses/7/busy-days",
+    "GET /api/admin/dresses/7/busy-days",
+    "PUT /api/admin/dresses/7/busy-days/2026-11-14",
+    "DELETE /api/admin/dresses/7/busy-days/2026-11-14",
+  ]);
+  assertEquals((calls[0].init.headers as Record<string, string>).Authorization, undefined);
+  assertEquals((calls[2].init.headers as Record<string, string>).Authorization, "Bearer tok");
+});

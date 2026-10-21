@@ -36,7 +36,10 @@ func TestServerWiring(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for path, want := range map[string]int{"/api/health": 200, "/api/cities": 200, "/api/dresses": 200, "/api/admin/shops": 401} {
+	for path, want := range map[string]int{
+		"/api/health": 200, "/api/cities": 200, "/api/dresses": 200, "/api/admin/shops": 401,
+		"/api/dresses/999999999/busy-days": 404, "/api/admin/dresses/1/busy-days": 401,
+	} {
 		if rec := testutil.Request(t, r, http.MethodGet, path, nil, ""); rec.Code != want {
 			t.Errorf("%s: status = %d, want %d", path, rec.Code, want)
 		}

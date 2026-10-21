@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"wedding-rentals/backend/internal/auth"
+	"wedding-rentals/backend/internal/busydays"
 	"wedding-rentals/backend/internal/cities"
 	"wedding-rentals/backend/internal/db"
 	"wedding-rentals/backend/internal/dresses"
@@ -43,16 +44,19 @@ func New(d Deps) (*gin.Engine, error) {
 	shopsH := &shops.Handler{DB: d.DB, Storage: d.Storage}
 	dressesH := &dresses.Handler{DB: d.DB, Storage: d.Storage}
 	imagesH := &images.Handler{DB: d.DB, Storage: d.Storage}
+	busyH := &busydays.Handler{DB: d.DB}
 
 	authH.RegisterPublic(api)
 	citiesH.RegisterPublic(api)
 	shopsH.RegisterPublic(api)
 	dressesH.RegisterPublic(api)
+	busyH.RegisterPublic(api)
 
 	admin := api.Group("/admin", auth.Middleware(d.Tokens))
 	shopsH.RegisterAdmin(admin)
 	dressesH.RegisterAdmin(admin)
 	imagesH.RegisterAdmin(admin)
+	busyH.RegisterAdmin(admin)
 
 	r.Static("/uploads", d.UploadDir)
 	webH := &web.Handler{Dir: d.WebDir, DB: d.DB, BaseURL: d.BaseURL}
