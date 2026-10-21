@@ -1,5 +1,6 @@
 import { useParams } from "@solidjs/router";
 import { createResource, For, Match, Show, Switch } from "solid-js";
+import Availability from "../components/Availability.tsx";
 import ColorSwatch from "../components/ColorSwatch.tsx";
 import ErrorState from "../components/ErrorState.tsx";
 import { FavoriteButton } from "../components/FavoriteButton.tsx";
@@ -56,6 +57,10 @@ function DressView(props: { dress: PublicDress }) {
             </section>
           )}
         </Show>
+
+        <div class="mt-10">
+          <Availability dressId={d().id} />
+        </div>
 
         <div class="mt-10">
           <ShopCardSection shop={d().shop} />
