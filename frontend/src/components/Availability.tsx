@@ -4,9 +4,9 @@ import { api } from "../lib/client.ts";
 import ErrorState from "./ErrorState.tsx";
 import MonthCalendar from "./MonthCalendar.tsx";
 
-/** The dress page's read-only calendar of busy days, with a legend and a reminder to call. */
-export default function Availability(props: { dressId: number }) {
-  const [data, { refetch }] = createResource(() => props.dressId, (id) => api.busyDays(id));
+/** A listing page's read-only calendar of busy days, with a legend and a reminder to call. */
+export default function Availability(props: { listingId: number }) {
+  const [data, { refetch }] = createResource(() => props.listingId, (id) => api.busyDays(id));
   return (
     <section aria-labelledby="availability-title" class="border-t border-veil pt-6">
       <h2 id="availability-title" class="text-2xl">{t("avail.title")}</h2>

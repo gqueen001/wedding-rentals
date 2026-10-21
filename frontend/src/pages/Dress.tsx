@@ -59,7 +59,7 @@ function DressView(props: { dress: PublicDress }) {
         </Show>
 
         <div class="mt-10">
-          <Availability dressId={d().id} />
+          <Availability listingId={d().id} />
         </div>
 
         <div class="mt-10">

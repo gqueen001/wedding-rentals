@@ -1,6 +1,6 @@
 import { A, useNavigate } from "@solidjs/router";
 import { createResource, For, Match, Switch } from "solid-js";
-import DressGrid from "../components/DressGrid.tsx";
+import ListingGrid from "../components/ListingGrid.tsx";
 import ErrorState from "../components/ErrorState.tsx";
 import SearchBox from "../components/SearchBox.tsx";
 import { GridSkeleton } from "../components/Skeleton.tsx";
@@ -57,7 +57,7 @@ export default function Home() {
           <Match when={!newest()}>
             <GridSkeleton count={8} />
           </Match>
-          <Match when={newest()}>{(page) => <DressGrid items={page().items} />}</Match>
+          <Match when={newest()}>{(page) => <ListingGrid items={page().items} />}</Match>
         </Switch>
       </section>
     </>

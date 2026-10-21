@@ -209,7 +209,7 @@ function DressEditor(props: { id: number | null }) {
                 when={id() !== null && dress()}
                 fallback={<p class="text-sm text-silver-ink">{t("avail.save_first")}</p>}
               >
-                {(d) => <AvailabilityEditor dressId={d().id} />}
+                {(d) => <AvailabilityEditor listingId={d().id} />}
               </Show>
             </div>
           </section>

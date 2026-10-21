@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "@solidjs/router";
-import { createEffect, createMemo, createSignal, Match, on, Show, Switch, untrack } from "solid-js";
-import DressGrid from "../components/DressGrid.tsx";
+import { createMemo, createSignal, Match, Show, Switch } from "solid-js";
+import ListingGrid from "../components/ListingGrid.tsx";
 import EmptyState from "../components/EmptyState.tsx";
 import ErrorState from "../components/ErrorState.tsx";
 import FilterSheet from "../components/FilterSheet.tsx";
@@ -11,15 +11,14 @@ import { GridSkeleton } from "../components/Skeleton.tsx";
 import { t } from "../i18n/i18n.ts";
 import { api } from "../lib/client.ts";
 import { countActiveFilters, EMPTY_FILTERS, type Filters, filtersToQuery, parseFilters } from "../lib/filters.ts";
-import { consumeTraversal } from "../lib/history.ts";
-import { createPagedList, type PagedSnapshot } from "../lib/paged.ts";
+import { createRememberedList, type ListMemory } from "../lib/rememberedList.ts";
 import { usePageTitle } from "../lib/title.ts";
 import type { ListItem } from "../lib/types.ts";
 
 const PER_PAGE = "24";
 
 /** The last list shown, so Back from a dress finds the same pages instead of a fresh first page. */
-let saved: { key: string; snapshot: PagedSnapshot<ListItem> } | undefined;
+const memory: ListMemory<ListItem> = {};
 
 export default function Dresses() {
   usePageTitle(() => t("dresses.title"));
@@ -30,26 +29,11 @@ export default function Dresses() {
   });
   const [sheetOpen, setSheetOpen] = createSignal(false);
 
-  const list = createPagedList((page) => {
+  const list = createRememberedList(memory, () => filtersToQuery(filters()).toString(), (page) => {
     const query = filtersToQuery(filters());
     query.set("page", String(page));
     query.set("per_page", PER_PAGE);
     return api.dresses(query);
-  });
-  // The query the items on screen belong to.
-  let listKey = "";
-  const show = (f: Filters, mayRestore: boolean) => {
-    listKey = filtersToQuery(f).toString();
-    if (mayRestore && saved?.key === listKey) list.restore(saved.snapshot);
-    else void list.reset();
-  };
-  // Back/Forward gets the earlier list, filled in right now so the router can restore the
-  // scroll position; any other visit starts from a fresh first page.
-  show(untrack(filters), consumeTraversal());
-  createEffect(on(filters, (f) => show(f, false), { defer: true }));
-  createEffect(() => {
-    const snapshot = list.snapshot();
-    if (snapshot.items.length > 0) saved = { key: listKey, snapshot };
   });
 
   const apply = (f: Filters) => {
@@ -98,7 +82,7 @@ export default function Dresses() {
             </EmptyState>
           </Match>
           <Match when={!firstLoad()}>
-            <DressGrid items={list.items()} />
+            <ListingGrid items={list.items()} />
             <LoadMore list={list} />
           </Match>
         </Switch>

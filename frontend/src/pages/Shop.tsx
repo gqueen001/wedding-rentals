@@ -1,6 +1,6 @@
 import { useParams } from "@solidjs/router";
 import { createEffect, createSignal, Match, on, Show, Switch } from "solid-js";
-import DressGrid from "../components/DressGrid.tsx";
+import ListingGrid from "../components/ListingGrid.tsx";
 import ErrorState from "../components/ErrorState.tsx";
 import LoadMore from "../components/LoadMore.tsx";
 import { ContactButtons } from "../components/ShopCard.tsx";
@@ -67,7 +67,7 @@ export default function Shop() {
             <section class="mt-12" aria-labelledby="shop-dresses-title">
               <h2 id="shop-dresses-title" class="mb-6 text-3xl">{t("shop.dresses")}</h2>
               <Show when={list.items().length > 0} fallback={<p class="text-silver-ink">{t("shop.empty")}</p>}>
-                <DressGrid items={list.items()} />
+                <ListingGrid items={list.items()} />
                 <LoadMore list={list} />
               </Show>
             </section>

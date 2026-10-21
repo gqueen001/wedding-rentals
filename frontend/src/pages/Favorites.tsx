@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import { createEffect, createResource, Match, Switch, untrack } from "solid-js";
-import DressGrid from "../components/DressGrid.tsx";
+import ListingGrid from "../components/ListingGrid.tsx";
 import EmptyState from "../components/EmptyState.tsx";
 import ErrorState from "../components/ErrorState.tsx";
 import { GridSkeleton } from "../components/Skeleton.tsx";
@@ -50,7 +50,7 @@ export default function Favorites() {
             </EmptyState>
           </Match>
           <Match when={visible().length > 0}>
-            <DressGrid items={visible()} />
+            <ListingGrid items={visible()} />
           </Match>
         </Switch>
       </div>
