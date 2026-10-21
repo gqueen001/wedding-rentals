@@ -3,6 +3,7 @@ import { createEffect, createResource, createSignal, Match, on, Show, Switch } f
 import { createStore, reconcile } from "solid-js/store";
 import { CheckboxField, FormActions } from "../../components/admin/Field.tsx";
 import LogoUpload from "../../components/admin/LogoUpload.tsx";
+import OwnerPassword from "../../components/admin/OwnerPassword.tsx";
 import ShopFields from "../../components/admin/ShopFields.tsx";
 import ErrorState from "../../components/ErrorState.tsx";
 import { t } from "../../i18n/i18n.ts";
@@ -85,14 +86,23 @@ function ShopEditor(props: { id: number | null }) {
           </form>
           <Show when={id() !== null && shop()}>
             {(s) => (
-              <section class="mt-8 rounded-lg bg-white p-5">
-                <LogoUpload
-                  shopId={s().id}
-                  name={s().name}
-                  logo={s().logo}
-                  onUploaded={(logo) => mutate({ ...s(), logo })}
-                />
-              </section>
+              <>
+                <section class="mt-8 rounded-lg bg-white p-5">
+                  <LogoUpload
+                    shopId={s().id}
+                    name={s().name}
+                    logo={s().logo}
+                    onUploaded={(logo) => mutate({ ...s(), logo })}
+                  />
+                </section>
+                <Show when={s().owner}>
+                  {(owner) => (
+                    <section class="mt-8 rounded-lg bg-white p-5">
+                      <OwnerPassword shopId={s().id} phone={owner().phone} />
+                    </section>
+                  )}
+                </Show>
+              </>
             )}
           </Show>
         </Match>

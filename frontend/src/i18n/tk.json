@@ -242,5 +242,12 @@
   "myshop.view_page": "Salonyň sahypasyny gör",
   "myshop.dresses": "Meniň köýneklerim",
   "myshop.no_dresses": "Heniz köýnek ýok. Ilkinjisini goşuň we «Çap edildi» belläň, şonda gelinler ony görer.",
-  "myshop.details": "Salon barada"
+  "myshop.details": "Salon barada",
+  "owner.title": "Eýesiniň hasaby",
+  "owner.phone": "Giriş telefony",
+  "owner.new_password": "Täze açar söz",
+  "owner.new_password_hint": "Azyndan 10 belgi. Eýesi ähli enjamlarda hasabyndan çykar.",
+  "owner.set_password": "Täze açar söz goý",
+  "owner.password_set": "Täze açar söz goýuldy",
+  "owner.badge": "Eýesi dolandyrýar"
 }

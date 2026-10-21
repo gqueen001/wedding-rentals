@@ -242,5 +242,12 @@
   "myshop.view_page": "See your shop page",
   "myshop.dresses": "My dresses",
   "myshop.no_dresses": "No dresses yet. Add your first one and tick Published so brides can see it.",
-  "myshop.details": "Shop details"
+  "myshop.details": "Shop details",
+  "owner.title": "Owner account",
+  "owner.phone": "Sign-in phone",
+  "owner.new_password": "New password",
+  "owner.new_password_hint": "At least 10 characters. The owner is signed out on every device.",
+  "owner.set_password": "Set new password",
+  "owner.password_set": "New password set",
+  "owner.badge": "Managed by owner"
 }
