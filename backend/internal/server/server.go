@@ -68,8 +68,12 @@ func New(d Deps) (*gin.Engine, error) {
 	busyH.RegisterAdmin(admin)
 	ownersH.RegisterAdmin(admin)
 
+	// Shop owners reuse the admin handlers, scoped to their own shop.
 	shop := api.Group("/shop", owners.ShopMiddleware(d.Tokens, d.DB))
 	ownersH.RegisterShop(shop)
+	(&dresses.Handler{DB: d.DB, Storage: d.Storage, Scope: owners.ShopID}).RegisterAdmin(shop)
+	(&images.Handler{DB: d.DB, Storage: d.Storage, Scope: owners.ShopID}).RegisterAdmin(shop)
+	(&busydays.Handler{DB: d.DB, Scope: owners.ShopID}).RegisterAdmin(shop)
 
 	r.Static("/uploads", d.UploadDir)
 	webH := &web.Handler{Dir: d.WebDir, DB: d.DB, BaseURL: d.BaseURL}

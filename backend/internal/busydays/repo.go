@@ -10,15 +10,17 @@ import (
 )
 
 // dressExists reports whether id is a dress (a listing with dress details). With
-// publicOnly it must also be published in a published shop, the v1 visibility rule.
-func dressExists(ctx context.Context, d db.DBTX, id int64, publicOnly bool) (bool, error) {
+// publicOnly it must also be published in a published shop, the v1 visibility rule;
+// with a non-zero shopID it must belong to that shop.
+func dressExists(ctx context.Context, d db.DBTX, id int64, publicOnly bool, shopID int64) (bool, error) {
 	var ok bool
 	err := d.QueryRow(ctx, `
 		SELECT EXISTS (
 			SELECT 1 FROM listings l
 			JOIN dress_details dd ON dd.listing_id = l.id
 			JOIN shops s ON s.id = l.shop_id
-			WHERE l.id = $1 AND (NOT $2 OR (l.is_published AND s.is_published)))`, id, publicOnly).Scan(&ok)
+			WHERE l.id = $1 AND (NOT $2 OR (l.is_published AND s.is_published))
+			  AND ($3::bigint = 0 OR l.shop_id = $3))`, id, publicOnly, shopID).Scan(&ok)
 	return ok, err
 }
 

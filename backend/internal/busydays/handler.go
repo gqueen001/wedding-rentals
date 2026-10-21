@@ -15,6 +15,8 @@ type Handler struct {
 	DB db.DBTX
 	// Now returns the current time; nil means time.Now. Tests set a fixed clock.
 	Now func() time.Time
+	// Scope, when set, limits the admin routes to the signed-in shop owner's shop.
+	Scope func(*gin.Context) int64
 }
 
 // Response is one dress's calendar: the window and the busy days inside it.
@@ -65,7 +67,11 @@ func (h *Handler) dress(c *gin.Context, publicOnly bool) (int64, bool) {
 	if !ok {
 		return 0, false
 	}
-	exists, err := dressExists(c.Request.Context(), h.DB, id, publicOnly)
+	var shopID int64
+	if h.Scope != nil && !publicOnly {
+		shopID = h.Scope(c)
+	}
+	exists, err := dressExists(c.Request.Context(), h.DB, id, publicOnly, shopID)
 	if err != nil {
 		httpx.Abort(c, err)
 		return 0, false

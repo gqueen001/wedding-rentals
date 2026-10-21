@@ -14,6 +14,36 @@ import (
 type Handler struct {
 	DB      db.DBTX
 	Storage images.Storage
+	// Scope, when set, limits the admin routes to one shop: it returns the signed-in shop
+	// owner's shop id. Admins leave it nil and may touch every shop.
+	Scope func(*gin.Context) int64
+}
+
+func (h *Handler) scope(c *gin.Context) int64 {
+	if h.Scope == nil {
+		return 0
+	}
+	return h.Scope(c)
+}
+
+// own answers 404 unless the dress id belongs to the scoped shop (always true for admins).
+func (h *Handler) own(c *gin.Context, id int64) bool {
+	shopID := h.scope(c)
+	if shopID == 0 {
+		return true
+	}
+	var mine bool
+	err := h.DB.QueryRow(c.Request.Context(),
+		`SELECT EXISTS(SELECT 1 FROM listings WHERE id = $1 AND shop_id = $2)`, id, shopID).Scan(&mine)
+	if err != nil {
+		httpx.Abort(c, err)
+		return false
+	}
+	if !mine {
+		httpx.Abort(c, httpx.ErrNotFound)
+		return false
+	}
+	return true
 }
 
 func (h *Handler) RegisterAdmin(g *gin.RouterGroup) {
@@ -61,6 +91,9 @@ func (h *Handler) bindInput(c *gin.Context) (Input, bool) {
 	if !httpx.BindJSON(c, &in) {
 		return in, false
 	}
+	if shopID := h.scope(c); shopID != 0 {
+		in.ShopID = shopID // a shop owner always saves into their own shop
+	}
 	in.normalize()
 	errs := in.validate()
 	if _, bad := errs["shop_id"]; !bad {
@@ -91,6 +124,9 @@ func (h *Handler) listAdmin(c *gin.Context) {
 		}
 		shopID = n
 	}
+	if scoped := h.scope(c); scoped != 0 {
+		shopID = scoped
+	}
 	list, err := ListAdmin(c.Request.Context(), h.DB, shopID)
 	if err != nil {
 		httpx.Abort(c, err)
@@ -120,7 +156,7 @@ func (h *Handler) create(c *gin.Context) {
 
 func (h *Handler) getAdmin(c *gin.Context) {
 	id, ok := httpx.ParseID(c, "id")
-	if !ok {
+	if !ok || !h.own(c, id) {
 		return
 	}
 	d, err := Get(c.Request.Context(), h.DB, id)
@@ -133,7 +169,7 @@ func (h *Handler) getAdmin(c *gin.Context) {
 
 func (h *Handler) update(c *gin.Context) {
 	id, ok := httpx.ParseID(c, "id")
-	if !ok {
+	if !ok || !h.own(c, id) {
 		return
 	}
 	in, ok := h.bindInput(c)
@@ -155,7 +191,7 @@ func (h *Handler) update(c *gin.Context) {
 
 func (h *Handler) delete(c *gin.Context) {
 	id, ok := httpx.ParseID(c, "id")
-	if !ok {
+	if !ok || !h.own(c, id) {
 		return
 	}
 	if err := Delete(c.Request.Context(), h.DB, h.Storage, id); err != nil {
