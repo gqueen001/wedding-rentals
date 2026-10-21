@@ -103,7 +103,8 @@ func Delete(ctx context.Context, d db.DBTX, st images.Storage, id int64) error {
 	if err != nil {
 		return err
 	}
-	tag, err := d.Exec(ctx, `DELETE FROM listings WHERE id = $1`, id)
+	tag, err := d.Exec(ctx, `
+		DELETE FROM listings WHERE id = $1 AND category_id = (SELECT id FROM categories WHERE slug = 'dresses')`, id)
 	if err != nil {
 		return err
 	}
