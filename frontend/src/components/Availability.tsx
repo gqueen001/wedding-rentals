@@ -16,7 +16,7 @@ export default function Availability(props: { dressId: number }) {
             <ErrorState error={data.error} onRetry={refetch} />
           </Match>
           <Match when={!data()}>
-            <div class="h-80 animate-pulse rounded-lg bg-veil" aria-busy="true" aria-label={t("common.loading")} />
+            <div class="h-[25rem] animate-pulse rounded-lg bg-veil" aria-busy="true" aria-label={t("common.loading")} />
           </Match>
           <Match when={data()}>
             {(d) => (
@@ -24,11 +24,11 @@ export default function Availability(props: { dressId: number }) {
                 <MonthCalendar window={d()} busy={new Set(d().days)} />
                 <ul class="mt-3 flex gap-5 text-sm">
                   <li class="flex items-center gap-2">
-                    <span aria-hidden="true" class="h-4 w-4 rounded bg-blush" />
+                    <span aria-hidden="true" class="inline-flex h-5 w-5 items-center justify-center rounded bg-blush text-[10px] text-garnet-deep line-through">14</span>
                     {t("avail.busy")}
                   </li>
                   <li class="flex items-center gap-2">
-                    <span aria-hidden="true" class="h-4 w-4 rounded border border-silver" />
+                    <span aria-hidden="true" class="inline-flex h-5 w-5 items-center justify-center rounded border border-silver text-[10px]">14</span>
                     {t("avail.free")}
                   </li>
                 </ul>
