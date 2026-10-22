@@ -2218,7 +2218,6 @@ func photoURL(path *string) *string {
 	u := images.URL(*path)
 	return &u
 }
-
 ```
 
 `backend/internal/items/repo.go`
@@ -6604,12 +6603,12 @@ export default function DressEdit() {
 
 - [ ] **Step 5: Run all frontend checks**
 
-Run: `deno task test && deno task check && deno task build && grep -rn "DressGrid\|DressTile\|dressId" src`
+Run: `deno task test && deno task check && deno task build && grep -rn "DressGrid\|DressTile\|dressId=" src`
 Expected:
 - the tests pass;
 - `check` reports no errors;
 - the build prints `✓ built`;
-- the grep finds nothing.
+- the grep finds nothing. A local `(dressId) =>` parameter in the dress editor is fine; it is not the calendar prop.
 
 - [ ] **Step 6: Commit**
 
@@ -9131,3 +9130,23 @@ The controller runs this in headless Chrome, against a server built from the bra
 | §7 API | Tasks 3–4 |
 | §8 code structure | Tasks 1–8 (the `listing` package is §8.1's shared helper) |
 | §9 tests | every task's tests, plus Final verification |
+
+## Changes made during review
+
+The tasks above were built as written. The reviews then led to these approved changes, which are on the branch but not in the task code above:
+
+- **Task 7:**
+  - The shop page shows a loading placeholder, or an error with Retry, when the category chip changes.
+  - A `?category=` the shop doesn't have falls back to All, guarded so it only acts on the current shop.
+  - `shop.empty`, `favorites.empty_body` and `notfound.body` no longer mention dresses.
+  - The Turkmen word for SUV is now spelled "Jip".
+- **Task 8:**
+  - The item, dress, admin shop and My shop editors refill their form from a memoized `updated_at`. Before, a photo or logo change overwrote unsaved edits, a bug dating back to the first frontend.
+  - The item editor accepts only positive whole-number ids.
+  - `admin.empty_dresses` is removed, and `admin.delete_shop_confirm` and `admin.new_item` are reworded.
+  - An unused import is removed from My shop.
+- **Final review:**
+  - A self-check test for the field definitions: safe keys and slugs, sensible limits, valid filters, and one kind per key.
+  - A comment warning about `?` in `Where.Add`.
+  - The busy-days comment is corrected.
+  - The admin "Listings" menu stays highlighted inside the dress and item editors.
