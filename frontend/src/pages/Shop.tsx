@@ -1,11 +1,11 @@
-import { A, useLocation, useParams } from "@solidjs/router";
+import { A, useLocation, useNavigate, useParams } from "@solidjs/router";
 import { createEffect, createSignal, For, Match, on, Show, Switch } from "solid-js";
 import ListingGrid from "../components/ListingGrid.tsx";
 import ErrorState from "../components/ErrorState.tsx";
 import LoadMore from "../components/LoadMore.tsx";
 import { ContactButtons } from "../components/ShopCard.tsx";
 import ShopLogo from "../components/ShopLogo.tsx";
-import { DetailSkeleton } from "../components/Skeleton.tsx";
+import { DetailSkeleton, GridSkeleton } from "../components/Skeleton.tsx";
 import { i18n, t, tr } from "../i18n/i18n.ts";
 import { categoryDef, catLabel } from "../lib/catalog.ts";
 import { api } from "../lib/client.ts";
@@ -19,6 +19,7 @@ import NotFound from "./NotFound.tsx";
 export default function Shop() {
   const params = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   /** The ?category= chip; "" shows every category. */
   const category = () => {
     const c = new URLSearchParams(location.search).get("category") ?? "";
@@ -41,6 +42,14 @@ export default function Shop() {
   }));
   // Another chip keeps the shop's details on screen and reloads only the list.
   createEffect(on(category, () => void list.reset(), { defer: true }));
+  // An old link to a category this shop does not have: go back to "All".
+  createEffect(() => {
+    const shop = info();
+    const c = category();
+    if (shop && c && !shop.categories.includes(c)) {
+      navigate(`/shops/${params.slug}`, { replace: true });
+    }
+  });
   const chipHref = (c: string) => `/shops/${params.slug}${c ? `?category=${c}` : ""}`;
   const chip = (c: string, label: string) => (
     <A
@@ -94,10 +103,21 @@ export default function Shop() {
                   <For each={shop().categories}>{(c) => chip(c, tr(catLabel(c)))}</For>
                 </nav>
               </Show>
-              <Show when={list.items().length > 0} fallback={<p class="text-silver-ink">{t("shop.empty")}</p>}>
-                <ListingGrid items={list.items()} />
-                <LoadMore list={list} />
-              </Show>
+              <Switch>
+                <Match when={list.items().length === 0 && list.error() !== null}>
+                  <ErrorState error={list.error()} onRetry={() => void list.retry()} />
+                </Match>
+                <Match when={list.items().length === 0 && list.loading()}>
+                  <GridSkeleton />
+                </Match>
+                <Match when={list.items().length === 0}>
+                  <p class="text-silver-ink">{t("shop.empty")}</p>
+                </Match>
+                <Match when={true}>
+                  <ListingGrid items={list.items()} />
+                  <LoadMore list={list} />
+                </Match>
+              </Switch>
             </section>
           </div>
         )}
