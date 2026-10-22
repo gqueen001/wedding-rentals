@@ -35,8 +35,8 @@ export default function AdminLayout(props: RouteSectionProps) {
             <span class="text-sm text-silver-ink">{t("admin.title")}</span>
             <nav class="flex text-sm" aria-label={t("admin.title")}>
               <A href="/admin/shops" class={NAV_LINK} activeClass="font-semibold text-garnet">{t("admin.shops")}</A>
-              <A href="/admin/dresses" class={NAV_LINK} activeClass="font-semibold text-garnet">
-                {t("admin.dresses")}
+              <A href="/admin/listings" class={NAV_LINK} activeClass="font-semibold text-garnet">
+                {t("admin.listings")}
               </A>
             </nav>
             <div class="ml-auto flex items-center gap-1">

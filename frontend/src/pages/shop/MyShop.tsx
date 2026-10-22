@@ -4,23 +4,24 @@ import { createStore, reconcile } from "solid-js/store";
 import { FormActions } from "../../components/admin/Field.tsx";
 import LogoUpload from "../../components/admin/LogoUpload.tsx";
 import ShopFields from "../../components/admin/ShopFields.tsx";
-import StatusBadge from "../../components/admin/StatusBadge.tsx";
+import ListingList from "../../components/admin/ListingList.tsx";
 import ErrorState from "../../components/ErrorState.tsx";
 import { PlusIcon } from "../../components/icons.tsx";
-import { priceText } from "../../components/price.ts";
 import { t } from "../../i18n/i18n.ts";
 import { ownerApi } from "../../lib/client.ts";
 import { contactPhone } from "../../lib/contact.ts";
 import { validationFields } from "../../lib/errors.ts";
 import { cleanShopInput, EMPTY_SHOP_INPUT, shopToInput } from "../../lib/forms.ts";
+import { useManage } from "../../lib/manage.ts";
 import { usePageTitle } from "../../lib/title.ts";
 import type { ShopInput } from "../../lib/types.ts";
 
-/** "My shop": the owner's dresses and shop details. */
+/** "My shop": the owner's listings and shop details. */
 export default function MyShop() {
   usePageTitle(() => t("myshop.title"));
   const [me, { mutate, refetch }] = createResource(() => ownerApi.owner.me());
-  const [dresses, dressList] = createResource(() => ownerApi.owner.dresses());
+  const m = useManage();
+  const [listings, listingList] = createResource(() => ownerApi.owner.listings());
   const shop = () => (me.state === "ready" ? me()?.shop : undefined);
   const [form, setForm] = createStore<ShopInput>({ ...EMPTY_SHOP_INPUT, aliases: [] });
   // Refill the form only when the saved shop changes, not when just its logo does.
@@ -95,55 +96,23 @@ export default function MyShop() {
             <section class="mt-8">
               <div class="flex flex-wrap items-center gap-3">
                 <h2 class="text-2xl">{t("myshop.dresses")}</h2>
-                <A href="/shop/dresses/new" class="btn btn-primary ml-auto">
+                <A href={m.newListingHref()} class="btn btn-primary ml-auto">
                   <PlusIcon />
-                  {t("admin.new_dress")}
+                  {t("admin.new_listing")}
                 </A>
               </div>
               <div class="mt-4">
                 <Switch>
-                  <Match when={dresses.error}>
-                    <ErrorState error={dresses.error} onRetry={() => void dressList.refetch()} />
+                  <Match when={listings.error}>
+                    <ErrorState error={listings.error} onRetry={() => void listingList.refetch()} />
                   </Match>
-                  <Match when={!dresses()}>
+                  <Match when={!listings()}>
                     <p class="text-silver-ink">{t("common.loading")}</p>
                   </Match>
-                  <Match when={dresses()?.length === 0}>
+                  <Match when={listings()?.length === 0}>
                     <p class="rounded-lg bg-white p-5 text-silver-ink">{t("myshop.no_dresses")}</p>
                   </Match>
-                  <Match when={dresses()}>
-                    {(list) => (
-                      <ul class="divide-y divide-veil overflow-hidden rounded-lg bg-white">
-                        <For each={list()}>
-                          {(d) => (
-                            <li>
-                              <A
-                                href={`/shop/dresses/${d.id}`}
-                                class="flex items-center gap-4 px-4 py-3 hover:bg-veil/60"
-                              >
-                                <div class="h-16 w-12 shrink-0 overflow-hidden rounded-xs bg-veil">
-                                  <Show when={d.images[0]}>
-                                    {(img) => (
-                                      <img
-                                        src={img().small}
-                                        alt=""
-                                        class="h-full w-full object-cover"
-                                      />
-                                    )}
-                                  </Show>
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                  <p class="truncate font-semibold">{d.title}</p>
-                                  <p class="text-sm text-garnet">{priceText(d)}</p>
-                                </div>
-                                <StatusBadge published={d.is_published} />
-                              </A>
-                            </li>
-                          )}
-                        </For>
-                      </ul>
-                    )}
-                  </Match>
+                  <Match when={listings()}>{(list) => <ListingList items={list()} />}</Match>
                 </Switch>
               </div>
             </section>
