@@ -135,3 +135,19 @@ func TestDeleteDressRemovesFiles(t *testing.T) {
 		t.Fatalf("get after delete: %d", rec.Code)
 	}
 }
+
+// The dress routes touch dresses only; other categories have /items.
+func TestDressRoutesIgnoreOtherCategories(t *testing.T) {
+	e := setup(t)
+	shop := testutil.InsertShop(t, e.tx, testutil.ShopFixture{})
+	tent := testutil.InsertItem(t, e.tx, testutil.ItemFixture{ShopID: shop.ID, Category: "tents", Attributes: map[string]any{"guests": 100}})
+	for _, method := range []string{http.MethodGet, http.MethodDelete} {
+		if rec := testutil.Request(t, e.r, method, adminPath(tent), nil, ""); rec.Code != http.StatusNotFound {
+			t.Errorf("%s tent on /dresses: %d, want 404", method, rec.Code)
+		}
+	}
+	var n int
+	if err := e.tx.QueryRow(t.Context(), `SELECT count(*) FROM listings WHERE id = $1`, tent).Scan(&n); err != nil || n != 1 {
+		t.Fatalf("tent rows = %d (err %v), want 1", n, err)
+	}
+}

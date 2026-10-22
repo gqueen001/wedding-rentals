@@ -19,8 +19,8 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"wedding-rentals/backend/internal/db"
-	"wedding-rentals/backend/internal/dresses"
 	"wedding-rentals/backend/internal/httpx"
+	"wedding-rentals/backend/internal/items"
 )
 
 // Handler serves the built SPA: real files as-is, every other GET gets
@@ -33,7 +33,8 @@ type Handler struct {
 	ContactPhone string
 }
 
-var dressPath = regexp.MustCompile(`^/dresses/(\d+)/?$`)
+// Dress and item pages get Open Graph tags; both are listings.
+var listingPath = regexp.MustCompile(`^/(?:dresses|items)/(\d+)/?$`)
 
 func (h *Handler) Serve(c *gin.Context) {
 	p := c.Request.URL.Path
@@ -67,7 +68,7 @@ func (h *Handler) Serve(c *gin.Context) {
 		c.String(http.StatusNotFound, "frontend not built: run the frontend build first")
 		return
 	}
-	if m := dressPath.FindStringSubmatch(p); m != nil {
+	if m := listingPath.FindStringSubmatch(p); m != nil {
 		if id, err := strconv.ParseInt(m[1], 10, 64); err == nil {
 			index = h.injectOG(c.Request.Context(), index, id)
 		}
@@ -81,12 +82,16 @@ func (h *Handler) Serve(c *gin.Context) {
 }
 
 func (h *Handler) injectOG(ctx context.Context, index []byte, id int64) []byte {
-	d, err := dresses.GetPublic(ctx, h.DB, id)
+	d, err := items.GetPublic(ctx, h.DB, id)
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
-			log.Printf("og lookup for dress %d: %v", id, err)
+			log.Printf("og lookup for listing %d: %v", id, err)
 		}
 		return index
+	}
+	page := "/items/"
+	if d.Category == "dresses" {
+		page = "/dresses/"
 	}
 	var b strings.Builder
 	meta := func(prop, content string) {
@@ -95,7 +100,7 @@ func (h *Handler) injectOG(ctx context.Context, index []byte, id int64) []byte {
 	meta("og:type", "product")
 	meta("og:title", d.Title+" · "+d.Shop.Name)
 	meta("og:description", fmt.Sprintf("%d TMT · %s", d.PriceManat, d.Shop.City.NameTK))
-	meta("og:url", h.BaseURL+"/dresses/"+strconv.FormatInt(id, 10))
+	meta("og:url", h.BaseURL+page+strconv.FormatInt(id, 10))
 	if len(d.Images) > 0 {
 		meta("og:image", h.BaseURL+d.Images[0].Large)
 	}

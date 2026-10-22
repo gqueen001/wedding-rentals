@@ -4,6 +4,7 @@ import ru from "./ru.json" with { type: "json" };
 import tk from "./tk.json" with { type: "json" };
 import { createI18n, translate } from "./i18n.ts";
 import { memoryKV } from "../lib/storage.ts";
+import { CATEGORIES, catLabel, fieldLabel, optionLabel } from "../lib/catalog.ts";
 import { COLORS, SILHOUETTES, SLEEVES } from "../lib/types.ts";
 
 const dicts: Record<string, Record<string, string>> = { tk, ru, en };
@@ -17,7 +18,7 @@ const API_ERROR_CODES = [
 // Every value the Go API puts in error.fields.
 const FIELD_VALUES = [
   "required", "invalid", "too_long", "too_many", "too_large", "must_be_positive", "out_of_range", "taken",
-  "too_short",
+  "too_short", "unknown",
   "exactly_one_of_listing_id_or_shop_id", "must_list_all_images_of_one_listing",
 ];
 
@@ -53,6 +54,18 @@ Deno.test("every enum value, API error code and field value has a message", () =
     ...FIELD_VALUES.map((v) => `field.${v}`),
   ];
   for (const key of needed) assert(key in en, `missing ${key}`);
+});
+
+Deno.test("every category, field and option in the catalog has a message", () => {
+  for (const c of CATEGORIES) {
+    assert(catLabel(c.slug) in en, `missing ${catLabel(c.slug)}`);
+    for (const f of c.fields) {
+      assert(fieldLabel(c.slug, f.key) in en, `missing ${fieldLabel(c.slug, f.key)}`);
+      for (const o of f.options ?? []) {
+        assert(optionLabel(c.slug, f.key, o) in en, `missing ${optionLabel(c.slug, f.key, o)}`);
+      }
+    }
+  }
 });
 
 Deno.test("translate fills params, then falls back to English, then to the key", () => {

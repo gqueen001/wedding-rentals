@@ -1,13 +1,15 @@
 import { A } from "@solidjs/router";
 import { Show } from "solid-js";
+import { listingHref } from "../lib/catalog.ts";
 import type { ListItem } from "../lib/types.ts";
 import { FavoriteIconButton } from "./FavoriteButton.tsx";
 import { priceText } from "./price.ts";
 
-export default function DressTile(props: { item: ListItem; eager?: boolean }) {
+/** One listing in a grid, of any category: photo, price, title and shop. */
+export default function ListingTile(props: { item: ListItem; eager?: boolean }) {
   return (
     <article class="relative">
-      <A href={`/dresses/${props.item.id}`} class="block">
+      <A href={listingHref(props.item)} class="block">
         <div class="aspect-[3/4] overflow-hidden rounded-xs bg-veil">
           <Show when={props.item.photo}>
             {(src) => (

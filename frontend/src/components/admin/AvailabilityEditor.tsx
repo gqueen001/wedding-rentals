@@ -13,9 +13,9 @@ const withDay = (set: ReadonlySet<string>, day: string, on: boolean): ReadonlySe
 };
 
 /** Tap a day to mark it busy or free; every tap saves at once and reverts if the save fails. */
-export default function AvailabilityEditor(props: { dressId: number }) {
+export default function AvailabilityEditor(props: { listingId: number }) {
   const m = useManage();
-  const [data, { refetch }] = createResource(() => props.dressId, (id) => m.calls.busyDays(id));
+  const [data, { refetch }] = createResource(() => props.listingId, (id) => m.calls.busyDays(id));
   const [busy, setBusy] = createSignal<ReadonlySet<string>>(new Set());
   const [pending, setPending] = createSignal<ReadonlySet<string>>(new Set());
   const [status, setStatus] = createSignal("");
@@ -34,7 +34,7 @@ export default function AvailabilityEditor(props: { dressId: number }) {
     setPending((s) => withDay(s, day, true));
     setFailure("");
     try {
-      await (makeBusy ? m.calls.markBusy(props.dressId, day) : m.calls.markFree(props.dressId, day));
+      await (makeBusy ? m.calls.markBusy(props.listingId, day) : m.calls.markFree(props.listingId, day));
       setStatus(t(makeBusy ? "avail.marked_busy" : "avail.marked_free", { date: dayLabel(day) }));
     } catch (e) {
       setBusy((s) => withDay(s, day, !makeBusy));

@@ -20,7 +20,6 @@ export default function Header() {
             href="/dresses"
             class="inline-flex min-h-11 items-center rounded-full px-3 hover:bg-veil"
             activeClass="text-garnet font-semibold"
-            aria-label={`${t("nav.dresses")}: ${t("search.label")}`}
           >
             {t("nav.dresses")}
           </A>

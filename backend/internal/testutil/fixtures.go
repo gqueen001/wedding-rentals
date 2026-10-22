@@ -110,3 +110,35 @@ func InsertImage(t *testing.T, d db.DBTX, listingID int64, position int, name st
 	}
 	return id
 }
+
+type ItemFixture struct {
+	ShopID     int64
+	Category   string         // a non-dress category slug, e.g. "cars"
+	Title      string         // default "Test item"
+	Price      int            // default 1000
+	Attributes map[string]any // stored as given, not validated
+	Hidden     bool           // default: published
+}
+
+// InsertItem stores a non-dress listing with its attributes.
+func InsertItem(t *testing.T, d db.DBTX, f ItemFixture) int64 {
+	t.Helper()
+	if f.Title == "" {
+		f.Title = "Test item"
+	}
+	if f.Price == 0 {
+		f.Price = 1000
+	}
+	if f.Attributes == nil {
+		f.Attributes = map[string]any{}
+	}
+	var id int64
+	err := d.QueryRow(context.Background(), `
+		INSERT INTO listings (shop_id, category_id, title, price_manat, is_published, attributes)
+		VALUES ($1, (SELECT id FROM categories WHERE slug = $2), $3, $4, $5, $6)
+		RETURNING id`, f.ShopID, f.Category, f.Title, f.Price, !f.Hidden, f.Attributes).Scan(&id)
+	if err != nil {
+		t.Fatalf("insert item: %v", err)
+	}
+	return id
+}

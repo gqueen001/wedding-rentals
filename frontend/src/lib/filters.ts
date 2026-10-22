@@ -23,7 +23,8 @@ function oneOf<T extends string>(allowed: readonly T[], v: string | null): T | n
   return v !== null && (allowed as readonly string[]).includes(v) ? (v as T) : null;
 }
 
-function price(v: string | null): number | null {
+/** A price from a URL query: a positive whole number the API accepts, or null. */
+export function priceParam(v: string | null): number | null {
   const s = v?.trim() ?? "";
   if (!/^\d+$/.test(s)) return null;
   const n = Number(s);
@@ -32,7 +33,7 @@ function price(v: string | null): number | null {
 
 /** What the price fields make of typed text: only the digits count ("1 500" is 1500). */
 export function parsePriceInput(s: string): number | null {
-  return price(s.replace(/\D/g, ""));
+  return priceParam(s.replace(/\D/g, ""));
 }
 
 /** Reads filters from a URL query; unknown or invalid values are dropped. */
@@ -40,8 +41,8 @@ export function parseFilters(query: URLSearchParams): Filters {
   return {
     q: (query.get("q") ?? "").trim(),
     city: (query.get("city") ?? "").trim(),
-    priceMin: price(query.get("price_min")),
-    priceMax: price(query.get("price_max")),
+    priceMin: priceParam(query.get("price_min")),
+    priceMax: priceParam(query.get("price_max")),
     size: oneOf(SIZES, query.get("size")),
     color: oneOf(COLORS, query.get("color")),
     style: oneOf(SILHOUETTES, query.get("style")),

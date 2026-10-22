@@ -1,13 +1,11 @@
 package dresses
 
 import (
-	"math"
 	"slices"
-	"strings"
 	"time"
-	"unicode/utf8"
 
 	"wedding-rentals/backend/internal/images"
+	"wedding-rentals/backend/internal/listing"
 )
 
 var (
@@ -18,16 +16,11 @@ var (
 )
 
 type Input struct {
-	ShopID      int64    `json:"shop_id"`
-	Title       string   `json:"title"`
-	PriceManat  int      `json:"price_manat"`
-	PriceIsFrom bool     `json:"price_is_from"`
-	Description string   `json:"description"`
-	IsPublished bool     `json:"is_published"`
-	Color       string   `json:"color"`
-	Silhouette  string   `json:"silhouette"`
-	Sleeves     string   `json:"sleeves"`
-	Sizes       []string `json:"sizes"`
+	listing.Basics
+	Color      string   `json:"color"`
+	Silhouette string   `json:"silhouette"`
+	Sleeves    string   `json:"sleeves"`
+	Sizes      []string `json:"sizes"`
 }
 
 type Dress struct {
@@ -47,26 +40,11 @@ type Dress struct {
 	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
-func (in *Input) normalize() {
-	in.Title = strings.TrimSpace(in.Title)
-	in.Description = strings.TrimSpace(in.Description)
-}
+func (in *Input) normalize() { in.Basics.Normalize() }
 
 func (in Input) validate() map[string]string {
 	errs := map[string]string{}
-	if in.ShopID <= 0 {
-		errs["shop_id"] = "required"
-	}
-	if in.Title == "" {
-		errs["title"] = "required"
-	} else if utf8.RuneCountInString(in.Title) > 200 {
-		errs["title"] = "too_long"
-	}
-	if in.PriceManat <= 0 {
-		errs["price_manat"] = "must_be_positive"
-	} else if in.PriceManat > math.MaxInt32 {
-		errs["price_manat"] = "too_large"
-	}
+	in.Basics.Validate(errs)
 	if !slices.Contains(Colors, in.Color) {
 		errs["color"] = "invalid"
 	}
@@ -96,11 +74,4 @@ func canonicalSizes(in []string) []string {
 		}
 	}
 	return out
-}
-
-func nullIfEmpty(s string) *string {
-	if s == "" {
-		return nil
-	}
-	return &s
 }

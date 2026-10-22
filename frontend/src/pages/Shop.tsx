@@ -1,12 +1,13 @@
-import { useParams } from "@solidjs/router";
-import { createEffect, createSignal, Match, on, Show, Switch } from "solid-js";
-import DressGrid from "../components/DressGrid.tsx";
+import { A, useLocation, useNavigate, useParams } from "@solidjs/router";
+import { createEffect, createSignal, For, Match, on, Show, Switch } from "solid-js";
+import ListingGrid from "../components/ListingGrid.tsx";
 import ErrorState from "../components/ErrorState.tsx";
 import LoadMore from "../components/LoadMore.tsx";
 import { ContactButtons } from "../components/ShopCard.tsx";
 import ShopLogo from "../components/ShopLogo.tsx";
-import { DetailSkeleton } from "../components/Skeleton.tsx";
-import { i18n, t } from "../i18n/i18n.ts";
+import { DetailSkeleton, GridSkeleton } from "../components/Skeleton.tsx";
+import { i18n, t, tr } from "../i18n/i18n.ts";
+import { categoryDef, catLabel } from "../lib/catalog.ts";
 import { api } from "../lib/client.ts";
 import { isNotFound } from "../lib/errors.ts";
 import { cityName } from "../lib/format.ts";
@@ -17,19 +18,49 @@ import NotFound from "./NotFound.tsx";
 
 export default function Shop() {
   const params = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  /** The ?category= chip; "" shows every category. */
+  const category = () => {
+    const c = new URLSearchParams(location.search).get("category") ?? "";
+    return categoryDef(c) ? c : "";
+  };
   const [info, setInfo] = createSignal<PublicShop | null>(null);
   const list = createPagedList((page) => {
     const slug = params.slug ?? "";
-    return api.shop(slug, new URLSearchParams({ page: String(page), per_page: "24" })).then((s) => {
+    const query = new URLSearchParams({ page: String(page), per_page: "24" });
+    if (category()) query.set("category", category());
+    return api.shop(slug, query).then((s) => {
       // Ignore the details of a shop the user has already left.
       if (page === 1 && slug === params.slug) setInfo(s);
-      return s.dresses;
+      return s.items;
     });
   });
   createEffect(on(() => params.slug, () => {
     setInfo(null);
     void list.reset();
   }));
+  // Another chip keeps the shop's details on screen and reloads only the list.
+  createEffect(on(category, () => void list.reset(), { defer: true }));
+  // An old link to a category this shop does not have: go back to "All".
+  createEffect(() => {
+    const shop = info();
+    const c = category();
+    if (shop && shop.slug === params.slug && c && !shop.categories.includes(c)) {
+      navigate(`/shops/${params.slug}`, { replace: true });
+    }
+  });
+  const chipHref = (c: string) => `/shops/${params.slug}${c ? `?category=${c}` : ""}`;
+  const chip = (c: string, label: string) => (
+    <A
+      href={chipHref(c)}
+      class="chip"
+      classList={{ "border-garnet bg-blush text-garnet-deep": category() === c }}
+      aria-current={category() === c ? "page" : undefined}
+    >
+      {label}
+    </A>
+  );
   usePageTitle(() => info()?.name);
 
   return (
@@ -65,11 +96,28 @@ export default function Shop() {
             </header>
 
             <section class="mt-12" aria-labelledby="shop-dresses-title">
-              <h2 id="shop-dresses-title" class="mb-6 text-3xl">{t("shop.dresses")}</h2>
-              <Show when={list.items().length > 0} fallback={<p class="text-silver-ink">{t("shop.empty")}</p>}>
-                <DressGrid items={list.items()} />
-                <LoadMore list={list} />
+              <h2 id="shop-dresses-title" class="mb-6 text-3xl">{t("shop.listings")}</h2>
+              <Show when={shop().categories.length > 1}>
+                <nav class="mb-6 flex flex-wrap gap-2" aria-label={t("home.categories")}>
+                  {chip("", t("search.all"))}
+                  <For each={shop().categories}>{(c) => chip(c, tr(catLabel(c)))}</For>
+                </nav>
               </Show>
+              <Switch>
+                <Match when={list.items().length === 0 && list.error() !== null}>
+                  <ErrorState error={list.error()} onRetry={() => void list.retry()} />
+                </Match>
+                <Match when={list.items().length === 0 && list.loading()}>
+                  <GridSkeleton />
+                </Match>
+                <Match when={list.items().length === 0}>
+                  <p class="text-silver-ink">{t("shop.empty")}</p>
+                </Match>
+                <Match when={true}>
+                  <ListingGrid items={list.items()} />
+                  <LoadMore list={list} />
+                </Match>
+              </Switch>
             </section>
           </div>
         )}

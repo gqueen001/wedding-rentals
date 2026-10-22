@@ -268,3 +268,69 @@ func TestScopeThatReturnsNoShopFailsClosed(t *testing.T) {
 		}
 	}
 }
+
+func tentBody(shopID int64) map[string]any {
+	return map[string]any{
+		"shop_id": shopID, "category": "tents", "title": "Ak çadyr", "price_manat": 5000, "is_published": true,
+		"attributes": map[string]any{"guests": 200},
+	}
+}
+
+func TestShopOwnersOnlyReachTheirOwnItems(t *testing.T) {
+	e := newShopEnv(t)
+	a := signUp(t, e, "Ak Gelin", "+99365111111")
+	b := signUp(t, e, "Gelin Öýi", "+99365222222")
+
+	// An item is always created in the owner's own shop, whatever shop_id says.
+	rec := testutil.Request(t, e.r, http.MethodPost, "/api/shop/items", tentBody(b.shopID), a.token)
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("create: %d %s", rec.Code, rec.Body)
+	}
+	item := testutil.Decode[struct {
+		ID     int64 `json:"id"`
+		ShopID int64 `json:"shop_id"`
+	}](t, rec)
+	if item.ShopID != a.shopID {
+		t.Fatalf("item landed in shop %d, want %d", item.ShopID, a.shopID)
+	}
+	itemPath := "/api/shop/items/" + strconv.FormatInt(item.ID, 10)
+	day := time.Now().Add(48 * time.Hour).Format("2006-01-02")
+	if rec := testutil.Request(t, e.r, http.MethodPut, itemPath+"/busy-days/"+day, nil, a.token); rec.Code != http.StatusNoContent {
+		t.Fatalf("own busy day: %d %s", rec.Code, rec.Body)
+	}
+	if rec := testutil.Request(t, e.r, http.MethodPut, itemPath, tentBody(a.shopID), a.token); rec.Code != http.StatusOK {
+		t.Fatalf("own update: %d %s", rec.Code, rec.Body)
+	}
+
+	// Owner B reaches none of it.
+	for _, req := range []struct{ method, path string }{
+		{http.MethodGet, itemPath},
+		{http.MethodPut, itemPath},
+		{http.MethodDelete, itemPath},
+		{http.MethodGet, itemPath + "/busy-days"},
+		{http.MethodPut, itemPath + "/busy-days/" + day},
+		{http.MethodDelete, itemPath + "/busy-days/" + day},
+	} {
+		var body any
+		if req.method == http.MethodPut && !strings.Contains(req.path, "busy-days") {
+			body = tentBody(b.shopID)
+		}
+		if rec := testutil.Request(t, e.r, req.method, req.path, body, b.token); rec.Code != http.StatusNotFound {
+			t.Errorf("B %s %s: status = %d, want 404", req.method, req.path, rec.Code)
+		}
+	}
+	listB := testutil.Decode[struct {
+		Items []struct{} `json:"items"`
+	}](t, testutil.Request(t, e.r, http.MethodGet, "/api/shop/items?shop_id="+strconv.FormatInt(a.shopID, 10), nil, b.token))
+	if len(listB.Items) != 0 {
+		t.Errorf("B sees %d of A's items", len(listB.Items))
+	}
+
+	// Brides see the tent; A can delete it.
+	if rec := testutil.Request(t, e.r, http.MethodGet, "/api/items/"+strconv.FormatInt(item.ID, 10), nil, ""); rec.Code != http.StatusOK {
+		t.Errorf("public item: %d", rec.Code)
+	}
+	if rec := testutil.Request(t, e.r, http.MethodDelete, itemPath, nil, a.token); rec.Code != http.StatusNoContent {
+		t.Errorf("own delete: %d %s", rec.Code, rec.Body)
+	}
+}

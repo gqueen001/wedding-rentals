@@ -1,5 +1,5 @@
 import { A, useNavigate, useParams } from "@solidjs/router";
-import { createEffect, createResource, createSignal, Match, on, Show, Switch } from "solid-js";
+import { createEffect, createMemo, createResource, createSignal, Match, on, Show, Switch } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
 import { CheckboxField, FormActions } from "../../components/admin/Field.tsx";
 import LogoUpload from "../../components/admin/LogoUpload.tsx";
@@ -20,7 +20,8 @@ function ShopEditor(props: { id: number | null }) {
   const [shop, { mutate, refetch }] = createResource(id, (shopId) => api.admin.shop(shopId));
   const [form, setForm] = createStore<ShopInput>({ ...EMPTY_SHOP_INPUT, aliases: [] });
   // Refill the form only when the saved shop changes, not when just its logo does.
-  createEffect(on(() => (shop.state === "ready" ? shop()?.updated_at : undefined), (stamp) => {
+  const stamp = createMemo(() => (shop.state === "ready" ? shop()?.updated_at : undefined));
+  createEffect(on(stamp, (stamp) => {
     const s = shop.state === "ready" ? shop() : undefined;
     if (stamp && s) setForm(reconcile(shopToInput(s)));
   }));

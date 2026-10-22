@@ -7,6 +7,7 @@ import (
 
 	"wedding-rentals/backend/internal/db"
 	"wedding-rentals/backend/internal/images"
+	"wedding-rentals/backend/internal/listing"
 )
 
 const selectAdmin = `
@@ -29,7 +30,7 @@ func Create(ctx context.Context, d db.DBTX, in Input) (int64, error) {
 			INSERT INTO listings (shop_id, category_id, title, price_manat, price_is_from, description, is_published)
 			VALUES ($1, (SELECT id FROM categories WHERE slug = 'dresses'), $2, $3, $4, $5, $6)
 			RETURNING id`,
-			in.ShopID, in.Title, in.PriceManat, in.PriceIsFrom, nullIfEmpty(in.Description), in.IsPublished).Scan(&id)
+			in.ShopID, in.Title, in.PriceManat, in.PriceIsFrom, listing.NullIfEmpty(in.Description), in.IsPublished).Scan(&id)
 		if err != nil {
 			return err
 		}
@@ -47,7 +48,7 @@ func Update(ctx context.Context, d db.DBTX, id int64, in Input) error {
 			UPDATE listings SET shop_id = $2, title = $3, price_manat = $4, price_is_from = $5,
 			       description = $6, is_published = $7, updated_at = now()
 			WHERE id = $1 AND category_id = (SELECT id FROM categories WHERE slug = 'dresses')`,
-			id, in.ShopID, in.Title, in.PriceManat, in.PriceIsFrom, nullIfEmpty(in.Description), in.IsPublished)
+			id, in.ShopID, in.Title, in.PriceManat, in.PriceIsFrom, listing.NullIfEmpty(in.Description), in.IsPublished)
 		if err != nil {
 			return err
 		}
@@ -102,7 +103,8 @@ func Delete(ctx context.Context, d db.DBTX, st images.Storage, id int64) error {
 	if err != nil {
 		return err
 	}
-	tag, err := d.Exec(ctx, `DELETE FROM listings WHERE id = $1`, id)
+	tag, err := d.Exec(ctx, `
+		DELETE FROM listings WHERE id = $1 AND category_id = (SELECT id FROM categories WHERE slug = 'dresses')`, id)
 	if err != nil {
 		return err
 	}

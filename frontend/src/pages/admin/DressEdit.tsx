@@ -1,5 +1,5 @@
 import { A, useNavigate, useParams, useSearchParams } from "@solidjs/router";
-import { createEffect, createResource, createSignal, For, Match, on, Show, Switch } from "solid-js";
+import { createEffect, createMemo, createResource, createSignal, For, Match, on, Show, Switch } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
 import AvailabilityEditor from "../../components/admin/AvailabilityEditor.tsx";
 import { CheckboxField, FormActions, SelectField, TextArea, TextField } from "../../components/admin/Field.tsx";
@@ -29,7 +29,8 @@ function DressEditor(props: { id: number | null }) {
     shop_id: Number(firstParam(search.shop_id)) || 0,
   });
   // Refill the form only when the saved dress changes, not when just its photos do.
-  createEffect(on(() => (dress.state === "ready" ? dress()?.updated_at : undefined), (stamp) => {
+  const stamp = createMemo(() => (dress.state === "ready" ? dress()?.updated_at : undefined));
+  createEffect(on(stamp, (stamp) => {
     const d = dress.state === "ready" ? dress() : undefined;
     if (stamp && d) setForm(reconcile(dressToForm(d)));
   }));
@@ -66,7 +67,7 @@ function DressEditor(props: { id: number | null }) {
     if (!current || !confirm(t("admin.delete_dress_confirm"))) return;
     try {
       await m.calls.deleteDress(current);
-      navigate(m.dressesHref(form.shop_id), { replace: true });
+      navigate(m.listingsHref(form.shop_id), { replace: true });
     } catch (e) {
       setError(() => e);
     }
@@ -80,7 +81,7 @@ function DressEditor(props: { id: number | null }) {
 
   return (
     <div class="max-w-2xl">
-      <A href={m.dressesHref()} class="text-sm text-silver-ink hover:text-ink">{t("common.back")}</A>
+      <A href={m.listingsHref()} class="text-sm text-silver-ink hover:text-ink">{t("common.back")}</A>
       <h1 class="mt-2 text-3xl">{id() ? form.title || t("admin.edit") : t("admin.new_dress")}</h1>
       <Switch>
         <Match when={dress.error}>
@@ -209,7 +210,7 @@ function DressEditor(props: { id: number | null }) {
                 when={id() !== null && dress()}
                 fallback={<p class="text-sm text-silver-ink">{t("avail.save_first")}</p>}
               >
-                {(d) => <AvailabilityEditor dressId={d().id} />}
+                {(d) => <AvailabilityEditor listingId={d().id} />}
               </Show>
             </div>
           </section>

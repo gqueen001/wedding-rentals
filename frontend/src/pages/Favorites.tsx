@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import { createEffect, createResource, Match, Switch, untrack } from "solid-js";
-import DressGrid from "../components/DressGrid.tsx";
+import ListingGrid from "../components/ListingGrid.tsx";
 import EmptyState from "../components/EmptyState.tsx";
 import ErrorState from "../components/ErrorState.tsx";
 import { GridSkeleton } from "../components/Skeleton.tsx";
@@ -16,7 +16,7 @@ export default function Favorites() {
   const [page, { refetch }] = createResource((): Promise<Page | null> => {
     const ids = untrack(favorites.ids);
     if (ids.length === 0) return Promise.resolve(null);
-    return api.dresses(new URLSearchParams({ ids: ids.join(","), per_page: String(MAX_FAVORITES) }));
+    return api.items(new URLSearchParams({ ids: ids.join(","), per_page: String(MAX_FAVORITES) }));
   });
 
   // Ids that the API no longer returns (deleted or unpublished) are dropped silently.
@@ -46,11 +46,11 @@ export default function Favorites() {
           </Match>
           <Match when={visible().length === 0}>
             <EmptyState title={t("favorites.empty_title")} body={t("favorites.empty_body")}>
-              <A href="/dresses" class="btn btn-primary">{t("favorites.browse")}</A>
+              <A href="/" class="btn btn-primary">{t("favorites.browse")}</A>
             </EmptyState>
           </Match>
           <Match when={visible().length > 0}>
-            <DressGrid items={visible()} />
+            <ListingGrid items={visible()} />
           </Match>
         </Switch>
       </div>

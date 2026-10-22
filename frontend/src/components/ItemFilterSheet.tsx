@@ -1,0 +1,72 @@
+import { createSignal, For, Match, Switch } from "solid-js";
+import { t, tr } from "../i18n/i18n.ts";
+import { type CategoryDef, fieldLabel, optionLabel } from "../lib/catalog.ts";
+import { EMPTY_ITEM_FILTERS, type ItemFilters } from "../lib/itemFilters.ts";
+import { ChoiceGroup, CityField, NumberInput, PriceFields } from "./FilterFields.tsx";
+import Sheet from "./Sheet.tsx";
+
+/** A category page's filters, built from the category's field definitions. */
+export default function ItemFilterSheet(props: {
+  category: CategoryDef;
+  open: boolean;
+  value: ItemFilters;
+  onApply: (f: ItemFilters) => void;
+  onClose: () => void;
+}) {
+  const [draft, setDraft] = createSignal<ItemFilters>({ ...props.value });
+  const setAttr = (param: string, value: string) =>
+    setDraft((d) => ({ ...d, attrs: { ...d.attrs, [param]: value } }));
+  const slug = () => props.category.slug;
+
+  return (
+    <Sheet
+      open={props.open}
+      title={t("filters.title")}
+      onOpen={() => setDraft({ ...props.value })}
+      onClose={props.onClose}
+      footer={
+        <>
+          <button type="button" class="btn btn-quiet" onClick={() => setDraft({ ...EMPTY_ITEM_FILTERS, q: draft().q })}>
+            {t("filters.reset")}
+          </button>
+          <button type="button" class="btn btn-primary flex-1" onClick={() => props.onApply(draft())}>
+            {t("filters.apply_items")}
+          </button>
+        </>
+      }
+    >
+      <CityField value={draft().city} onChange={(city) => setDraft((d) => ({ ...d, city }))} />
+      <PriceFields
+        min={draft().priceMin}
+        max={draft().priceMax}
+        onMin={(priceMin) => setDraft((d) => ({ ...d, priceMin }))}
+        onMax={(priceMax) => setDraft((d) => ({ ...d, priceMax }))}
+      />
+      <For each={props.category.fields.filter((f) => f.filter)}>
+        {(field) => {
+          const param = field.filter!.param;
+          return (
+            <Switch>
+              <Match when={field.filter!.kind === "min"}>
+                <NumberInput
+                  label={tr("filters.at_least", { field: tr(fieldLabel(slug(), field.key)) })}
+                  value={draft().attrs[param] ? Number(draft().attrs[param]) : null}
+                  onChange={(n) => setAttr(param, n === null ? "" : String(n))}
+                />
+              </Match>
+              <Match when={true}>
+                <ChoiceGroup
+                  legend={tr(fieldLabel(slug(), field.key))}
+                  name={param}
+                  options={(field.options ?? []).map((o) => ({ value: o, label: tr(optionLabel(slug(), field.key, o)) }))}
+                  value={draft().attrs[param] || null}
+                  onChange={(v) => setAttr(param, v ?? "")}
+                />
+              </Match>
+            </Switch>
+          );
+        }}
+      </For>
+    </Sheet>
+  );
+}

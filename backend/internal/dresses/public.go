@@ -2,26 +2,18 @@ package dresses
 
 import (
 	"context"
-	"fmt"
-	"strconv"
-	"strings"
 
 	"wedding-rentals/backend/internal/db"
 	"wedding-rentals/backend/internal/images"
-	"wedding-rentals/backend/internal/textnorm"
+	"wedding-rentals/backend/internal/listing"
 )
 
-type CityRef struct {
-	Slug   string `json:"slug"`
-	NameTK string `json:"name_tk"`
-	NameRU string `json:"name_ru"`
-	NameEN string `json:"name_en"`
-}
-
-type ShopRef struct {
-	Name string `json:"name"`
-	Slug string `json:"slug"`
-}
+type (
+	CityRef  = listing.CityRef
+	ShopRef  = listing.ShopRef
+	ShopCard = listing.ShopCard
+	Page     = listing.Page[ListItem]
+)
 
 type ListItem struct {
 	ID          int64   `json:"id"`
@@ -31,24 +23,6 @@ type ListItem struct {
 	Photo       *string `json:"photo"`
 	Shop        ShopRef `json:"shop"`
 	City        CityRef `json:"city"`
-}
-
-type Page struct {
-	Items   []ListItem `json:"items"`
-	Page    int        `json:"page"`
-	PerPage int        `json:"per_page"`
-	Total   int        `json:"total"`
-}
-
-type ShopCard struct {
-	Name         string  `json:"name"`
-	Slug         string  `json:"slug"`
-	Address      string  `json:"address"`
-	Phone        string  `json:"phone"`
-	InstagramURL *string `json:"instagram_url"`
-	TikTokURL    *string `json:"tiktok_url"`
-	Logo         *string `json:"logo"`
-	City         CityRef `json:"city"`
 }
 
 type PublicDress struct {
@@ -71,80 +45,35 @@ const publicFrom = `
 	JOIN shops s ON s.id = l.shop_id
 	JOIN cities ci ON ci.id = s.city_id`
 
-// buildWhere returns the WHERE clause, its args and the placeholder of the
-// normalized search query ("" when there is no search).
-func buildWhere(f Filter) (string, []any, string) {
-	where := []string{"l.is_published", "s.is_published"}
-	var args []any
-	add := func(cond string, val any) {
-		args = append(args, val)
-		where = append(where, strings.ReplaceAll(cond, "?", "$"+strconv.Itoa(len(args))))
-	}
-	if f.City != "" {
-		add("ci.slug = ?", f.City)
-	}
-	if f.PriceMin > 0 {
-		add("l.price_manat >= ?", f.PriceMin)
-	}
-	if f.PriceMax > 0 {
-		add("l.price_manat <= ?", f.PriceMax)
-	}
+func where(f Filter) *listing.Where {
+	w := &listing.Where{}
 	if f.Size != "" {
-		add("? = ANY(d.sizes)", f.Size)
+		w.Add("? = ANY(d.sizes)", f.Size)
 	}
 	if f.Color != "" {
-		add("d.color = ?", f.Color)
+		w.Add("d.color = ?", f.Color)
 	}
 	if f.Style != "" {
-		add("d.silhouette = ?", f.Style)
+		w.Add("d.silhouette = ?", f.Style)
 	}
 	if f.Sleeves != "" {
-		add("d.sleeves = ?", f.Sleeves)
+		w.Add("d.sleeves = ?", f.Sleeves)
 	}
-	if len(f.IDs) > 0 {
-		add("l.id = ANY(?)", f.IDs)
-	}
-	if f.ShopSlug != "" {
-		add("s.slug = ?", f.ShopSlug)
-	}
-	qParam := ""
-	if f.Q != "" {
-		qn := textnorm.Norm(f.Q)
-		args = append(args, qn, "%"+textnorm.EscapeLike(qn)+"%")
-		qParam = "$" + strconv.Itoa(len(args)-1)
-		like := "$" + strconv.Itoa(len(args))
-		where = append(where, fmt.Sprintf(`(
-			%[1]s <%% norm(l.title) OR %[1]s <%% norm(s.name)
-			OR norm(l.title) LIKE %[2]s OR norm(s.name) LIKE %[2]s
-			OR EXISTS (SELECT 1 FROM shop_aliases a WHERE a.shop_id = s.id
-			           AND (%[1]s <%% norm(a.alias) OR norm(a.alias) LIKE %[2]s)))`, qParam, like))
-	}
-	return " WHERE " + strings.Join(where, " AND "), args, qParam
-}
-
-func orderBy(qParam string) string {
-	if qParam == "" {
-		return " ORDER BY l.created_at DESC, l.id DESC"
-	}
-	return fmt.Sprintf(` ORDER BY GREATEST(
-		word_similarity(%[1]s, norm(l.title)),
-		word_similarity(%[1]s, norm(s.name)),
-		COALESCE((SELECT max(word_similarity(%[1]s, norm(a.alias))) FROM shop_aliases a WHERE a.shop_id = s.id), 0)
-	) DESC, l.created_at DESC, l.id DESC`, qParam)
+	w.Apply(f.Query)
+	return w
 }
 
 func ListPublic(ctx context.Context, dbx db.DBTX, f Filter) (Page, error) {
-	where, args, qParam := buildWhere(f)
+	w := where(f)
 	page := Page{Items: []ListItem{}, Page: f.Page, PerPage: f.PerPage}
-	if err := dbx.QueryRow(ctx, `SELECT count(*)`+publicFrom+where, args...).Scan(&page.Total); err != nil {
+	if err := dbx.QueryRow(ctx, `SELECT count(*)`+publicFrom+w.SQL(), w.Args()...).Scan(&page.Total); err != nil {
 		return Page{}, err
 	}
-	args = append(args, f.PerPage, (f.Page-1)*f.PerPage)
+	limit, args := w.Limit(f.Query)
 	sql := `SELECT l.id, l.title, l.price_manat, l.price_is_from,
 		       (SELECT i.path_small FROM images i WHERE i.listing_id = l.id ORDER BY i.position, i.id LIMIT 1),
 		       s.name, s.slug, ci.slug, ci.name_tk, ci.name_ru, ci.name_en` +
-		publicFrom + where + orderBy(qParam) +
-		fmt.Sprintf(" LIMIT $%d OFFSET $%d", len(args)-1, len(args))
+		publicFrom + w.SQL() + w.OrderBy() + limit
 	rows, err := dbx.Query(ctx, sql, args...)
 	if err != nil {
 		return Page{}, err
