@@ -1,5 +1,5 @@
 import { A, useNavigate, useParams, useSearchParams } from "@solidjs/router";
-import { createEffect, createResource, createSignal, For, Match, on, Show, Switch } from "solid-js";
+import { createEffect, createMemo, createResource, createSignal, For, Match, on, Show, Switch } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
 import AvailabilityEditor from "../../components/admin/AvailabilityEditor.tsx";
 import { CheckboxField, FormActions, SelectField, TextArea, TextField } from "../../components/admin/Field.tsx";
@@ -29,7 +29,8 @@ function DressEditor(props: { id: number | null }) {
     shop_id: Number(firstParam(search.shop_id)) || 0,
   });
   // Refill the form only when the saved dress changes, not when just its photos do.
-  createEffect(on(() => (dress.state === "ready" ? dress()?.updated_at : undefined), (stamp) => {
+  const stamp = createMemo(() => (dress.state === "ready" ? dress()?.updated_at : undefined));
+  createEffect(on(stamp, (stamp) => {
     const d = dress.state === "ready" ? dress() : undefined;
     if (stamp && d) setForm(reconcile(dressToForm(d)));
   }));

@@ -1,5 +1,5 @@
 import { A, useNavigate, useParams, useSearchParams } from "@solidjs/router";
-import { createEffect, createResource, createSignal, Match, on, Show, Switch } from "solid-js";
+import { createEffect, createMemo, createResource, createSignal, Match, on, Show, Switch } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
 import AttributeFields from "../../components/admin/AttributeFields.tsx";
 import AvailabilityEditor from "../../components/admin/AvailabilityEditor.tsx";
@@ -27,7 +27,8 @@ function ItemEditor(props: { id: number | null; category: string }) {
   const [shops] = createResource(() => m.shops?.() ?? Promise.resolve([]));
   const [form, setForm] = createStore<ItemForm>(emptyItemForm(props.category, Number(firstParam(search.shop_id)) || 0));
   // Refill the form only when the saved item changes, not when just its photos do.
-  createEffect(on(() => (item.state === "ready" ? item()?.updated_at : undefined), (stamp) => {
+  const stamp = createMemo(() => (item.state === "ready" ? item()?.updated_at : undefined));
+  createEffect(on(stamp, (stamp) => {
     const it = item.state === "ready" ? item() : undefined;
     if (stamp && it) setForm(reconcile(itemToForm(it)));
   }));
@@ -190,7 +191,7 @@ export default function ItemEdit() {
   const params = useParams();
   const [search] = useSearchParams();
   const key = () => {
-    if (params.id) return params.id;
+    if (params.id) return /^\d+$/.test(params.id) && Number(params.id) > 0 ? params.id : "";
     const c = categoryDef(firstParam(search.category));
     return c && !c.own_pages ? `new:${c.slug}` : "";
   };
