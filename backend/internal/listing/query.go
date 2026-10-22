@@ -82,6 +82,7 @@ type Where struct {
 }
 
 // Add appends a condition; each "?" in cond becomes the placeholder of val.
+// Every "?" is replaced, so conditions must not use the jsonb "?", "?|" or "?&" operators.
 func (w *Where) Add(cond string, val any) {
 	w.args = append(w.args, val)
 	w.conds = append(w.conds, strings.ReplaceAll(cond, "?", "$"+strconv.Itoa(len(w.args))))

@@ -46,7 +46,7 @@ export default function Shop() {
   createEffect(() => {
     const shop = info();
     const c = category();
-    if (shop && c && !shop.categories.includes(c)) {
+    if (shop && shop.slug === params.slug && c && !shop.categories.includes(c)) {
       navigate(`/shops/${params.slug}`, { replace: true });
     }
   });

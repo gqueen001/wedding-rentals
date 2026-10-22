@@ -18,6 +18,9 @@ export default function AdminLayout(props: RouteSectionProps) {
   usePageTitle(() => t("admin.title"));
   const location = useLocation();
   const navigate = useNavigate();
+  // Editing a dress or an item still belongs to "Listings".
+  const inListings = () =>
+    ["/admin/listings", "/admin/dresses", "/admin/items"].some((p) => location.pathname.startsWith(p));
   const signOut = () => {
     auth.clear();
     navigate("/admin/login", { replace: true });
@@ -35,7 +38,7 @@ export default function AdminLayout(props: RouteSectionProps) {
             <span class="text-sm text-silver-ink">{t("admin.title")}</span>
             <nav class="flex text-sm" aria-label={t("admin.title")}>
               <A href="/admin/shops" class={NAV_LINK} activeClass="font-semibold text-garnet">{t("admin.shops")}</A>
-              <A href="/admin/listings" class={NAV_LINK} activeClass="font-semibold text-garnet">
+              <A href="/admin/listings" class={`${NAV_LINK} ${inListings() ? "font-semibold text-garnet" : ""}`}>
                 {t("admin.listings")}
               </A>
             </nav>

@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"regexp"
+	"slices"
 	"testing"
 
 	"wedding-rentals/backend/internal/catalog"
@@ -127,5 +129,77 @@ func TestFrontendCatalogIsUpToDate(t *testing.T) {
 	}
 	if !bytes.Equal(got, want) {
 		t.Fatal("frontend/src/lib/catalog.json is out of date: run go test ./internal/catalog/ -update")
+	}
+}
+
+func TestDefinitionsAreWellFormed(t *testing.T) {
+	keyRe := regexp.MustCompile(`^[a-z0-9_]+$`)
+	slugRe := regexp.MustCompile(`^[a-z0-9-]+$`)
+	shared := []string{"q", "city", "price_min", "price_max", "ids", "page", "per_page", "category"}
+	kinds := map[string]string{} // field key -> kind, across categories
+	for _, c := range catalog.Categories {
+		if !slugRe.MatchString(c.Slug) {
+			t.Errorf("category slug %q must match %s", c.Slug, slugRe)
+		}
+		params := map[string]string{}
+		for _, f := range c.Fields {
+			where := c.Slug + "." + f.Key
+			if !keyRe.MatchString(f.Key) {
+				t.Errorf("%s: key must match %s (keys go into SQL text)", where, keyRe)
+			}
+			if prev, ok := kinds[f.Key]; ok && prev != f.Kind {
+				t.Errorf("%s: key has kind %q here but %q in another category", where, f.Kind, prev)
+			}
+			kinds[f.Key] = f.Kind
+			switch f.Kind {
+			case catalog.Text:
+				if f.MaxLen <= 0 {
+					t.Errorf("%s: text field needs MaxLen > 0", where)
+				}
+			case catalog.Number:
+				if f.Min < 1 || f.Max <= f.Min {
+					t.Errorf("%s: number field needs Min >= 1 and Max > Min, got %d..%d", where, f.Min, f.Max)
+				}
+			case catalog.Choice, catalog.Choices:
+				if len(f.Options) == 0 {
+					t.Errorf("%s: choice field needs at least one option", where)
+				}
+				seen := map[string]bool{}
+				for _, o := range f.Options {
+					if seen[o] {
+						t.Errorf("%s: duplicate option %q", where, o)
+					}
+					seen[o] = true
+				}
+			default:
+				t.Errorf("%s: unknown field kind %q", where, f.Kind)
+			}
+			if f.Filter == nil {
+				continue
+			}
+			p := f.Filter.Param
+			if p == "" {
+				t.Errorf("%s: filter has an empty Param", where)
+			}
+			if slices.Contains(shared, p) {
+				t.Errorf("%s: filter param %q is a shared param", where, p)
+			}
+			if other, dup := params[p]; dup {
+				t.Errorf("%s: filter param %q is already used by %s", where, p, other)
+			}
+			params[p] = where
+			switch f.Filter.Kind {
+			case catalog.FilterMin:
+				if f.Kind != catalog.Number {
+					t.Errorf("%s: a min filter needs a Number field, got %q", where, f.Kind)
+				}
+			case catalog.FilterEq, catalog.FilterHas:
+				if f.Kind != catalog.Choice && f.Kind != catalog.Choices {
+					t.Errorf("%s: an %s filter needs a Choice or Choices field, got %q", where, f.Filter.Kind, f.Kind)
+				}
+			default:
+				t.Errorf("%s: unknown filter kind %q", where, f.Filter.Kind)
+			}
+		}
 	}
 }

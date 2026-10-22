@@ -19,7 +19,7 @@ type Handler struct {
 	Scope func(*gin.Context) int64
 }
 
-// Response is one dress's calendar: the window and the busy days inside it.
+// Response is one listing's calendar: the window and the busy days inside it.
 type Response struct {
 	From string   `json:"from"`
 	To   string   `json:"to"`
