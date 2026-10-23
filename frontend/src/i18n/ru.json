@@ -316,5 +316,8 @@
   "tab.home": "Главная",
   "tab.categories": "Категории",
   "tab.favorites": "Избранное",
-  "tab.more": "Ещё"
+  "tab.more": "Ещё",
+  "categories.count": "Объявлений: {count}",
+  "more.for_shops": "Для салонов",
+  "more.contact": "Связаться с нами:"
 }

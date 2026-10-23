@@ -316,5 +316,8 @@
   "tab.home": "Esasy",
   "tab.categories": "Kategoriýalar",
   "tab.favorites": "Halanlarym",
-  "tab.more": "Has köp"
+  "tab.more": "Has köp",
+  "categories.count": "{count} bildiriş",
+  "more.for_shops": "Salonlar üçin",
+  "more.contact": "Bize jaň ediň:"
 }

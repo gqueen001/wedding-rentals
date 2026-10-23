@@ -316,5 +316,8 @@
   "tab.home": "Home",
   "tab.categories": "Categories",
   "tab.favorites": "Favorites",
-  "tab.more": "More"
+  "tab.more": "More",
+  "categories.count": "{count} listings",
+  "more.for_shops": "For shops",
+  "more.contact": "Contact us:"
 }
