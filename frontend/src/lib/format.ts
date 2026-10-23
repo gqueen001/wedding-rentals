@@ -15,3 +15,8 @@ export function cityName(city: CityRef, lang: Lang): string {
 export function telHref(phone: string): string {
   return "tel:" + phone.replace(/(?!^\+)[^\d]/g, "");
 }
+
+/** Only https links are rendered, whatever the API sends. */
+export function httpsUrl(url: string | null): string | null {
+  return url?.startsWith("https://") ? url : null;
+}

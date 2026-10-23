@@ -1,39 +1,42 @@
 import { A } from "@solidjs/router";
-import { For, type JSX } from "solid-js";
-import { tr } from "../i18n/i18n.ts";
+import { For } from "solid-js";
+import { t, tr } from "../i18n/i18n.ts";
 import { CATEGORIES, catLabel, categoryHref } from "../lib/catalog.ts";
-import { CarIcon, DressIcon, RibbonIcon, RobeIcon, TentIcon } from "./icons.tsx";
+import { useCategoryPreview } from "../lib/categoryPreview.ts";
 
-const ICONS: Record<string, (p: { class?: string }) => JSX.Element> = {
-  "dresses": DressIcon,
-  "cars": CarIcon,
-  "national-clothes": RobeIcon,
-  "tents": TentIcon,
-  "car-decorations": RibbonIcon,
-};
+/** One category word with a small oval photo of its newest listing. */
+function CategoryWord(props: { slug: string; first: boolean }) {
+  const preview = useCategoryPreview(() => props.slug);
+  return (
+    <li>
+      <A
+        href={categoryHref(props.slug)}
+        class="inline-flex min-h-11 items-center gap-4 font-display text-4xl leading-tight hover:text-garnet sm:text-5xl"
+        classList={{ "text-garnet": props.first }}
+      >
+        <span
+          class="h-14 w-10 shrink-0 rounded-[50%] bg-veil bg-cover bg-center"
+          style={preview()?.photo ? { "background-image": `url("${preview()!.photo}")` } : undefined}
+          aria-hidden="true"
+        />
+        {props.first && <span class="h-px w-8 shrink-0 bg-current" aria-hidden="true" />}
+        {tr(catLabel(props.slug))}
+      </A>
+    </li>
+  );
+}
 
-/** One button per category; on narrow screens the row scrolls sideways inside itself. */
+/** Every category as a large elegant word with a small photo, the first one marked with a short line. */
 export default function CategoryBar() {
   return (
-    <nav aria-label={tr("home.categories")}>
-      <ul class="-mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0">
-        <For each={CATEGORIES}>
-          {(c) => {
-            const Icon = ICONS[c.slug] ?? DressIcon;
-            return (
-              <li class="w-28 shrink-0 snap-start sm:w-auto">
-                <A
-                  href={categoryHref(c.slug)}
-                  class="flex h-full min-h-24 flex-col items-center justify-center gap-2 rounded-lg border border-veil bg-white px-2 py-3 text-center text-sm font-semibold hover:border-garnet hover:text-garnet"
-                >
-                  <Icon class="h-7 w-7 text-garnet" />
-                  <span>{tr(catLabel(c.slug))}</span>
-                </A>
-              </li>
-            );
-          }}
-        </For>
+    <nav aria-label={t("home.categories")}>
+      <p class="label">{t("home.categories")}</p>
+      <ul class="mt-3 space-y-2">
+        <For each={CATEGORIES}>{(c, i) => <CategoryWord slug={c.slug} first={i() === 0} />}</For>
       </ul>
+      <A href="/categories" class="label mt-4 inline-block border-b border-ink pb-0.5 text-ink">
+        {t("home.see_all_categories")}
+      </A>
     </nav>
   );
 }

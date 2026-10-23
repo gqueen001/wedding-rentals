@@ -6,6 +6,7 @@
   "nav.favorites": "Favorites",
   "nav.favorites_count": "Favorites: {count}",
   "nav.language": "Language",
+  "nav.add_shop": "Add your shop",
   "lang.tk": "Türkmençe",
   "lang.ru": "Русский",
   "lang.en": "English",
@@ -311,5 +312,18 @@
   "itemform.title": "Name",
   "itemform.optional": "Optional",
   "photos.save_first_item": "Save first, then add photos.",
-  "avail.save_first_item": "Save first, then mark busy days."
+  "avail.save_first_item": "Save first, then mark busy days.",
+  "tab.menu": "Menu",
+  "tab.home": "Home",
+  "tab.categories": "Categories",
+  "tab.favorites": "Favorites",
+  "tab.more": "More",
+  "categories.count": "Listings: {count}",
+  "more.for_shops": "For shops",
+  "more.contact": "Contact us:",
+  "home.see_all_categories": "All categories",
+  "categories.kicker": "Category",
+  "filters.up_to": "up to {price} TMT",
+  "filters.remove": "Remove filter: {filter}",
+  "contact.call": "Call"
 }

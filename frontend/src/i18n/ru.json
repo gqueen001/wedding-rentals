@@ -6,6 +6,7 @@
   "nav.favorites": "Избранное",
   "nav.favorites_count": "Избранное: {count}",
   "nav.language": "Язык",
+  "nav.add_shop": "Добавить салон",
   "lang.tk": "Türkmençe",
   "lang.ru": "Русский",
   "lang.en": "English",
@@ -311,5 +312,18 @@
   "itemform.title": "Название",
   "itemform.optional": "Необязательно",
   "photos.save_first_item": "Сначала сохраните, потом добавьте фото.",
-  "avail.save_first_item": "Сначала сохраните, потом отмечайте занятые дни."
+  "avail.save_first_item": "Сначала сохраните, потом отмечайте занятые дни.",
+  "tab.menu": "Меню",
+  "tab.home": "Главная",
+  "tab.categories": "Категории",
+  "tab.favorites": "Избранное",
+  "tab.more": "Ещё",
+  "categories.count": "Объявлений: {count}",
+  "more.for_shops": "Для салонов",
+  "more.contact": "Связаться с нами:",
+  "home.see_all_categories": "Все категории",
+  "categories.kicker": "Категория",
+  "filters.up_to": "до {price} TMT",
+  "filters.remove": "Убрать фильтр: {filter}",
+  "contact.call": "Позвонить"
 }

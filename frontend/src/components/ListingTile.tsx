@@ -10,7 +10,7 @@ export default function ListingTile(props: { item: ListItem; eager?: boolean }) 
   return (
     <article class="relative">
       <A href={listingHref(props.item)} class="block">
-        <div class="aspect-[3/4] overflow-hidden rounded-xs bg-veil">
+        <div class="aspect-[3/4] overflow-hidden bg-veil">
           <Show when={props.item.photo}>
             {(src) => (
               <img
@@ -24,8 +24,8 @@ export default function ListingTile(props: { item: ListItem; eager?: boolean }) 
             )}
           </Show>
         </div>
-        <p class="mt-3 font-semibold text-garnet">{priceText(props.item)}</p>
-        <h3 class="mt-0.5 truncate font-sans text-base text-ink">{props.item.title}</h3>
+        <p class="mt-3 font-label text-sm tracking-[0.06em] text-garnet">{priceText(props.item)}</p>
+        <h3 class="mt-1 truncate font-sans text-base text-ink">{props.item.title}</h3>
         <p class="truncate text-sm text-silver-ink">{props.item.shop.name}</p>
       </A>
       <FavoriteIconButton id={props.item.id} class="absolute right-2 top-2" />

@@ -7,9 +7,11 @@ import { trackTraversals } from "./lib/history.ts";
 import Dress from "./pages/Dress.tsx";
 import Dresses from "./pages/Dresses.tsx";
 import Favorites from "./pages/Favorites.tsx";
+import Categories from "./pages/Categories.tsx";
 import Category from "./pages/Category.tsx";
 import Home from "./pages/Home.tsx";
 import Item from "./pages/Item.tsx";
+import More from "./pages/More.tsx";
 import Search from "./pages/Search.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Shop from "./pages/Shop.tsx";
@@ -38,11 +40,13 @@ render(
       <Route path="/" component={Home} />
       <Route path="/dresses" component={Dresses} />
       <Route path="/dresses/:id" component={Dress} />
+      <Route path="/categories" component={Categories} />
       <Route path="/c/:slug" component={Category} />
       <Route path="/items/:id" component={Item} />
       <Route path="/search" component={Search} />
       <Route path="/shops/:slug" component={Shop} />
       <Route path="/favorites" component={Favorites} />
+      <Route path="/more" component={More} />
       <Route path="/admin/login" component={Login} />
       <Route path="/admin" component={AdminLayout}>
         <Route path="/" component={() => <Navigate href="/admin/shops" />} />

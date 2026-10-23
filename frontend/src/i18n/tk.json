@@ -6,6 +6,7 @@
   "nav.favorites": "Halanlarym",
   "nav.favorites_count": "Halanlarym: {count}",
   "nav.language": "Dil",
+  "nav.add_shop": "Salonyňyzy goşuň",
   "lang.tk": "Türkmençe",
   "lang.ru": "Русский",
   "lang.en": "English",
@@ -311,5 +312,18 @@
   "itemform.title": "Ady",
   "itemform.optional": "Hökmany däl",
   "photos.save_first_item": "Ilki saklaň, soň surat goşuň.",
-  "avail.save_first_item": "Ilki saklaň, soň band günleri belläň."
+  "avail.save_first_item": "Ilki saklaň, soň band günleri belläň.",
+  "tab.menu": "Menýu",
+  "tab.home": "Esasy",
+  "tab.categories": "Kategoriýalar",
+  "tab.favorites": "Halanlarym",
+  "tab.more": "Has köp",
+  "categories.count": "{count} bildiriş",
+  "more.for_shops": "Salonlar üçin",
+  "more.contact": "Bize jaň ediň:",
+  "home.see_all_categories": "Ähli kategoriýalar",
+  "categories.kicker": "Kategoriýa",
+  "filters.up_to": "{price} TMT çenli",
+  "filters.remove": "Süzgüji aýyr: {filter}",
+  "contact.call": "Jaň et"
 }

@@ -4,13 +4,15 @@ import ListingGrid from "../components/ListingGrid.tsx";
 import EmptyState from "../components/EmptyState.tsx";
 import ErrorState from "../components/ErrorState.tsx";
 import FilterSheet from "../components/FilterSheet.tsx";
-import { FilterIcon } from "../components/icons.tsx";
+import FilterChips, { type ActiveFilter } from "../components/FilterChips.tsx";
 import LoadMore from "../components/LoadMore.tsx";
 import SearchBox from "../components/SearchBox.tsx";
 import { GridSkeleton } from "../components/Skeleton.tsx";
-import { t } from "../i18n/i18n.ts";
+import { i18n, t } from "../i18n/i18n.ts";
+import { useCities } from "../lib/cities.ts";
 import { api } from "../lib/client.ts";
 import { countActiveFilters, EMPTY_FILTERS, type Filters, filtersToQuery, parseFilters } from "../lib/filters.ts";
+import { cityName, formatPrice } from "../lib/format.ts";
 import { createRememberedList, type ListMemory } from "../lib/rememberedList.ts";
 import { usePageTitle } from "../lib/title.ts";
 import type { ListItem } from "../lib/types.ts";
@@ -42,27 +44,41 @@ export default function Dresses() {
     navigate(qs ? `/dresses?${qs}` : "/dresses");
   };
   const active = () => countActiveFilters(filters());
+  const cities = useCities();
+  /** One removable chip per active filter, in the sheet's order. */
+  const activeChips = (): ActiveFilter[] => {
+    const f = filters();
+    const drop = (patch: Partial<Filters>) => () => apply({ ...f, ...patch });
+    const out: ActiveFilter[] = [];
+    if (f.city) {
+      const c = cities().find((x) => x.slug === f.city);
+      out.push({ key: "city", label: c ? cityName(c, i18n.lang()) : f.city, remove: drop({ city: "" }) });
+    }
+    if (f.priceMin !== null) {
+      out.push({ key: "price_min", label: t("price.from", { price: formatPrice(f.priceMin) }), remove: drop({ priceMin: null }) });
+    }
+    if (f.priceMax !== null) {
+      out.push({ key: "price_max", label: t("filters.up_to", { price: formatPrice(f.priceMax) }), remove: drop({ priceMax: null }) });
+    }
+    if (f.size) out.push({ key: "size", label: f.size, remove: drop({ size: null }) });
+    if (f.color) out.push({ key: "color", label: t(`color.${f.color}`), remove: drop({ color: null }) });
+    if (f.style) out.push({ key: "style", label: t(`silhouette.${f.style}`), remove: drop({ style: null }) });
+    if (f.sleeves) out.push({ key: "sleeves", label: t(`sleeves.${f.sleeves}`), remove: drop({ sleeves: null }) });
+    return out;
+  };
   const firstLoad = () => list.items().length === 0;
 
   return (
-    <div class="pt-8">
-      <h1 class="text-4xl">{t("dresses.title")}</h1>
-      <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div class="flex-1">
-          <SearchBox value={filters().q} onSearch={(q) => apply({ ...filters(), q })} />
-        </div>
-        <button
-          type="button"
-          class="btn btn-outline"
-          classList={{ "border-garnet text-garnet-deep": active() > 0 }}
-          aria-haspopup="dialog"
-          onClick={() => setSheetOpen(true)}
-        >
-          <FilterIcon />
-          {active() > 0 ? t("dresses.filters_active", { count: active() }) : t("dresses.filters")}
-        </button>
+    <div class="pt-6">
+      <p class="label">{t("categories.kicker")}</p>
+      <h1 class="mt-2 text-5xl sm:text-6xl">{t("dresses.title")}</h1>
+      <div class="mt-6 max-w-xl">
+        <SearchBox value={filters().q} onSearch={(q) => apply({ ...filters(), q })} />
       </div>
-      <p class="mt-4 min-h-6 text-sm text-silver-ink" aria-live="polite">
+      <div class="mt-4">
+        <FilterChips count={active()} active={activeChips()} onOpen={() => setSheetOpen(true)} />
+      </div>
+      <p class="label mt-5 min-h-5" aria-live="polite">
         <Show when={!(list.loading() && firstLoad()) && list.error() === null}>{t("dresses.found", { count: list.total() })}</Show>
       </p>
 

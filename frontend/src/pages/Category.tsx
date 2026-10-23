@@ -2,18 +2,20 @@ import { useLocation, useNavigate, useParams } from "@solidjs/router";
 import { createMemo, createSignal, Match, Show, Switch } from "solid-js";
 import EmptyState from "../components/EmptyState.tsx";
 import ErrorState from "../components/ErrorState.tsx";
-import { FilterIcon } from "../components/icons.tsx";
+import FilterChips, { type ActiveFilter } from "../components/FilterChips.tsx";
 import ItemFilterSheet from "../components/ItemFilterSheet.tsx";
 import ListingGrid from "../components/ListingGrid.tsx";
 import LoadMore from "../components/LoadMore.tsx";
 import SearchBox from "../components/SearchBox.tsx";
 import { GridSkeleton } from "../components/Skeleton.tsx";
-import { t, tr } from "../i18n/i18n.ts";
-import { type CategoryDef, categoryDef, catLabel } from "../lib/catalog.ts";
+import { i18n, t, tr } from "../i18n/i18n.ts";
+import { type CategoryDef, categoryDef, catLabel, fieldLabel, optionLabel } from "../lib/catalog.ts";
+import { useCities } from "../lib/cities.ts";
 import { api } from "../lib/client.ts";
 import {
   countItemFilters, EMPTY_ITEM_FILTERS, type ItemFilters, itemFiltersToQuery, parseItemFilters,
 } from "../lib/itemFilters.ts";
+import { cityName, formatPrice } from "../lib/format.ts";
 import { createRememberedList, type ListMemory } from "../lib/rememberedList.ts";
 import { usePageTitle } from "../lib/title.ts";
 import type { ListItem } from "../lib/types.ts";
@@ -51,27 +53,45 @@ function CategoryList(props: { category: CategoryDef }) {
     navigate(qs ? `/c/${c.slug}?${qs}` : `/c/${c.slug}`);
   };
   const active = () => countItemFilters(filters());
+  const cities = useCities();
+  /** One removable chip per active filter, in the sheet's order. */
+  const activeChips = (): ActiveFilter[] => {
+    const f = filters();
+    const out: ActiveFilter[] = [];
+    if (f.city) {
+      const city = cities().find((x) => x.slug === f.city);
+      out.push({ key: "city", label: city ? cityName(city, i18n.lang()) : f.city, remove: () => apply({ ...f, city: "" }) });
+    }
+    if (f.priceMin !== null) {
+      out.push({ key: "price_min", label: t("price.from", { price: formatPrice(f.priceMin) }), remove: () => apply({ ...f, priceMin: null }) });
+    }
+    if (f.priceMax !== null) {
+      out.push({ key: "price_max", label: t("filters.up_to", { price: formatPrice(f.priceMax) }), remove: () => apply({ ...f, priceMax: null }) });
+    }
+    for (const field of c.fields) {
+      const param = field.filter?.param;
+      const value = param ? f.attrs[param] : "";
+      if (!param || !value) continue;
+      const label = field.filter!.kind === "min"
+        ? `${tr("filters.at_least", { field: tr(fieldLabel(c.slug, field.key)) })} ${value}`
+        : tr(optionLabel(c.slug, field.key, value));
+      out.push({ key: param, label, remove: () => apply({ ...f, attrs: { ...f.attrs, [param]: "" } }) });
+    }
+    return out;
+  };
   const firstLoad = () => list.items().length === 0;
 
   return (
-    <div class="pt-8">
-      <h1 class="text-4xl">{tr(catLabel(c.slug))}</h1>
-      <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div class="flex-1">
-          <SearchBox value={filters().q} onSearch={(q) => apply({ ...filters(), q })} />
-        </div>
-        <button
-          type="button"
-          class="btn btn-outline"
-          classList={{ "border-garnet text-garnet-deep": active() > 0 }}
-          aria-haspopup="dialog"
-          onClick={() => setSheetOpen(true)}
-        >
-          <FilterIcon />
-          {active() > 0 ? t("dresses.filters_active", { count: active() }) : t("dresses.filters")}
-        </button>
+    <div class="pt-6">
+      <p class="label">{t("categories.kicker")}</p>
+      <h1 class="mt-2 text-5xl sm:text-6xl">{tr(catLabel(c.slug))}</h1>
+      <div class="mt-6 max-w-xl">
+        <SearchBox value={filters().q} onSearch={(q) => apply({ ...filters(), q })} />
       </div>
-      <p class="mt-4 min-h-6 text-sm text-silver-ink" aria-live="polite">
+      <div class="mt-4">
+        <FilterChips count={active()} active={activeChips()} onOpen={() => setSheetOpen(true)} />
+      </div>
+      <p class="label mt-5 min-h-5" aria-live="polite">
         <Show when={!(list.loading() && firstLoad()) && list.error() === null}>{t("dresses.found", { count: list.total() })}</Show>
       </p>
 
