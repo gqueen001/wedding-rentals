@@ -1,5 +1,6 @@
 import { A, useSearchParams } from "@solidjs/router";
 import { For } from "solid-js";
+import BackLink from "../../components/admin/BackLink.tsx";
 import { t, tr } from "../../i18n/i18n.ts";
 import { CATEGORIES, catLabel } from "../../lib/catalog.ts";
 import { firstParam } from "../../lib/forms.ts";
@@ -14,8 +15,8 @@ export default function NewListing() {
   const shopId = () => Number(firstParam(search.shop_id)) || undefined;
   return (
     <div class="max-w-2xl">
-      <A href={m.listingsHref(shopId())} class="text-sm text-silver-ink hover:text-ink">{t("common.back")}</A>
-      <h1 class="mt-2 text-3xl">{t("admin.choose_category")}</h1>
+      <BackLink href={m.listingsHref(shopId())} />
+      <h1 class="mt-4 text-3xl">{t("admin.choose_category")}</h1>
       <ul class="mt-6 grid gap-3 sm:grid-cols-2">
         <For each={CATEGORIES}>
           {(c) => (

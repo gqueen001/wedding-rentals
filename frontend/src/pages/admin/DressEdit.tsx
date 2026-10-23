@@ -2,6 +2,7 @@ import { A, useNavigate, useParams, useSearchParams } from "@solidjs/router";
 import { createEffect, createMemo, createResource, createSignal, For, Match, on, Show, Switch } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
 import AvailabilityEditor from "../../components/admin/AvailabilityEditor.tsx";
+import BackLink from "../../components/admin/BackLink.tsx";
 import { CheckboxField, FormActions, SelectField, TextArea, TextField } from "../../components/admin/Field.tsx";
 import PhotoManager from "../../components/admin/PhotoManager.tsx";
 import ErrorState from "../../components/ErrorState.tsx";
@@ -81,8 +82,8 @@ function DressEditor(props: { id: number | null }) {
 
   return (
     <div class="max-w-2xl">
-      <A href={m.listingsHref()} class="text-sm text-silver-ink hover:text-ink">{t("common.back")}</A>
-      <h1 class="mt-2 text-3xl">{id() ? form.title || t("admin.edit") : t("admin.new_dress")}</h1>
+      <BackLink href={m.listingsHref()} />
+      <h1 class="mt-4 text-3xl">{id() ? form.title || t("admin.edit") : t("admin.new_dress")}</h1>
       <Switch>
         <Match when={dress.error}>
           <ErrorState error={dress.error} onRetry={() => void refetch()} />

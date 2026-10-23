@@ -3,6 +3,7 @@ import { createEffect, createMemo, createResource, createSignal, Match, on, Show
 import { createStore, reconcile } from "solid-js/store";
 import AttributeFields from "../../components/admin/AttributeFields.tsx";
 import AvailabilityEditor from "../../components/admin/AvailabilityEditor.tsx";
+import BackLink from "../../components/admin/BackLink.tsx";
 import { CheckboxField, FormActions, SelectField, TextArea, TextField } from "../../components/admin/Field.tsx";
 import PhotoManager from "../../components/admin/PhotoManager.tsx";
 import ErrorState from "../../components/ErrorState.tsx";
@@ -83,8 +84,8 @@ function ItemEditor(props: { id: number | null; category: string }) {
 
   return (
     <div class="max-w-2xl">
-      <A href={m.listingsHref()} class="text-sm text-silver-ink hover:text-ink">{t("common.back")}</A>
-      <h1 class="mt-2 text-3xl">{heading()}</h1>
+      <BackLink href={m.listingsHref()} />
+      <h1 class="mt-4 text-3xl">{heading()}</h1>
       <Switch>
         <Match when={item.error}>
           <ErrorState error={item.error} onRetry={() => void refetch()} />

@@ -1,6 +1,7 @@
-import { A, useNavigate, useParams } from "@solidjs/router";
+import { useNavigate, useParams } from "@solidjs/router";
 import { createEffect, createMemo, createResource, createSignal, Match, on, Show, Switch } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
+import BackLink from "../../components/admin/BackLink.tsx";
 import { CheckboxField, FormActions } from "../../components/admin/Field.tsx";
 import LogoUpload from "../../components/admin/LogoUpload.tsx";
 import OwnerPassword from "../../components/admin/OwnerPassword.tsx";
@@ -65,8 +66,8 @@ function ShopEditor(props: { id: number | null }) {
 
   return (
     <div class="max-w-2xl">
-      <A href="/admin/shops" class="text-sm text-silver-ink hover:text-ink">{t("common.back")}</A>
-      <h1 class="mt-2 text-3xl">{id() ? form.name || t("admin.edit") : t("admin.new_shop")}</h1>
+      <BackLink href="/admin/shops" />
+      <h1 class="mt-4 text-3xl">{id() ? form.name || t("admin.edit") : t("admin.new_shop")}</h1>
       <Switch>
         <Match when={shop.error}>
           <ErrorState error={shop.error} onRetry={() => void refetch()} />
