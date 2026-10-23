@@ -225,7 +225,7 @@ with:
       <h1 class="mt-4 text-3xl">
 ```
 
-`DressEdit`, `ItemEdit` and `NewListing` still use `A` elsewhere, so keep their router import as it is.
+`NewListing` still uses `A` elsewhere, so keep its router import. `DressEdit` and `ItemEdit` keep theirs for now; Task 4 rewrites both files and drops the unused `A`.
 
 - [ ] **Step 4: Border "Add your shop" in the desktop menu**
 
@@ -920,7 +920,7 @@ From 1024px up, the dress and item edit pages show the info form on the left, an
   - `frontend/src/pages/admin/ItemEdit.tsx`
 
 **Interfaces:**
-- Consumes: `BackLink` from Task 1. Both files already import it.
+- Consumes: `BackLink` from Task 1. Both files already import it. The router import loses `A`, which neither file uses any more since Task 1.
 
 - [ ] **Step 1: Lay out the dress editor in two columns**
 
@@ -928,7 +928,7 @@ The outer box widens to `max-w-6xl` on lg. The form and a right-hand column go i
 
 `frontend/src/pages/admin/DressEdit.tsx`
 ```tsx
-import { A, useNavigate, useParams, useSearchParams } from "@solidjs/router";
+import { useNavigate, useParams, useSearchParams } from "@solidjs/router";
 import { createEffect, createMemo, createResource, createSignal, For, Match, on, Show, Switch } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
 import AvailabilityEditor from "../../components/admin/AvailabilityEditor.tsx";
@@ -1172,7 +1172,7 @@ export default function DressEdit() {
 
 `frontend/src/pages/admin/ItemEdit.tsx`
 ```tsx
-import { A, useNavigate, useParams, useSearchParams } from "@solidjs/router";
+import { useNavigate, useParams, useSearchParams } from "@solidjs/router";
 import { createEffect, createMemo, createResource, createSignal, Match, on, Show, Switch } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
 import AttributeFields from "../../components/admin/AttributeFields.tsx";
