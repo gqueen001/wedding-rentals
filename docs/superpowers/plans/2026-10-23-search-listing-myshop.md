@@ -267,9 +267,10 @@ git commit -m "feat(frontend): 8px button corners, bordered quiet buttons and a 
   - `frontend/src/lib/search.ts`
   - `frontend/src/lib/search_test.ts`
   - `frontend/src/components/itemFilterChips.ts`
-- Modify (full files):
-  - `frontend/src/pages/Category.tsx`
-  - `frontend/src/pages/Search.tsx`
+- Modify:
+  - `frontend/src/pages/Category.tsx` (full file)
+  - `frontend/src/pages/Search.tsx` (full file)
+  - `frontend/src/components/ItemFilterSheet.tsx` (its doc comment)
 
 **Interfaces:**
 - Consumes:
@@ -311,7 +312,7 @@ Deno.test("searchHref round-trips every param", () => {
 });
 
 Deno.test("changing the category keeps the shared filters and drops the old category's own", () => {
-  const cars = { ...EMPTY_ITEM_FILTERS, q: "ak", city: "mary", priceMax: 900, attrs: { body: "suv", color: "white" } };
+  const cars = { ...EMPTY_ITEM_FILTERS, q: "ak", city: "mary", priceMax: 900, attrs: { body: "suv", color: "white", seats_min: "4" } };
   assertEquals(searchHref("tents", cars), "/search?q=ak&city=mary&price_max=900&category=tents");
   assertEquals(searchHref("", cars), "/search?q=ak&city=mary&price_max=900");
   // Dresses have no catalog filters of their own: only the shared ones are kept.
@@ -536,7 +537,7 @@ export default function Category() {
 
 - [ ] **Step 4: Rewrite the Search page**
 
-The `h1` stays for screen readers (`sr-only`). The city dropdown is the same control as Home's (`home.city`, `home.all_cities`). Picking another category chip keeps the search text, city and price, but drops the old category's own filters, because `searchHref` writes only the filters the new category accepts.
+The `h1` stays for screen readers (`sr-only`). The city dropdown is the same control as Home's (`home.city`, `home.all_cities`). Like the sheet's `CityField`, every option sets `selected=` as well as the select's `value=`: the cities load after the first render, so on a fresh load of `/search?city=mary` the `value` alone would leave "All cities" showing. Picking another category chip keeps the search text, city and price, but drops the old category's own filters, because `searchHref` writes only the filters the new category accepts.
 
 `frontend/src/pages/Search.tsx`
 ```tsx
@@ -611,8 +612,13 @@ export default function Search() {
             value={state().filters.city}
             onChange={(e) => apply({ ...state().filters, city: e.currentTarget.value })}
           >
-            <option value="">{t("home.all_cities")}</option>
-            <For each={cities()}>{(c) => <option value={c.slug}>{cityName(c, i18n.lang())}</option>}</For>
+            {/* selected= as well as value=: the cities load after the first render. */}
+            <option value="" selected={!state().filters.city}>{t("home.all_cities")}</option>
+            <For each={cities()}>
+              {(c) => (
+                <option value={c.slug} selected={c.slug === state().filters.city}>{cityName(c, i18n.lang())}</option>
+              )}
+            </For>
           </select>
         </label>
       </div>
@@ -660,6 +666,15 @@ export default function Search() {
 }
 ```
 
+`ItemFilterSheet` now serves /search too. In `frontend/src/components/ItemFilterSheet.tsx`, replace:
+```tsx
+/** A category page's filters, built from the category's field definitions. */
+```
+with:
+```tsx
+/** The filters of a category page or of /search, built from the category's field definitions. */
+```
+
 - [ ] **Step 5: Check, test and build**
 
 Run, from `frontend/`: `deno task check`, then `deno task test`, then `deno task build`.
@@ -668,7 +683,7 @@ Expected: no check errors; every test passes, including the 3 in `search_test.ts
 - [ ] **Step 6: Commit**
 
 ```bash
-git add frontend/src/lib/search.ts frontend/src/lib/search_test.ts frontend/src/components/itemFilterChips.ts frontend/src/pages/Category.tsx frontend/src/pages/Search.tsx
+git add frontend/src/lib/search.ts frontend/src/lib/search_test.ts frontend/src/components/itemFilterChips.ts frontend/src/components/ItemFilterSheet.tsx frontend/src/pages/Category.tsx frontend/src/pages/Search.tsx
 git commit -m "feat(frontend): search with a city choice, filters and removable chips"
 ```
 (End the message with the trailer line the controller gives you.)
