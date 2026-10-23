@@ -23,6 +23,13 @@
     color-scheme: light;
     -webkit-text-size-adjust: 100%;
   }
+  /* Phones: content scrolled into view (e.g. by keyboard focus) never hides behind the bottom bar,
+     nor the Call bar that sits above it on listing pages. */
+  @media (max-width: 47.99rem) {
+    html {
+      scroll-padding-bottom: calc(8rem + env(safe-area-inset-bottom));
+    }
+  }
   body {
     background: var(--color-white);
     color: var(--color-ink);
