@@ -25,6 +25,7 @@ export interface DetailListing {
 /**
  * The dress and item page body. On phones the photo fills the width with back, share and heart
  * buttons on it, and Call (plus an Instagram icon) stays in view just above the bottom bar.
+ * On wide screens the info and the shop sit beside the photo, and the calendar runs under both.
  */
 export default function ListingDetail(props: {
   listing: DetailListing;
@@ -41,7 +42,7 @@ export default function ListingDetail(props: {
   const back = () => (history.length > 1 ? history.back() : navigate(props.backHref));
   return (
     <>
-      <article class="pt-0 md:pt-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:gap-12">
+      <article class="pt-0 md:pt-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:gap-x-12">
         <div class="relative">
           <Gallery images={l().images} title={l().title} />
           <div class="pointer-events-none absolute inset-x-0 top-3 flex justify-between sm:px-3 md:hidden">
@@ -80,12 +81,12 @@ export default function ListingDetail(props: {
           </Show>
 
           <div class="mt-10">
-            <Availability listingId={l().id} />
+            <ShopCardSection shop={l().shop} hideCallOnPhones />
           </div>
+        </div>
 
-          <div class="mt-10">
-            <ShopCardSection shop={l().shop} />
-          </div>
+        <div class="mt-10 lg:col-span-2">
+          <Availability listingId={l().id} />
         </div>
       </article>
 
