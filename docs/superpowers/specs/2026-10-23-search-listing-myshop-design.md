@@ -28,6 +28,7 @@ Mockups are in `.superpowers/brainstorm/11380-1792755719/content/` (`dress-deskt
 | Dress page on computers (5) | **Layout B:** the info and the shop box sit beside the picture. The busy/free calendar goes under both, across the full width. |
 | Owner profile (7) | It lives on **`/shop` (My shop)**. "Edit profile" opens a new page, **`/shop/profile`**. The public `/shops/:slug` page is unchanged. |
 | Borders (8) | **All text-only buttons**, plus the Back links and the "Add your shop" menu link. |
+| Button corners | **8px** rounded corners on every button, chosen in a mockup. |
 | Owner password length | The change from 10 to 6 characters (commit `5e2131b`, already on this branch) ships in the same PR. |
 
 ## 3. Search page (`/search`)
@@ -108,10 +109,12 @@ Mockups are in `.superpowers/brainstorm/11380-1792755719/content/` (`dress-deskt
 
 `/shops/:slug` is unchanged. It has no edit button, and its tiles open the public `/dresses/:id` or `/items/:id`.
 
-## 7. Thin borders on text-only buttons
+## 7. Button corners and thin borders
+
+- **Rounded corners:** every `.btn` (primary, outline and quiet) changes from square corners to **8px** (`border-radius: 0.5rem`), the same as the input boxes. The product owner chose this in a mockup (`button-radius.html`). Chips stay pills, and round icon buttons (`btn-icon`, the photo overlay buttons) stay circles. This replaces the redesign spec's "square-cornered" rule (§3.3 of `2026-10-23-editorial-redesign-design.md`).
 
 - **`.btn-quiet`:**
-  - It gets a 1px border in `silver` (`#8a8a8f`), keeping its garnet text and square corners.
+  - It gets a 1px border in `silver` (`#8a8a8f`), keeping its garnet text.
   - On hover the background becomes `veil`.
   - This covers Delete, Sign out (admin and My shop), Clear filters (both sheets), Add a name, and Remove photo.
 - **Back links** on the edit pages and `/shop/profile` become `btn btn-quiet` with a left chevron and the existing "Back" text.
