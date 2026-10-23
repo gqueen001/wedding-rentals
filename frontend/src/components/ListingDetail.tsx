@@ -44,7 +44,7 @@ export default function ListingDetail(props: {
       <article class="pt-0 md:pt-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:gap-12">
         <div class="relative">
           <Gallery images={l().images} title={l().title} />
-          <div class="pointer-events-none absolute inset-x-0 top-3 flex justify-between md:hidden">
+          <div class="pointer-events-none absolute inset-x-0 top-3 flex justify-between sm:px-3 md:hidden">
             <button
               type="button"
               class="pointer-events-auto inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-ink hover:bg-white"

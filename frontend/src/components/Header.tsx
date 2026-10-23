@@ -57,6 +57,9 @@ export default function Header() {
             </Show>
           </A>
           <LanguageSwitch />
+          <span class="hidden lg:contents">
+            <A href="/shop/signup" class={`${MENU_LINK} text-garnet`}>{t("nav.add_shop")}</A>
+          </span>
         </nav>
       </div>
     </header>

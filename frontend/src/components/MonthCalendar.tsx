@@ -87,7 +87,7 @@ export default function MonthCalendar(props: {
         >
           <ChevronLeftIcon />
         </button>
-        <p id={captionId} class="font-display text-xl" aria-live="polite">
+        <p id={captionId} class="label text-ink" aria-live="polite">
           {tr(`cal.month.${current().month}`)} {current().year}
         </p>
         <button
