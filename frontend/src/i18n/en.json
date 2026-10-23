@@ -323,5 +323,6 @@
   "home.see_all_categories": "All categories",
   "categories.kicker": "Category",
   "filters.up_to": "up to {price} TMT",
-  "filters.remove": "Remove filter: {filter}"
+  "filters.remove": "Remove filter: {filter}",
+  "contact.call": "Call"
 }

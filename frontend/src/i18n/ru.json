@@ -323,5 +323,6 @@
   "home.see_all_categories": "Все категории",
   "categories.kicker": "Категория",
   "filters.up_to": "до {price} TMT",
-  "filters.remove": "Убрать фильтр: {filter}"
+  "filters.remove": "Убрать фильтр: {filter}",
+  "contact.call": "Позвонить"
 }
