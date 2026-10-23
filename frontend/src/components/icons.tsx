@@ -140,7 +140,6 @@ export const RibbonIcon = (p: IconProps) => (
   </Svg>
 );
 
-
 export const HomeIcon = (p: IconProps) => (
   <Svg class={p.class}>
     <path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z" />
