@@ -46,9 +46,11 @@ Every text color must reach at least 4.5 : 1 against its background, and control
 
 All three fonts are self-hosted through npm packages, so they work where Google is slow or blocked. They replace Forum and Manrope.
 
+The mockups used Italiana. Building showed that it has only basic Latin letters: no Russian letters and no Turkmen ş, ň or ž, so headings such as "Maşynlar" would mix two fonts within one word. Cormorant Garamond Light gives the same thin, high-contrast editorial look and covers Turkmen, Russian and English. Tenor Sans and Jost both include Cyrillic.
+
 | Role | Font | Package | Rule |
 |---|---|---|---|
-| Display | **Italiana** | `@fontsource/italiana` | Only for large text (28px and up): page titles, the hero word, category words. It is never used for body text or small text. |
+| Display | **Cormorant Garamond Light** (300) | `@fontsource/cormorant-garamond` | Only for large text (30px and up): page titles, the hero word, category words. It is never used for body text or small text. A CSS rule gives smaller headings the label font instead. |
 | Label | **Tenor Sans** | `@fontsource/tenor-sans` | The logo "GELIN" (letter-spacing .32em), small uppercase labels (10–12px, letter-spacing .2–.3em), prices, and button text. |
 | Body | **Jost** (variable) | `@fontsource-variable/jost` | Everything else. |
 
@@ -146,7 +148,7 @@ The data and behaviour of every page stay the same. Only layout and styling chan
 ## 6. Accessibility and quality rules
 
 - **Contrast:** text meets 4.5 : 1 and controls 3 : 1 (§3.1).
-- **Font sizes:** no text smaller than 10px. Italiana is used only at 28px and up.
+- **Font sizes:** no text smaller than 10px. The display serif is used only at 30px and up.
 - **Bottom bar markup:** a `<nav>` with an `aria-label`. Each tab has `aria-current="page"` when active, and the favorites count is part of its accessible name.
 - **Keyboard:** the bottom bar and the sticky contact bar are reachable in a logical order, and the focus outline stays visible.
 - **Layout:** no sideways scrolling at 320px in tk, ru and en. Long Turkmen and Russian words (for example "Maşyn bezegleri", "Национальная одежда") must wrap or fit.
@@ -160,7 +162,11 @@ The data and behaviour of every page stay the same. Only layout and styling chan
 - **`components/BottomNav.tsx` (new)**, plus a redesigned `components/Header.tsx` that serves as the phone top bar and the desktop menu.
 - **`app/App.tsx`:** renders the bottom bar on public pages and adds the bottom padding.
 - **New pages:** `pages/Categories.tsx` and `pages/More.tsx`. `main.tsx` gets the routes `/categories` and `/more`.
-- **Restyled pages and components:** Home, Dresses, Category, Item, Dress, Search, Favorites, Shop, NotFound, `ListingTile`, `ListingGrid`, `CategoryBar` (which becomes the home category word list), the shop card, `Availability`, `EmptyState`, `ErrorState`, `SearchBox`, the filter chip row, `Sheet` (styling only), and `Gallery` (overlay buttons on phones).
+- **New shared components:**
+  - `components/ListingDetail.tsx` is the one layout for the dress and item pages: the full-width photo with overlay buttons, the title block, the details slot, the calendar, the shop card and the sticky contact bar.
+  - `components/FilterChips.tsx` holds the "Filters · N" chip plus removable chips for the active filters.
+- **Restyled pages and components:** Home, Dresses, Category, Item, Dress, Search, Favorites, Shop, `ListingTile`, `CategoryBar` (which becomes the home category word list; its category icons are removed), the shop card, `ShopLogo` (an oval frame), `Availability`, `AttributeList`, and `ShareButton` (which gains a round icon-only variant for the photo).
+- **Unchanged:** `EmptyState`, `ErrorState`, `NotFound`, `SearchBox` and `Sheet` pick up the new look through the tokens and the heading rule, with no code changes.
 - **i18n:** new keys for the tab labels, the `/categories` and `/more` texts, the hero label, the count label ("{count} bildiriş") and the contact bar, all in tk, ru and en.
 
 ## 8. Testing
