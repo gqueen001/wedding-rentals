@@ -98,6 +98,21 @@ func TestSignupCreatesOwnerAndPublicShop(t *testing.T) {
 	}
 }
 
+func TestSignupPasswordNeedsSixCharacters(t *testing.T) {
+	e := setup(t)
+	short := signupBody(t, e.tx, "+99365111111")
+	short["password"] = "ab3d5"
+	body := testutil.Decode[testutil.ErrorBody](t, testutil.Request(t, e.r, http.MethodPost, "/api/shop/signup", short, ""))
+	if body.Error.Fields["password"] != "too_short" {
+		t.Fatalf("5 characters: fields = %v, want password too_short", body.Error.Fields)
+	}
+	ok := signupBody(t, e.tx, "+99365111112")
+	ok["password"] = "ab3d5ü"
+	if rec := testutil.Request(t, e.r, http.MethodPost, "/api/shop/signup", ok, ""); rec.Code != http.StatusCreated {
+		t.Fatalf("6 characters: status = %d: %s", rec.Code, rec.Body)
+	}
+}
+
 func TestSignupValidation(t *testing.T) {
 	e := setup(t)
 	body := testutil.Decode[testutil.ErrorBody](t, testutil.Request(t, e.r, http.MethodPost, "/api/shop/signup", map[string]any{}, ""))

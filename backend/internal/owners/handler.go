@@ -16,7 +16,7 @@ import (
 	"wedding-rentals/backend/internal/shops"
 )
 
-const minPassword = 10
+const minPassword = 6
 
 const maxPasswordBytes = 72 // bcrypt's limit
 
