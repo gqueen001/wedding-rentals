@@ -1,4 +1,4 @@
-import { A, useNavigate, useParams, useSearchParams } from "@solidjs/router";
+import { useNavigate, useParams, useSearchParams } from "@solidjs/router";
 import { createEffect, createMemo, createResource, createSignal, Match, on, Show, Switch } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
 import AttributeFields from "../../components/admin/AttributeFields.tsx";
@@ -83,7 +83,7 @@ function ItemEditor(props: { id: number | null; category: string }) {
   ];
 
   return (
-    <div class="max-w-2xl">
+    <div class="max-w-2xl lg:max-w-6xl">
       <BackLink href={m.listingsHref()} />
       <h1 class="mt-4 text-3xl">{heading()}</h1>
       <Switch>
@@ -96,86 +96,89 @@ function ItemEditor(props: { id: number | null; category: string }) {
         <Match when={def()}>
           {(d) => (
             <>
-              <form class="mt-6 space-y-5 rounded-lg bg-white p-5" novalidate onSubmit={save}>
-                <p class="text-sm">
-                  <span class="text-silver-ink">{t("admin.category")}:</span>{" "}
-                  <span class="font-semibold">{categoryName()}</span>
-                </p>
-                <Show when={m.shops}>
-                  <SelectField
-                    label={t("admin.shop")}
-                    value={form.shop_id ? String(form.shop_id) : ""}
-                    options={shopOptions()}
-                    onChange={(v) => setForm("shop_id", Number(v) || 0)}
-                    error={err("shop_id")}
+              <div class="mt-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-8">
+                <form class="space-y-5 rounded-lg bg-white p-5" novalidate onSubmit={save}>
+                  <p class="text-sm">
+                    <span class="text-silver-ink">{t("admin.category")}:</span>{" "}
+                    <span class="font-semibold">{categoryName()}</span>
+                  </p>
+                  <Show when={m.shops}>
+                    <SelectField
+                      label={t("admin.shop")}
+                      value={form.shop_id ? String(form.shop_id) : ""}
+                      options={shopOptions()}
+                      onChange={(v) => setForm("shop_id", Number(v) || 0)}
+                      error={err("shop_id")}
+                    />
+                  </Show>
+                  <TextField label={t("itemform.title")} value={form.title} onInput={(v) => setForm("title", v)} error={err("title")} />
+                  <div class="grid items-end gap-5 sm:grid-cols-2">
+                    <TextField
+                      label={t("dressform.price")}
+                      inputmode="numeric"
+                      value={form.price}
+                      onInput={(v) => setForm("price", v)}
+                      error={err("price_manat")}
+                    />
+                    <CheckboxField
+                      label={t("dressform.price_is_from")}
+                      checked={form.price_is_from}
+                      onChange={(v) => setForm("price_is_from", v)}
+                    />
+                  </div>
+                  <AttributeFields
+                    category={d()}
+                    values={form.attributes}
+                    onChange={(key, value) => setForm("attributes", key, value)}
+                    errors={errors()}
                   />
-                </Show>
-                <TextField label={t("itemform.title")} value={form.title} onInput={(v) => setForm("title", v)} error={err("title")} />
-                <div class="grid items-end gap-5 sm:grid-cols-2">
-                  <TextField
-                    label={t("dressform.price")}
-                    inputmode="numeric"
-                    value={form.price}
-                    onInput={(v) => setForm("price", v)}
-                    error={err("price_manat")}
+                  <TextArea
+                    label={t("dressform.description")}
+                    value={form.description}
+                    onInput={(v) => setForm("description", v)}
+                    error={err("description")}
                   />
                   <CheckboxField
-                    label={t("dressform.price_is_from")}
-                    checked={form.price_is_from}
-                    onChange={(v) => setForm("price_is_from", v)}
+                    label={t("admin.published")}
+                    hint={t("admin.published_hint")}
+                    checked={form.is_published}
+                    onChange={(v) => setForm("is_published", v)}
                   />
-                </div>
-                <AttributeFields
-                  category={d()}
-                  values={form.attributes}
-                  onChange={(key, value) => setForm("attributes", key, value)}
-                  errors={errors()}
-                />
-                <TextArea
-                  label={t("dressform.description")}
-                  value={form.description}
-                  onInput={(v) => setForm("description", v)}
-                  error={err("description")}
-                />
-                <CheckboxField
-                  label={t("admin.published")}
-                  hint={t("admin.published_hint")}
-                  checked={form.is_published}
-                  onChange={(v) => setForm("is_published", v)}
-                />
-                <FormActions saving={saving()} saved={saved()} error={error()} onDelete={id() ? remove : undefined} />
-              </form>
+                  <FormActions saving={saving()} saved={saved()} error={error()} onDelete={id() ? remove : undefined} />
+                </form>
+                <div class="mt-8 space-y-8 lg:mt-0">
+                  <section class="rounded-lg bg-white p-5">
+                    <h2 class="text-2xl">{t("photos.title")}</h2>
+                    <div class="mt-4">
+                      <Show
+                        when={id() !== null && item()}
+                        fallback={<p class="text-sm text-silver-ink">{t("photos.save_first_item")}</p>}
+                      >
+                        {(it) => (
+                          <PhotoManager
+                            listingId={it().id}
+                            title={it().title}
+                            images={it().images}
+                            onChange={(images) => mutate({ ...it(), images })}
+                          />
+                        )}
+                      </Show>
+                    </div>
+                  </section>
 
-              <section class="mt-8 rounded-lg bg-white p-5">
-                <h2 class="text-2xl">{t("photos.title")}</h2>
-                <div class="mt-4">
-                  <Show
-                    when={id() !== null && item()}
-                    fallback={<p class="text-sm text-silver-ink">{t("photos.save_first_item")}</p>}
-                  >
-                    {(it) => (
-                      <PhotoManager
-                        listingId={it().id}
-                        title={it().title}
-                        images={it().images}
-                        onChange={(images) => mutate({ ...it(), images })}
-                      />
-                    )}
-                  </Show>
+                  <section class="rounded-lg bg-white p-5">
+                    <h2 class="text-2xl">{t("avail.title")}</h2>
+                    <div class="mt-4">
+                      <Show
+                        when={id() !== null && item()}
+                        fallback={<p class="text-sm text-silver-ink">{t("avail.save_first_item")}</p>}
+                      >
+                        {(it) => <AvailabilityEditor listingId={it().id} />}
+                      </Show>
+                    </div>
+                  </section>
                 </div>
-              </section>
-
-              <section class="mt-8 rounded-lg bg-white p-5">
-                <h2 class="text-2xl">{t("avail.title")}</h2>
-                <div class="mt-4">
-                  <Show
-                    when={id() !== null && item()}
-                    fallback={<p class="text-sm text-silver-ink">{t("avail.save_first_item")}</p>}
-                  >
-                    {(it) => <AvailabilityEditor listingId={it().id} />}
-                  </Show>
-                </div>
-              </section>
+              </div>
             </>
           )}
         </Match>
