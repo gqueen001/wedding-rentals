@@ -63,7 +63,7 @@ The tokens are `--font-display`, `--font-label` (new) and `--font-sans`. The glo
   - Secondary buttons are outlined in ink.
   - Chips stay rounded pills.
 - Lines are 1px `line`.
-- White space is generous: at least a 16px page gutter on phones and 56px on desktop.
+- White space is generous: at least a 16px page gutter on phones and 32px on desktop.
 
 ### 3.4 Unchanged rules
 - **Focus:** the existing focus outline and the `aria-disabled` focus rules still apply.
@@ -90,7 +90,7 @@ The tokens are `--font-display`, `--font-label` (new) and `--font-sans`. The glo
 
 ### 4.2 Desktop (768px and up)
 
-- **Top bar:** "GELIN" on the left, a pill search field in the middle, then a menu: KATEGORIÝALAR, HALANLARYM (with count), the TK · RU · EN switch, and "Salonyňyzy goşuň" (Add your shop).
+- **Top bar:** "GELIN" on the left, a pill search field in the middle, then a menu: KATEGORIÝALAR, HALANLARYM (with count), the TK · RU · EN switch, and "Salonyňyzy goşuň" (Add your shop), which shows from 1024px up (at tablet width there is no room; the footer has it).
 - **No bottom bar.**
 
 ### 4.3 The new pages
@@ -134,14 +134,14 @@ The data and behaviour of every page stay the same. Only layout and styling chan
   - the price in garnet Tenor Sans, the title in Jost, and the shop name in `silver-ink`.
 - **Dress `/dresses/:id` and item `/items/:id`:**
   - **Photos:** on phones the gallery fills the full width at the top, with round white back, share and heart buttons on the photo. On desktop it keeps today's two-column layout.
-  - **Text:** a label ("KÖÝNEK · <shop>"), then the title in Italiana and the price in garnet Tenor Sans.
+  - **Text:** a label ("KÖÝNEKLER · <shop>", the category name), then the title in Italiana and the price in garnet Tenor Sans.
   - **Details:** shown as small-label and value rows.
   - **Below:** the busy/free calendar and the shop card come next, restyled.
-  - **Sticky contact bar (phones):** a bar sits just above the bottom bar and is always visible. It has a garnet **JAŇ ET** (Call) button and an outlined **INSTAGRAM** button, which shows only when the shop has Instagram.
+  - **Sticky contact bar (phones):** a bar sits just above the bottom bar and is always visible. It has a garnet **JAŇ ET** (Call) button and an outlined Instagram icon button (named "Instagram" for screen readers), which shows only when the shop has Instagram. It is an icon so the bar fits 320px in Russian.
 - **Search `/search`:** a big title, the search box, and the category chips restyled.
 - **Favorites `/favorites`:** a big title and the same grid.
 - **Shop page `/shops/:slug`:** the logo in an oval, the name in Italiana, the city and address as a small label, the contact buttons and the category chips.
-- **Not found, error and empty states:** restyled with an Italiana title.
+- **Not found, error and empty states:** restyled; their small titles use the label font (the heading rule).
 - **Owner sign-in and sign-up:** the new fonts and colors on the existing layout.
 - **Footer (desktop only):** the tagline, plus "Rent out dresses? Add your shop". On phones these move to `/more`.
 

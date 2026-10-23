@@ -2452,3 +2452,16 @@ The controller does this in headless Chrome against a server built from the bran
 | §5 not found, error and empty states; sign-in pages; footer | Task 1 (tokens and the heading rule), Task 2 (footer) |
 | §6 accessibility | Tasks 1–6, Final verification |
 | §8 testing | Task 2 (`nav_test`), Final verification |
+
+## Changes made during review
+
+- **Task 1:** no changes.
+- **Task 2:** removed a stray blank line in `icons.tsx`; added `scroll-padding-bottom` on phones so focused elements are not hidden under the bottom bar.
+- **Task 5:** removing a filter chip moves focus to the Filters button; long shop names wrap (`break-words`).
+- **Task 6:** in Russian, Call plus a text Instagram button was wider than 320px and 375px screens, so Instagram became an icon with an `aria-label`. The dress page lost "About this dress" to the shared `item.about` heading; `ListingDetail` now takes an `about` prop. `httpsUrl` moved to `lib/format.ts` (with a test), and the title got `break-words`.
+- **Final review:**
+  - The calendar month name used the display font at 20px; it now uses `.label`.
+  - Spec §4.2 "Add your shop" in the desktop menu was missing from the plan; added from `lg` up (new key `nav.add_shop`).
+  - Spec §5 home category thumbnails were missing from the plan; added as small ovals, sharing `lib/categoryPreview.ts` with the Categories page. The preview uses the newest of 6 listings that has a photo, so a new listing without photos does not blank its category.
+  - Small extras: en `categories.count` reads "Listings: {count}", the photo buttons get `sm:px-3`, and `.btn-outline` hover shows a veil background.
+  - Spec text updated to match: 32px desktop gutter, plural category kicker, the Instagram icon, and label-font titles on empty states.
