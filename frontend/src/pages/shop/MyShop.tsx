@@ -33,7 +33,7 @@ function OwnerTile(props: { listing: ListingSummary; href: string }) {
           )}
         </Show>
         <Show when={!l().is_published}>
-          <span aria-hidden="true" class="label absolute left-1.5 top-1.5 bg-white px-1.5 py-0.5 text-ink">
+          <span aria-hidden="true" class="label absolute left-1.5 top-1.5 bg-white px-1.5 py-0.5 tracking-normal text-ink">
             {t("admin.draft")}
           </span>
         </Show>
