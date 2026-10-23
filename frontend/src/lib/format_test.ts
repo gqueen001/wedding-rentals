@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { cityName, formatPrice, telHref } from "./format.ts";
+import { cityName, formatPrice, httpsUrl, telHref } from "./format.ts";
 
 const NBSP = "\u00A0";
 
@@ -20,4 +20,11 @@ Deno.test("cityName picks the name for the language", () => {
 Deno.test("telHref keeps only digits and a leading plus", () => {
   assertEquals(telHref("+993 (65) 12-34-56"), "tel:+99365123456");
   assertEquals(telHref("8 12 34 56 78"), "tel:812345678");
+});
+
+Deno.test("httpsUrl keeps only https links", () => {
+  assertEquals(httpsUrl("https://instagram.com/akgelin"), "https://instagram.com/akgelin");
+  assertEquals(httpsUrl("http://instagram.com/akgelin"), null);
+  assertEquals(httpsUrl("javascript:alert(1)"), null);
+  assertEquals(httpsUrl(null), null);
 });

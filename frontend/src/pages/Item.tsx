@@ -19,6 +19,7 @@ function ItemView(props: { item: PublicItem }) {
       listing={it()}
       kicker={`${tr(catLabel(it().category))} · ${it().shop.name}`}
       backHref={categoryHref(it().category)}
+      about={tr("item.about")}
       details={<AttributeList category={it().category} attributes={it().attributes} />}
     />
   );

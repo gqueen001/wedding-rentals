@@ -18,6 +18,7 @@ function DressView(props: { dress: PublicDress }) {
       listing={d()}
       kicker={`${t("cat.dresses")} · ${d().shop.name}`}
       backHref="/dresses"
+      about={t("dress.about")}
       details={
         <dl class="grid grid-cols-[max-content_1fr] items-center gap-x-6 gap-y-3 text-sm">
           <dt class="label">{t("dress.sizes")}</dt>

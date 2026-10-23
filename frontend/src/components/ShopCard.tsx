@@ -1,13 +1,10 @@
 import { A } from "@solidjs/router";
 import { Show } from "solid-js";
 import { i18n, t } from "../i18n/i18n.ts";
-import { cityName, telHref } from "../lib/format.ts";
+import { cityName, httpsUrl, telHref } from "../lib/format.ts";
 import type { ShopCard } from "../lib/types.ts";
 import { InstagramIcon, PhoneIcon, TikTokIcon } from "./icons.tsx";
 import ShopLogo from "./ShopLogo.tsx";
-
-/** Only https links are rendered, whatever the API sends. */
-const httpsUrl = (url: string | null) => (url?.startsWith("https://") ? url : null);
 
 /** Big tap targets for the three ways a bride contacts a shop. */
 export function ContactButtons(props: {

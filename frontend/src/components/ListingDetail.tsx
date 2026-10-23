@@ -1,7 +1,7 @@
 import { useNavigate } from "@solidjs/router";
 import { type JSX, Show } from "solid-js";
 import { t } from "../i18n/i18n.ts";
-import { telHref } from "../lib/format.ts";
+import { httpsUrl, telHref } from "../lib/format.ts";
 import type { Attributes, Image, ShopCard } from "../lib/types.ts";
 import Availability from "./Availability.tsx";
 import { FavoriteButton, FavoriteIconButton } from "./FavoriteButton.tsx";
@@ -22,12 +22,9 @@ export interface DetailListing {
   shop: ShopCard;
 }
 
-/** Only https links are rendered, whatever the API sends. */
-const httpsUrl = (url: string | null) => (url?.startsWith("https://") ? url : null);
-
 /**
  * The dress and item page body. On phones the photo fills the width with back, share and heart
- * buttons on it, and Call (plus Instagram) stays in view just above the bottom bar.
+ * buttons on it, and Call (plus an Instagram icon) stays in view just above the bottom bar.
  */
 export default function ListingDetail(props: {
   listing: DetailListing;
@@ -35,6 +32,8 @@ export default function ListingDetail(props: {
   kicker: string;
   /** Where Back goes when there is no page to go back to. */
   backHref: string;
+  /** The heading above the description, e.g. "About this dress". */
+  about: string;
   details: JSX.Element;
 }) {
   const navigate = useNavigate();
@@ -62,7 +61,7 @@ export default function ListingDetail(props: {
         </div>
         <div class="mt-6 lg:mt-0">
           <p class="label">{props.kicker}</p>
-          <h1 class="mt-2 text-5xl sm:text-6xl">{l().title}</h1>
+          <h1 class="mt-2 break-words text-5xl sm:text-6xl">{l().title}</h1>
           <p class="mt-3 font-label text-xl tracking-[0.06em] text-garnet">{priceText(l())}</p>
           <div class="mt-5 hidden flex-wrap items-center gap-3 md:flex">
             <FavoriteButton id={l().id} />
@@ -74,7 +73,7 @@ export default function ListingDetail(props: {
           <Show when={l().description}>
             {(text) => (
               <section class="mt-8">
-                <h2 class="label">{t("item.about")}</h2>
+                <h2 class="label">{props.about}</h2>
                 <p class="mt-2 max-w-prose whitespace-pre-line">{text()}</p>
               </section>
             )}
@@ -99,9 +98,14 @@ export default function ListingDetail(props: {
         </a>
         <Show when={httpsUrl(l().shop.instagram_url)}>
           {(url) => (
-            <a href={url()} target="_blank" rel="noopener noreferrer" class="btn btn-outline">
+            <a
+              href={url()}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-outline px-3"
+              aria-label={t("dress.instagram")}
+            >
               <InstagramIcon />
-              {t("dress.instagram")}
             </a>
           )}
         </Show>
