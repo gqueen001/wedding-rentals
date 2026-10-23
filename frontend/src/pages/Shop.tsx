@@ -83,7 +83,7 @@ export default function Shop() {
               <ShopLogo url={shop().logo} name={shop().name} size="xl" />
               <div class="min-w-0 flex-1">
                 <p class="label">{cityName(shop().city, i18n.lang())} · {shop().address}</p>
-                <h1 class="mt-2 text-5xl sm:text-6xl">{shop().name}</h1>
+                <h1 class="mt-2 break-words text-5xl sm:text-6xl">{shop().name}</h1>
                 <Show when={shop().description}>
                   {(text) => <p class="mt-4 max-w-prose whitespace-pre-line">{text()}</p>}
                 </Show>

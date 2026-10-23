@@ -10,11 +10,13 @@ export interface ActiveFilter {
 
 /** "Filters · N" (opens the sheet), then one chip per active filter: tapping it removes it. */
 export default function FilterChips(props: { count: number; active: ActiveFilter[]; onOpen: () => void }) {
+  let filtersButton: HTMLButtonElement | undefined;
   return (
     <div class="flex flex-wrap gap-2">
       <button
         type="button"
         class="chip"
+        ref={filtersButton}
         classList={{ "chip-on": props.count > 0 }}
         aria-haspopup="dialog"
         onClick={() => props.onOpen()}
@@ -28,7 +30,11 @@ export default function FilterChips(props: { count: number; active: ActiveFilter
             type="button"
             class="chip"
             aria-label={t("filters.remove", { filter: f.label })}
-            onClick={() => f.remove()}
+            onClick={() => {
+              // The chips are rebuilt after a removal; keep focus on the Filters button, which stays.
+              filtersButton?.focus();
+              f.remove();
+            }}
           >
             {f.label}
             <CloseIcon class="h-3.5 w-3.5" />
