@@ -69,8 +69,13 @@ export default function Search() {
             value={state().filters.city}
             onChange={(e) => apply({ ...state().filters, city: e.currentTarget.value })}
           >
-            <option value="">{t("home.all_cities")}</option>
-            <For each={cities()}>{(c) => <option value={c.slug}>{cityName(c, i18n.lang())}</option>}</For>
+            {/* selected= as well as value=: the cities load after the first render. */}
+            <option value="" selected={!state().filters.city}>{t("home.all_cities")}</option>
+            <For each={cities()}>
+              {(c) => (
+                <option value={c.slug} selected={c.slug === state().filters.city}>{cityName(c, i18n.lang())}</option>
+              )}
+            </For>
           </select>
         </label>
       </div>

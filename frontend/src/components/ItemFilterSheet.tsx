@@ -5,7 +5,7 @@ import { EMPTY_ITEM_FILTERS, type ItemFilters } from "../lib/itemFilters.ts";
 import { ChoiceGroup, CityField, NumberInput, PriceFields } from "./FilterFields.tsx";
 import Sheet from "./Sheet.tsx";
 
-/** A category page's filters, built from the category's field definitions. */
+/** The filters of a category page or of /search, built from the category's field definitions. */
 export default function ItemFilterSheet(props: {
   category: CategoryDef;
   open: boolean;

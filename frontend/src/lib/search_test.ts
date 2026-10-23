@@ -22,7 +22,7 @@ Deno.test("searchHref round-trips every param", () => {
 });
 
 Deno.test("changing the category keeps the shared filters and drops the old category's own", () => {
-  const cars = { ...EMPTY_ITEM_FILTERS, q: "ak", city: "mary", priceMax: 900, attrs: { body: "suv", color: "white" } };
+  const cars = { ...EMPTY_ITEM_FILTERS, q: "ak", city: "mary", priceMax: 900, attrs: { body: "suv", color: "white", seats_min: "4" } };
   assertEquals(searchHref("tents", cars), "/search?q=ak&city=mary&price_max=900&category=tents");
   assertEquals(searchHref("", cars), "/search?q=ak&city=mary&price_max=900");
   // Dresses have no catalog filters of their own: only the shared ones are kept.
