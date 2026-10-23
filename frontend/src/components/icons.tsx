@@ -101,45 +101,6 @@ export const PlusIcon = (p: IconProps) => (
   </Svg>
 );
 
-// Category icons, drawn on the same 24px grid as the rest.
-export const DressIcon = (p: IconProps) => (
-  <Svg class={p.class}>
-    <path d="M9.5 3h5l-1 4.5L18 21H6l4.5-13.5z" />
-    <path d="M10.5 7.5h3" />
-  </Svg>
-);
-
-export const CarIcon = (p: IconProps) => (
-  <Svg class={p.class}>
-    <path d="M3 16.5V13l2.2-4.6A2 2 0 0 1 7 7.3h10a2 2 0 0 1 1.8 1.1L21 13v3.5H3z" />
-    <path d="M3 13h18" />
-    <circle cx="7.5" cy="17" r="1.6" />
-    <circle cx="16.5" cy="17" r="1.6" />
-  </Svg>
-);
-
-export const RobeIcon = (p: IconProps) => (
-  <Svg class={p.class}>
-    <path d="M9 3 12 6l3-3 4.5 4-2.5 2.5V21H7V9.5L4.5 7z" />
-    <path d="M12 6v15" />
-  </Svg>
-);
-
-export const TentIcon = (p: IconProps) => (
-  <Svg class={p.class}>
-    <path d="M2.5 20 12 4l9.5 16z" />
-    <path d="M12 4v16M9 20l3-6 3 6" />
-  </Svg>
-);
-
-export const RibbonIcon = (p: IconProps) => (
-  <Svg class={p.class}>
-    <path d="M12 11c-2.5-3.5-7-4.5-8-2.2S7 12.8 12 11z" />
-    <path d="M12 11c2.5-3.5 7-4.5 8-2.2S17 12.8 12 11z" />
-    <path d="m12 11-3.5 9M12 11l3.5 9" />
-  </Svg>
-);
-
 export const HomeIcon = (p: IconProps) => (
   <Svg class={p.class}>
     <path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z" />
