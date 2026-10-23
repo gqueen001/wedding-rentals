@@ -123,15 +123,18 @@ Mockups are in `.superpowers/brainstorm/11380-1792755719/content/` (`dress-deskt
 
 ## 8. New texts
 
-All of them go into `tk`, `ru` and `en`, with identical keys:
+There is one new key, in `tk`, `ru` and `en`:
 
 | Key | tk | ru | en |
 |---|---|---|---|
 | `myshop.edit_profile` | Profili üýtget | Изменить профиль | Edit profile |
-| `myshop.about_salon` | Salon barada | О салоне | About the salon |
-| `myshop.change_logo` | Nyşany çalyş | Сменить логотип | Change logo |
 
-These reuse existing keys: Back, New listing, the Draft status, Saved, the city label and "All cities", Filters, and the filter chips. If a box heading already has a key, reuse it rather than adding one. A native Turkmen proofread is still a later step.
+Everything else reuses existing keys:
+- "About the salon" is `myshop.details` ("Salon barada").
+- The logo box keeps the logo upload's own heading.
+- Back, New listing, the Draft status, Saved, the city label and "All cities", Filters, and the filter chips all have keys already.
+
+A native Turkmen proofread is still a later step.
 
 ## 9. Out of scope
 
