@@ -41,29 +41,29 @@ export function ContactButtons(props: {
 
 export default function ShopCardSection(props: { shop: ShopCard }) {
   return (
-    <section aria-labelledby="shop-card-title" class="border-t border-veil pt-6">
-      <p class="text-sm text-silver-ink">{t("dress.rent_from")}</p>
+    <section aria-labelledby="shop-card-title" class="border-t border-line pt-6">
+      <p class="label">{t("dress.rent_from")}</p>
       <div class="mt-3 flex items-center gap-4">
         <ShopLogo url={props.shop.logo} name={props.shop.name} />
         <div class="min-w-0">
-          <h2 id="shop-card-title" class="truncate text-2xl">
+          <h2 id="shop-card-title" class="truncate text-4xl">
             <A href={`/shops/${props.shop.slug}`} class="hover:text-garnet">
               {props.shop.name}
             </A>
           </h2>
-          <p class="text-sm text-silver-ink">{cityName(props.shop.city, i18n.lang())}</p>
+          <p class="label mt-1">{cityName(props.shop.city, i18n.lang())}</p>
         </div>
       </div>
       <div class="mt-5">
         <ContactButtons shop={props.shop} />
       </div>
       <dl class="mt-5 text-sm">
-        <dt class="text-silver-ink">{t("dress.address")}</dt>
+        <dt class="label">{t("dress.address")}</dt>
         <dd class="mt-0.5">{props.shop.address}</dd>
       </dl>
       <A
         href={`/shops/${props.shop.slug}`}
-        class="mt-5 inline-block text-sm font-semibold text-garnet underline-offset-4 hover:underline"
+        class="label mt-5 inline-block border-b border-ink pb-0.5 text-ink"
       >
         {t("dress.shop_page", { shop: props.shop.name })}
       </A>

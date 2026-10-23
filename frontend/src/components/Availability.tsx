@@ -8,8 +8,8 @@ import MonthCalendar from "./MonthCalendar.tsx";
 export default function Availability(props: { listingId: number }) {
   const [data, { refetch }] = createResource(() => props.listingId, (id) => api.busyDays(id));
   return (
-    <section aria-labelledby="availability-title" class="border-t border-veil pt-6">
-      <h2 id="availability-title" class="text-2xl">{t("avail.title")}</h2>
+    <section aria-labelledby="availability-title" class="border-t border-line pt-6">
+      <h2 id="availability-title" class="label">{t("avail.title")}</h2>
       <div class="mt-4 max-w-sm">
         <Switch>
           <Match when={data.error}>

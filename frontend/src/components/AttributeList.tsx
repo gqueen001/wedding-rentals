@@ -24,7 +24,7 @@ export default function AttributeList(props: { category: string; attributes: Att
         <For each={rows()}>
           {(row) => (
             <>
-              <dt class="text-silver-ink">{row.label}</dt>
+              <dt class="label">{row.label}</dt>
               <dd>{row.value}</dd>
             </>
           )}

@@ -1,18 +1,21 @@
 @import "tailwindcss";
-@import "@fontsource/forum";
-@import "@fontsource-variable/manrope";
+@import "@fontsource/cormorant-garamond/300.css";
+@import "@fontsource/tenor-sans";
+@import "@fontsource-variable/jost";
 
 @theme {
   --color-white: #ffffff;
-  --color-veil: #f4f2f5;
-  --color-ink: #241b27;
+  --color-veil: #f6f6f7;
+  --color-line: #e6e6e8;
+  --color-ink: #2e2e30;
   --color-garnet: #8e1b2e;
   --color-garnet-deep: #6b1222;
-  --color-silver: #a7acb4;
-  --color-silver-ink: #5d6370;
+  --color-silver: #8a8a8f;
+  --color-silver-ink: #6b6b70;
   --color-blush: #f8e7ea;
-  --font-display: "Forum", "Times New Roman", serif;
-  --font-sans: "Manrope Variable", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Cormorant Garamond", "Times New Roman", serif;
+  --font-label: "Tenor Sans", "Segoe UI", system-ui, sans-serif;
+  --font-sans: "Jost Variable", "Segoe UI", system-ui, sans-serif;
 }
 
 @layer base {
@@ -29,9 +32,14 @@
   }
   h1, h2, h3 {
     font-family: var(--font-display);
-    font-weight: 400;
-    line-height: 1.15;
+    font-weight: 300;
+    line-height: 1.1;
     color: var(--color-ink);
+  }
+  /* The light display serif is too thin below 30px: smaller headings use the label font. */
+  :is(h1, h2, h3):is(.text-xs, .text-sm, .text-base, .text-lg, .text-xl, .text-2xl) {
+    font-family: var(--font-label);
+    letter-spacing: 0.04em;
   }
   :focus-visible {
     outline: 2px solid var(--color-garnet);
@@ -43,16 +51,26 @@
 }
 
 @layer components {
+  /* Small, widely spaced uppercase text: section labels, kickers, counts. */
+  .label {
+    font-family: var(--font-label);
+    font-size: 0.6875rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--color-silver-ink);
+  }
   .btn {
     display: inline-flex;
     min-height: 2.75rem;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border-radius: 9999px;
+    border-radius: 0;
     padding: 0 1.25rem;
-    font-size: 0.875rem;
-    font-weight: 600;
+    font-family: var(--font-label);
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
     transition: background-color 0.15s, border-color 0.15s, color 0.15s;
   }
   .btn:disabled,
@@ -68,7 +86,7 @@
     background: var(--color-garnet-deep);
   }
   .btn-outline {
-    border: 1px solid var(--color-silver);
+    border: 1px solid var(--color-ink);
     background: var(--color-white);
     color: var(--color-ink);
   }
@@ -119,6 +137,12 @@
     padding: 0 0.9rem;
     font-size: 0.875rem;
     cursor: pointer;
+  }
+  /* A chip that is a link or button and currently on, e.g. the selected category. */
+  .chip-on {
+    border-color: var(--color-ink);
+    background: var(--color-ink);
+    color: var(--color-white);
   }
   .chip:has(:checked) {
     border-color: var(--color-garnet);

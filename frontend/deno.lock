@@ -21,8 +21,9 @@
     ],
     "packageJson": {
       "dependencies": [
-        "npm:@fontsource-variable/manrope@5.3.0",
-        "npm:@fontsource/forum@5.3.0",
+        "npm:@fontsource-variable/jost@5.3.0",
+        "npm:@fontsource/cormorant-garamond@5.3.0",
+        "npm:@fontsource/tenor-sans@5.3.0",
         "npm:@solidjs/router@1.0.0",
         "npm:@tailwindcss/vite@4.3.3",
         "npm:solid-js@1.9.17",
