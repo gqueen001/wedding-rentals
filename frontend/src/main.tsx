@@ -30,6 +30,7 @@ const ShopLayout = lazy(() => import("./pages/shop/ShopLayout.tsx"));
 const ShopLogin = lazy(() => import("./pages/shop/ShopLogin.tsx"));
 const ShopSignup = lazy(() => import("./pages/shop/ShopSignup.tsx"));
 const MyShop = lazy(() => import("./pages/shop/MyShop.tsx"));
+const ShopProfile = lazy(() => import("./pages/shop/ShopProfile.tsx"));
 
 trackTraversals();
 document.documentElement.lang = i18n.lang();
@@ -65,6 +66,7 @@ render(
       <Route path="/shop/login" component={ShopLogin} />
       <Route path="/shop" component={ShopLayout}>
         <Route path="/" component={MyShop} />
+        <Route path="/profile" component={ShopProfile} />
         <Route path="/listings/new" component={NewListing} />
         <Route path="/dresses/new" component={DressEdit} />
         <Route path="/dresses/:id" component={DressEdit} />

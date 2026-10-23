@@ -325,5 +325,6 @@
   "categories.kicker": "Category",
   "filters.up_to": "up to {price} TMT",
   "filters.remove": "Remove filter: {filter}",
-  "contact.call": "Call"
+  "contact.call": "Call",
+  "myshop.edit_profile": "Edit profile"
 }
