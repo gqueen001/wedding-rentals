@@ -320,5 +320,8 @@
   "categories.count": "{count} bildiriş",
   "more.for_shops": "Salonlar üçin",
   "more.contact": "Bize jaň ediň:",
-  "home.see_all_categories": "Ähli kategoriýalar"
+  "home.see_all_categories": "Ähli kategoriýalar",
+  "categories.kicker": "Kategoriýa",
+  "filters.up_to": "{price} TMT çenli",
+  "filters.remove": "Süzgüji aýyr: {filter}"
 }

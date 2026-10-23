@@ -320,5 +320,8 @@
   "categories.count": "Объявлений: {count}",
   "more.for_shops": "Для салонов",
   "more.contact": "Связаться с нами:",
-  "home.see_all_categories": "Все категории"
+  "home.see_all_categories": "Все категории",
+  "categories.kicker": "Категория",
+  "filters.up_to": "до {price} TMT",
+  "filters.remove": "Убрать фильтр: {filter}"
 }

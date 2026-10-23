@@ -78,14 +78,12 @@ export default function Shop() {
       </Match>
       <Match when={info()}>
         {(shop) => (
-          <div class="pt-8">
-            <header class="flex flex-col gap-6 sm:flex-row sm:items-start">
-              <ShopLogo url={shop().logo} name={shop().name} size="lg" />
+          <div class="pt-6">
+            <header class="flex flex-col gap-6 sm:flex-row sm:items-center">
+              <ShopLogo url={shop().logo} name={shop().name} size="xl" />
               <div class="min-w-0 flex-1">
-                <h1 class="text-4xl sm:text-5xl">{shop().name}</h1>
-                <p class="mt-1 text-silver-ink">
-                  {cityName(shop().city, i18n.lang())}, {shop().address}
-                </p>
+                <p class="label">{cityName(shop().city, i18n.lang())} · {shop().address}</p>
+                <h1 class="mt-2 text-5xl sm:text-6xl">{shop().name}</h1>
                 <Show when={shop().description}>
                   {(text) => <p class="mt-4 max-w-prose whitespace-pre-line">{text()}</p>}
                 </Show>
@@ -96,7 +94,7 @@ export default function Shop() {
             </header>
 
             <section class="mt-12" aria-labelledby="shop-dresses-title">
-              <h2 id="shop-dresses-title" class="mb-6 text-3xl">{t("shop.listings")}</h2>
+              <h2 id="shop-dresses-title" class="label mb-6 border-t border-line pt-6">{t("shop.listings")}</h2>
               <Show when={shop().categories.length > 1}>
                 <nav class="mb-6 flex flex-wrap gap-2" aria-label={t("home.categories")}>
                   {chip("", t("search.all"))}

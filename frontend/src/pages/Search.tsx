@@ -52,16 +52,17 @@ export default function Search() {
   );
 
   return (
-    <div class="pt-8">
-      <h1 class="text-4xl">{t("search.title")}</h1>
-      <div class="mt-6">
+    <div class="pt-6">
+      <p class="label">{t("app.name")}</p>
+      <h1 class="mt-2 text-5xl sm:text-6xl">{t("search.title")}</h1>
+      <div class="mt-6 max-w-xl">
         <SearchBox value={params().q} onSearch={(q) => navigate(href(q, params().category))} />
       </div>
       <nav class="mt-4 flex flex-wrap gap-2" aria-label={t("home.categories")}>
         {chip("", t("search.all"))}
         <For each={CATEGORIES}>{(c) => chip(c.slug, tr(catLabel(c.slug)))}</For>
       </nav>
-      <p class="mt-4 min-h-6 text-sm text-silver-ink" aria-live="polite">
+      <p class="label mt-5 min-h-5" aria-live="polite">
         <Show when={!(list.loading() && firstLoad()) && list.error() === null}>{t("dresses.found", { count: list.total() })}</Show>
       </p>
       <div class="mt-4">
