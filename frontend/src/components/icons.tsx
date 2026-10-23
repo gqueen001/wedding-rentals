@@ -139,3 +139,27 @@ export const RibbonIcon = (p: IconProps) => (
     <path d="m12 11-3.5 9M12 11l3.5 9" />
   </Svg>
 );
+
+
+export const HomeIcon = (p: IconProps) => (
+  <Svg class={p.class}>
+    <path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z" />
+  </Svg>
+);
+
+export const GridIcon = (p: IconProps) => (
+  <Svg class={p.class}>
+    <rect x="4" y="4" width="7" height="7" />
+    <rect x="13" y="4" width="7" height="7" />
+    <rect x="4" y="13" width="7" height="7" />
+    <rect x="13" y="13" width="7" height="7" />
+  </Svg>
+);
+
+export const MoreIcon = (p: IconProps) => (
+  <Svg class={p.class}>
+    <circle cx="5" cy="12" r="1.4" />
+    <circle cx="12" cy="12" r="1.4" />
+    <circle cx="19" cy="12" r="1.4" />
+  </Svg>
+);

@@ -311,5 +311,10 @@
   "itemform.title": "Название",
   "itemform.optional": "Необязательно",
   "photos.save_first_item": "Сначала сохраните, потом добавьте фото.",
-  "avail.save_first_item": "Сначала сохраните, потом отмечайте занятые дни."
+  "avail.save_first_item": "Сначала сохраните, потом отмечайте занятые дни.",
+  "tab.menu": "Меню",
+  "tab.home": "Главная",
+  "tab.categories": "Категории",
+  "tab.favorites": "Избранное",
+  "tab.more": "Ещё"
 }

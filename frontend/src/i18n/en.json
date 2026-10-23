@@ -311,5 +311,10 @@
   "itemform.title": "Name",
   "itemform.optional": "Optional",
   "photos.save_first_item": "Save first, then add photos.",
-  "avail.save_first_item": "Save first, then mark busy days."
+  "avail.save_first_item": "Save first, then mark busy days.",
+  "tab.menu": "Menu",
+  "tab.home": "Home",
+  "tab.categories": "Categories",
+  "tab.favorites": "Favorites",
+  "tab.more": "More"
 }

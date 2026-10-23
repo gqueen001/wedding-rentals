@@ -311,5 +311,10 @@
   "itemform.title": "Ady",
   "itemform.optional": "Hökmany däl",
   "photos.save_first_item": "Ilki saklaň, soň surat goşuň.",
-  "avail.save_first_item": "Ilki saklaň, soň band günleri belläň."
+  "avail.save_first_item": "Ilki saklaň, soň band günleri belläň.",
+  "tab.menu": "Menýu",
+  "tab.home": "Esasy",
+  "tab.categories": "Kategoriýalar",
+  "tab.favorites": "Halanlarym",
+  "tab.more": "Has köp"
 }
