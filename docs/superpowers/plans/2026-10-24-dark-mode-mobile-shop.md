@@ -949,3 +949,28 @@ The controller does this in headless Chrome against a server built from the bran
 | §5.3 The switch on Has köp | Task 1 |
 | §6 Texts | Task 1 |
 | §8 Testing | Task 1 (`theme_test.ts`), Final verification |
+
+## Changes made during review
+
+- **Task 2:** the implementer missed the `.btn-primary` replacement (the controller's file check caught it, fix 25ed78b). The product owner accepted the pure black photo viewer and `black/50` sheet backdrop in light mode too.
+- **Final review:** no code changes were needed. The spec text was aligned with what was built:
+  - the phone button letter-spacing and the position of the "See your shop page" link;
+  - the admin bar hiding its label and language switch on phones;
+  - `.chip-on` using `white`, and Home's `border-white` frame;
+  - the light browser-bar color;
+  - the button-group switch;
+  - `color-scheme`.
+- **Left for later**, triaged as fine:
+  - no cross-tab theme sync;
+  - the inline script's global `var`;
+  - the Auto meta restore keys off the `media` string;
+  - `SignOutButton` lives in `components/admin/`;
+  - `leading-tight` also applies at md;
+  - the small "See your shop page" link;
+  - the description reads after the buttons for screen readers at md;
+  - the garnet focus ring on the black photo viewer is about 2.3:1;
+  - out-of-window calendar days are about 3.2:1 in dark;
+  - placeholders are about 3.3:1;
+  - "GELIN" on Home washes out over white photo areas in dark.
+- **Follow-up:** `public/manifest.json` `background_color` is `#ffffff`, so an installed app shows a white splash on dark devices.
+
