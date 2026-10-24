@@ -325,5 +325,9 @@
   "filters.up_to": "{price} TMT çenli",
   "filters.remove": "Süzgüji aýyr: {filter}",
   "contact.call": "Jaň et",
-  "myshop.edit_profile": "Profili üýtget"
+  "myshop.edit_profile": "Profili üýtget",
+  "more.theme": "Görnüş",
+  "theme.auto": "Awtomatik",
+  "theme.light": "Ýagty",
+  "theme.dark": "Garaňky"
 }

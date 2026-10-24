@@ -325,5 +325,9 @@
   "filters.up_to": "до {price} TMT",
   "filters.remove": "Убрать фильтр: {filter}",
   "contact.call": "Позвонить",
-  "myshop.edit_profile": "Изменить профиль"
+  "myshop.edit_profile": "Изменить профиль",
+  "more.theme": "Тема",
+  "theme.auto": "Как на устройстве",
+  "theme.light": "Светлая",
+  "theme.dark": "Тёмная"
 }

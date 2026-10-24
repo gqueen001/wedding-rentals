@@ -3,6 +3,7 @@ import { For, type JSX, Show } from "solid-js";
 import { ChevronRightIcon } from "../components/icons.tsx";
 import { i18n, LANGS, t } from "../i18n/i18n.ts";
 import { contactPhone } from "../lib/contact.ts";
+import { theme, THEMES } from "../lib/theme.ts";
 import { usePageTitle } from "../lib/title.ts";
 
 const ROW = "flex min-h-14 items-center justify-between gap-4 border-b border-line py-3 text-lg";
@@ -16,7 +17,7 @@ function LinkRow(props: { href: string; children: JSX.Element }) {
   );
 }
 
-/** The bottom bar's "More": language, search, and the way in for shops. */
+/** The bottom bar's "More": language, theme, search, and the way in for shops. */
 export default function More() {
   usePageTitle(() => t("tab.more"));
   const phone = contactPhone();
@@ -39,6 +40,28 @@ export default function More() {
               >
                 <span>{t(`lang.${lang}`)}</span>
                 <Show when={i18n.lang() === lang}>
+                  <span class="label text-garnet" aria-hidden="true">✓</span>
+                </Show>
+              </button>
+            )}
+          </For>
+        </div>
+      </section>
+
+      <section class="mt-8" aria-labelledby="more-theme">
+        <h2 id="more-theme" class="label">{t("more.theme")}</h2>
+        <div role="group" aria-labelledby="more-theme" class="mt-2 border-t border-line">
+          <For each={THEMES}>
+            {(choice) => (
+              <button
+                type="button"
+                aria-pressed={theme.choice() === choice}
+                class={`${ROW} w-full text-left`}
+                classList={{ "text-garnet": theme.choice() === choice }}
+                onClick={() => theme.set(choice)}
+              >
+                <span>{t(`theme.${choice}`)}</span>
+                <Show when={theme.choice() === choice}>
                   <span class="label text-garnet" aria-hidden="true">✓</span>
                 </Show>
               </button>
