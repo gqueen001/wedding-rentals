@@ -18,7 +18,7 @@ export default function ListingTile(props: { item: ListItem; eager?: boolean; hi
             {(src) => (
               <img
                 src={src()}
-                alt={props.item.title}
+                alt="" // the title below names the link already
                 loading={props.eager ? "eager" : "lazy"}
                 fetchpriority={props.eager ? "high" : undefined}
                 decoding="async"
