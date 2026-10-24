@@ -47,7 +47,7 @@ function PhotoViewer(props: { images: Image[]; start: number; title: string; onC
       aria-modal="true"
       aria-label={props.title}
       tabindex="-1"
-      class="fixed inset-0 z-50 flex flex-col bg-ink text-white outline-none"
+      class="fixed inset-0 z-50 flex flex-col bg-black text-on-fill outline-none"
       onKeyDown={onKeyDown}
     >
       <div class="flex items-center justify-between px-3 py-2">
@@ -55,7 +55,7 @@ function PhotoViewer(props: { images: Image[]; start: number; title: string; onC
         <button
           ref={closeButton}
           type="button"
-          class="btn-icon hover:bg-white/10"
+          class="btn-icon hover:bg-on-fill/10"
           aria-label={t("common.close")}
           onClick={() => props.onClose()}
         >
@@ -96,7 +96,7 @@ function PhotoViewer(props: { images: Image[]; start: number; title: string; onC
         <div class="flex justify-between px-3 py-2">
           <button
             type="button"
-            class="btn-icon hover:bg-white/10"
+            class="btn-icon hover:bg-on-fill/10"
             disabled={index() === 0}
             aria-label={label(Math.max(0, index() - 1))}
             onClick={() => go(-1)}
@@ -105,7 +105,7 @@ function PhotoViewer(props: { images: Image[]; start: number; title: string; onC
           </button>
           <button
             type="button"
-            class="btn-icon hover:bg-white/10"
+            class="btn-icon hover:bg-on-fill/10"
             disabled={index() === total() - 1}
             aria-label={label(Math.min(total() - 1, index() + 1))}
             onClick={() => go(1)}

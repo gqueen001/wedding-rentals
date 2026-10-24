@@ -29,7 +29,7 @@ export default function AccountAvatar() {
         classList={{
           "border border-silver text-ink": look() === "signed_out",
           "border-2 border-garnet text-ink": look() === "loading" || look() === "logo",
-          "bg-garnet text-white": look() === "letter",
+          "bg-garnet-fill text-on-fill": look() === "letter",
         }}
       >
         <Switch fallback={<UserIcon class="h-5 w-5" />}>

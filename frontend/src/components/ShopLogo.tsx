@@ -16,7 +16,7 @@ export default function ShopLogo(props: { url: string | null; name: string; size
       fallback={
         <span
           aria-hidden="true"
-          class={`inline-flex shrink-0 items-center justify-center rounded-[50%] bg-garnet font-display text-white ${size()}`}
+          class={`inline-flex shrink-0 items-center justify-center rounded-[50%] bg-garnet-fill font-display text-on-fill ${size()}`}
         >
           {props.name.trim().charAt(0).toLocaleUpperCase()}
         </span>
