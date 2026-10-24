@@ -711,3 +711,15 @@ The controller does this in headless Chrome, against a server built from the bra
    - no header button text overflows;
    - contrast is clean in both themes.
 4. **The shop page:** on phones the "Jaň et" link is 32px high and named with the number; from md it is 48px.
+
+## Changes made during review
+
+- Both task reviews were clean.
+- **Final review:** the README line about design tokens named the deleted `GolBand.tsx` and the old fonts. It now names the current fonts, the dark-mode values and `lib/theme.ts`. `ShopLogo`'s unused `xl` size was removed, and the `profile` size comment now covers both pages.
+- **Left for later**, triaged as fine:
+  - `COMPACT`'s `leading-tight` and `text-center` also apply from md, where they're invisible;
+  - there is no component test for the compact branch;
+  - on computers the shop header's description reads after the buttons for screen readers;
+  - an empty half-cell when a shop has only one social link;
+  - a single-child fragment on Home.
+- **For the product owner:** on computers, search is now only in the home box. `/more` is in the phone bottom bar only.
