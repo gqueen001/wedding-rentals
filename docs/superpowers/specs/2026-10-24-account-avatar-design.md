@@ -41,7 +41,7 @@ The avatar is a link with a 44px tap area (`btn-icon`), holding a 34px (`h-[34px
   - Any other error leaves the token in place and shows the garnet-ringed person icon.
 - **Accessible name:**
   - Signed in: "Meniň salonym: <salon name>" (`myshop.title` + name). Just `myshop.title` while the salon is loading.
-  - Signed out: "Sign in" (`admin.sign_in`, which says "Sign in" / "Giriş" / "Войти").
+  - Signed out: "Sign in" (`admin.sign_in`: "Gir" / "Войти" / "Sign in").
   - The circle's image and letter are `aria-hidden`.
 - **Choosing the look:** a small pure helper picks one of `"signed_out" | "loading" | "logo" | "letter"` from (has token, salon or null) and is unit tested.
 
