@@ -121,11 +121,11 @@
     cursor: not-allowed;
   }
   .btn-primary {
-    background: var(--color-garnet);
-    color: var(--color-white);
+    background: var(--color-garnet-fill);
+    color: var(--color-on-fill);
   }
   .btn-primary:hover:not(:disabled):not([aria-disabled="true"]) {
-    background: var(--color-garnet-deep);
+    background: var(--color-garnet-fill-deep);
   }
   .btn-outline {
     border: 1px solid var(--color-ink);
