@@ -1,7 +1,6 @@
 import { A, useNavigate, useSearchParams } from "@solidjs/router";
 import { createSignal, Show } from "solid-js";
 import { TextField } from "../../components/admin/Field.tsx";
-import GolBand from "../../components/GolBand.tsx";
 import { t, tr } from "../../i18n/i18n.ts";
 import { auth } from "../../lib/auth.ts";
 import { api } from "../../lib/client.ts";
@@ -40,7 +39,6 @@ export default function Login() {
 
   return (
     <div class="min-h-screen bg-veil">
-      <GolBand />
       <main class="mx-auto max-w-sm px-4 py-16">
         <A href="/" class="font-display text-3xl text-garnet">{t("app.name")}</A>
         <form class="mt-8 space-y-4 rounded-lg bg-white p-6" onSubmit={submit}>

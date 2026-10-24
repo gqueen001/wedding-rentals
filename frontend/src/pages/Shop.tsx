@@ -4,7 +4,7 @@ import ListingGrid from "../components/ListingGrid.tsx";
 import ErrorState from "../components/ErrorState.tsx";
 import LoadMore from "../components/LoadMore.tsx";
 import { ContactButtons } from "../components/ShopCard.tsx";
-import ShopLogo from "../components/ShopLogo.tsx";
+import ShopProfileHeader from "../components/ShopProfileHeader.tsx";
 import { DetailSkeleton, GridSkeleton } from "../components/Skeleton.tsx";
 import { i18n, t, tr } from "../i18n/i18n.ts";
 import { categoryDef, catLabel } from "../lib/catalog.ts";
@@ -79,19 +79,17 @@ export default function Shop() {
       <Match when={info()}>
         {(shop) => (
           <div class="pt-6">
-            <header class="flex flex-col gap-6 sm:flex-row sm:items-center">
-              <ShopLogo url={shop().logo} name={shop().name} size="xl" />
-              <div class="min-w-0 flex-1">
-                <p class="label">{cityName(shop().city, i18n.lang())} · {shop().address}</p>
-                <h1 class="mt-2 break-words text-5xl sm:text-6xl">{shop().name}</h1>
-                <Show when={shop().description}>
-                  {(text) => <p class="mt-4 max-w-prose whitespace-pre-line">{text()}</p>}
-                </Show>
-                <div class="mt-6 max-w-xl">
-                  <ContactButtons shop={shop()} />
+            <ShopProfileHeader
+              logo={shop().logo}
+              name={shop().name}
+              place={`${cityName(shop().city, i18n.lang())} · ${shop().address}`}
+              description={shop().description}
+              actions={
+                <div class="md:max-w-xl">
+                  <ContactButtons shop={shop()} compact />
                 </div>
-              </div>
-            </header>
+              }
+            />
 
             <section class="mt-12" aria-labelledby="shop-dresses-title">
               <h2 id="shop-dresses-title" class="label mb-6 border-t border-line pt-6">{t("shop.listings")}</h2>

@@ -1,7 +1,6 @@
 import { A, Navigate, type RouteSectionProps, useLocation, useNavigate } from "@solidjs/router";
 import { Show } from "solid-js";
 import SignOutButton from "../../components/admin/SignOutButton.tsx";
-import GolBand from "../../components/GolBand.tsx";
 import LanguageSwitch from "../../components/LanguageSwitch.tsx";
 import { t } from "../../i18n/i18n.ts";
 import { auth } from "../../lib/auth.ts";
@@ -33,7 +32,6 @@ export default function AdminLayout(props: RouteSectionProps) {
     >
       <div class="min-h-screen bg-veil">
         <header class="bg-white">
-          <GolBand />
           <div class="mx-auto flex max-w-6xl items-center gap-x-2 px-4 py-2 sm:gap-x-4">
             <A href="/" class="font-display text-2xl text-garnet">{t("app.name")}</A>
             <span class="hidden text-sm text-silver-ink sm:inline">{t("admin.title")}</span>

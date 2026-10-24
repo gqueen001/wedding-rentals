@@ -1,7 +1,6 @@
 import { A, Navigate, type RouteSectionProps, useLocation, useNavigate } from "@solidjs/router";
 import { Show } from "solid-js";
 import SignOutButton from "../../components/admin/SignOutButton.tsx";
-import GolBand from "../../components/GolBand.tsx";
 import LanguageSwitch from "../../components/LanguageSwitch.tsx";
 import { t } from "../../i18n/i18n.ts";
 import { ownerApi, uploadOwnerImage } from "../../lib/client.ts";
@@ -32,7 +31,6 @@ export default function ShopLayout(props: RouteSectionProps) {
     >
       <div class="min-h-screen bg-veil">
         <header class="bg-white">
-          <GolBand />
           <div class="mx-auto flex max-w-6xl items-center gap-x-2 px-4 py-2 sm:gap-x-4">
             <A href="/" class="font-display text-2xl text-garnet">{t("app.name")}</A>
             <nav class="hidden text-sm sm:flex" aria-label={t("myshop.title")}>

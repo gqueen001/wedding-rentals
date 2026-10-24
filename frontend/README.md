@@ -24,4 +24,4 @@ Everything else runs through Deno. Don't run Vite with Node: the installed Node 
 - `src/lib/api.ts` is the only place that calls `fetch`; `src/lib/upload.ts` uploads photos with progress.
 - Texts live in `src/i18n/{tk,ru,en}.json`. The three files must have the same keys, and `deno task test` checks this.
 - Favorites, the language choice and the admin token are kept in `localStorage` (`wr.favorites`, `wr.lang`, `wr.admin_token`).
-- Design tokens (the Gyrmyzy palette, the Forum and Manrope fonts) are in `src/index.css`. The göl ornament is `src/components/GolBand.tsx`.
+- Design tokens (the colors, with their dark-mode values, and the Cormorant Garamond, Tenor Sans and Jost fonts) are in `src/index.css`. The theme choice (Auto, Light, Dark) is `src/lib/theme.ts`.

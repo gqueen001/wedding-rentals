@@ -1,10 +1,7 @@
-import { A, useNavigate } from "@solidjs/router";
-import { createResource, For, Match, Switch } from "solid-js";
+import { useNavigate } from "@solidjs/router";
+import { createResource, For } from "solid-js";
 import CategoryBar from "../components/CategoryBar.tsx";
-import ErrorState from "../components/ErrorState.tsx";
-import ListingGrid from "../components/ListingGrid.tsx";
 import SearchBox from "../components/SearchBox.tsx";
-import { GridSkeleton } from "../components/Skeleton.tsx";
 import { i18n, t } from "../i18n/i18n.ts";
 import { useCities } from "../lib/cities.ts";
 import { api } from "../lib/client.ts";
@@ -27,8 +24,8 @@ export default function Home() {
   usePageTitle(() => undefined);
   const navigate = useNavigate();
   const cities = useCities();
-  // The newest listings of every category; the first two with a photo also dress the hero.
-  const [newest, { refetch }] = createResource(() => api.items(new URLSearchParams({ per_page: "8" })));
+  // The newest listings of every category: the first two with a photo dress the hero.
+  const [newest] = createResource(() => api.items(new URLSearchParams({ per_page: "8" })));
   const photo = (i: number) =>
     newest.state === "ready" ? (newest()?.items ?? []).filter((it) => it.photo)[i]?.photo : null;
   const search = (q: string) => navigate(q ? `/search?${new URLSearchParams({ q })}` : "/search");
@@ -74,22 +71,6 @@ export default function Home() {
           </div>
         </div>
         <CategoryBar />
-      </section>
-
-      <section aria-labelledby="newest-title" class="mt-16">
-        <div class="mb-6 flex items-baseline justify-between gap-4 border-t border-line pt-6">
-          <h2 id="newest-title" class="label">{t("home.newest")}</h2>
-          <A href="/search" class="label border-b border-ink pb-0.5 text-ink">{t("home.see_all_items")}</A>
-        </div>
-        <Switch>
-          <Match when={newest.error}>
-            <ErrorState error={newest.error} onRetry={refetch} />
-          </Match>
-          <Match when={!newest()}>
-            <GridSkeleton count={8} />
-          </Match>
-          <Match when={newest()}>{(page) => <ListingGrid items={page().items} />}</Match>
-        </Switch>
       </section>
     </>
   );
