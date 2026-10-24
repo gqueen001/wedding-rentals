@@ -2,12 +2,13 @@ import { A, useNavigate } from "@solidjs/router";
 import { Show } from "solid-js";
 import { t } from "../i18n/i18n.ts";
 import { favorites } from "../lib/favorites.ts";
+import AccountAvatar from "./AccountAvatar.tsx";
 import { HeartIcon, SearchIcon } from "./icons.tsx";
 import LanguageSwitch from "./LanguageSwitch.tsx";
 
 const MENU_LINK = "inline-flex min-h-11 items-center gap-1.5 px-2 font-label text-xs uppercase tracking-[0.2em]";
 
-/** Phones: the logo and a search button (the bottom bar does the rest). Desktop: a full menu. */
+/** Phones: the logo, a search button and the account avatar (the bottom bar does the rest). Desktop: a full menu. */
 export default function Header() {
   const navigate = useNavigate();
   const count = () => favorites.ids().length;
@@ -57,15 +58,8 @@ export default function Header() {
             </Show>
           </A>
           <LanguageSwitch />
-          <span class="hidden lg:contents">
-            <A
-              href="/shop/signup"
-              class="ml-2 inline-flex min-h-11 items-center rounded-lg border border-garnet px-3 font-label text-xs uppercase tracking-[0.2em] text-garnet hover:bg-blush"
-            >
-              {t("nav.add_shop")}
-            </A>
-          </span>
         </nav>
+        <AccountAvatar />
       </div>
     </header>
   );
