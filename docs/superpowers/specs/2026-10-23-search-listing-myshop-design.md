@@ -1,7 +1,7 @@
 # Search Filters, Listing Layout and the Owner Profile: Design Spec
 
 **Date:** 2026-10-23
-**Status:** Approved in brainstorming with visual mockups; awaiting the product owner's review of this document
+**Status:** Approved by the product owner (2026-10-23), including 8px button corners; implemented on `feature/shop-profile-and-search`
 **Builds on:** `2026-10-23-editorial-redesign-design.md` (merged in PR #7) and `2026-10-21-shop-accounts-design.md`.
 
 ## 1. Goal

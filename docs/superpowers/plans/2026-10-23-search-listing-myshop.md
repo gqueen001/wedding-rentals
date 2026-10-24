@@ -1769,3 +1769,21 @@ The controller does this in headless Chrome against a server built from the bran
 | §7 Button corners and borders | Task 1 |
 | §8 New texts | Task 5 (only `myshop.edit_profile` is new; the box headings reuse `myshop.details` and the logo upload's heading) |
 | §10 Testing | Task 2 (`search_test.ts`), Final verification |
+
+## Changes made during review
+
+- **Task 1:** the step text wrongly said `DressEdit` and `ItemEdit` still used `A`. Task 4's whole-file code drops the unused import (plan commit cc8bb00).
+- **Task 2:** the Search city `<select>` showed "All cities" on a fresh load of `?city=…`, because the cities load after the first render. Every option now also sets `selected=`, like the sheet's `CityField`. `ItemFilterSheet`'s doc comment was updated, and the test also checks that a min-type filter is dropped (fix 40117fe).
+- **Task 5:** the "Draft" label (`.label`, 0.28em tracking) was clipped in 93px tiles at 320px in tk and ru. It gets `tracking-normal` (fix 8e9a20c).
+- **Final review (fix b9446f9):**
+  - No-photo tiles were invisible on the `bg-veil` My shop page; they are now `bg-white`.
+  - The city appeared twice on Search. `ItemFilterSheet` gets `hideCity`: Search's sheet has no city field, keeps the city on Reset, and the Filters badge counts only the sheet's filters.
+  - Search's empty state offers Clear filters, like the category page.
+  - The admin set-password test now sets an exactly 6-character password.
+- **Left for later**, triaged as fine:
+  - an unknown `?city=` slug shows "All cities";
+  - an empty `ContactButtons` grid on phones for shops with no social links;
+  - the 16px "See your shop page" link;
+  - the city label appearing once cities load.
+- **Security note:** owner sign-in is limited per IP only, and the sign-in phone is public. A per-phone limiter or a short list of banned common passwords would offset the shorter 6-character minimum.
+
