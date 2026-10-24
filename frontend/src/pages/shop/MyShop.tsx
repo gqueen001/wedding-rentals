@@ -2,7 +2,7 @@ import { A } from "@solidjs/router";
 import { createResource, For, Match, Show, Switch } from "solid-js";
 import ErrorState from "../../components/ErrorState.tsx";
 import { PlusIcon } from "../../components/icons.tsx";
-import ShopLogo from "../../components/ShopLogo.tsx";
+import ShopProfileHeader from "../../components/ShopProfileHeader.tsx";
 import { i18n, t } from "../../i18n/i18n.ts";
 import { useCities } from "../../lib/cities.ts";
 import { ownerApi } from "../../lib/client.ts";
@@ -71,39 +71,29 @@ export default function MyShop() {
       <Match when={shop()}>
         {(s) => (
           <div>
-            {/* Phones: the logo with the name and buttons beside it, the description below.
-                From md: the logo, then the name, description and buttons in one column, as on the shop page. */}
-            <header class="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 md:gap-x-6">
-              <div class="row-span-2 md:col-start-1 md:row-span-3 md:row-start-1">
-                <ShopLogo url={s().logo?.small ?? null} name={s().name} size="profile" />
-              </div>
-              <div class="min-w-0 md:col-start-2 md:row-start-1">
-                <p class="label">{[city(), s().address].filter(Boolean).join(" · ")}</p>
-                <h1 class="mt-1 break-words text-lg md:mt-2 md:font-display md:text-6xl md:tracking-normal">{s().name}</h1>
-              </div>
-              <div class="mt-2 grid grid-cols-2 gap-1.5 md:col-start-2 md:row-start-3 md:mt-6 md:flex md:flex-wrap md:items-center md:gap-3">
-                <A href="/shop/profile" class={`btn btn-outline ${HEADER_BTN}`}>{t("myshop.edit_profile")}</A>
-                <A href={m.newListingHref()} class={`btn btn-primary ${HEADER_BTN}`}>
-                  <PlusIcon class="hidden h-5 w-5 shrink-0 md:block" />
-                  {t("admin.new_listing")}
-                </A>
-                <Show when={s().is_published}>
-                  <A
-                    href={`/shops/${s().slug}`}
-                    class="label col-span-2 mt-1 justify-self-start border-b border-ink pb-0.5 text-ink md:mt-0"
-                  >
-                    {t("myshop.view_page")}
+            <ShopProfileHeader
+              logo={s().logo?.small ?? null}
+              name={s().name}
+              place={[city(), s().address].filter(Boolean).join(" · ")}
+              description={s().description}
+              actions={
+                <div class="grid grid-cols-2 gap-1.5 md:flex md:flex-wrap md:items-center md:gap-3">
+                  <A href="/shop/profile" class={`btn btn-outline ${HEADER_BTN}`}>{t("myshop.edit_profile")}</A>
+                  <A href={m.newListingHref()} class={`btn btn-primary ${HEADER_BTN}`}>
+                    <PlusIcon class="hidden h-5 w-5 shrink-0 md:block" />
+                    {t("admin.new_listing")}
                   </A>
-                </Show>
-              </div>
-              <Show when={s().description}>
-                {(text) => (
-                  <p class="col-span-2 mt-3 max-w-prose whitespace-pre-line md:col-span-1 md:col-start-2 md:row-start-2 md:mt-4">
-                    {text()}
-                  </p>
-                )}
-              </Show>
-            </header>
+                  <Show when={s().is_published}>
+                    <A
+                      href={`/shops/${s().slug}`}
+                      class="label col-span-2 mt-1 justify-self-start border-b border-ink pb-0.5 text-ink md:mt-0"
+                    >
+                      {t("myshop.view_page")}
+                    </A>
+                  </Show>
+                </div>
+              }
+            />
 
             <Show when={!s().is_published}>
               <p class="mt-6 max-w-2xl rounded-lg bg-blush p-4 text-garnet-deep">
