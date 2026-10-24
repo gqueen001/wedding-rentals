@@ -218,13 +218,14 @@ func TestAdminSetPasswordSignsTheOwnerOut(t *testing.T) {
 	if rec := testutil.Request(t, e.r, http.MethodPost, path, map[string]any{"password": "short"}, ""); rec.Code != http.StatusBadRequest {
 		t.Fatalf("short password: status = %d", rec.Code)
 	}
-	if rec := testutil.Request(t, e.r, http.MethodPost, path, map[string]any{"password": "brand-new-pass"}, ""); rec.Code != http.StatusNoContent {
+	// Exactly 6 characters: the shortest password an admin may set for an owner.
+	if rec := testutil.Request(t, e.r, http.MethodPost, path, map[string]any{"password": "newpw6"}, ""); rec.Code != http.StatusNoContent {
 		t.Fatalf("set password: status = %d: %s", rec.Code, rec.Body)
 	}
 	if rec := testutil.Request(t, e.r, http.MethodGet, "/api/shop/me", nil, old); rec.Code != http.StatusUnauthorized {
 		t.Fatalf("old token after reset: status = %d, want 401", rec.Code)
 	}
-	rec := testutil.Request(t, e.r, http.MethodPost, "/api/shop/login", map[string]any{"phone": "65123456", "password": "brand-new-pass"}, "")
+	rec := testutil.Request(t, e.r, http.MethodPost, "/api/shop/login", map[string]any{"phone": "65123456", "password": "newpw6"}, "")
 	if rec.Code != http.StatusOK {
 		t.Fatalf("login with new password: status = %d", rec.Code)
 	}

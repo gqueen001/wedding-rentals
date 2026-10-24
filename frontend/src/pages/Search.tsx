@@ -14,7 +14,7 @@ import { CATEGORIES, catLabel } from "../lib/catalog.ts";
 import { useCities } from "../lib/cities.ts";
 import { api } from "../lib/client.ts";
 import { cityName } from "../lib/format.ts";
-import { countItemFilters, type ItemFilters } from "../lib/itemFilters.ts";
+import { countItemFilters, EMPTY_ITEM_FILTERS, type ItemFilters } from "../lib/itemFilters.ts";
 import { createRememberedList, type ListMemory } from "../lib/rememberedList.ts";
 import { parseSearch, searchFields, searchHref, searchQuery } from "../lib/search.ts";
 import { usePageTitle } from "../lib/title.ts";
@@ -45,6 +45,8 @@ export default function Search() {
   });
   const cities = useCities();
   const activeChips = () => itemFilterChips(searchFields(state().category), state().filters, cities(), apply);
+  // The city has its own dropdown, so the Filters badge counts only what is in the sheet.
+  const sheetCount = () => countItemFilters({ ...state().filters, city: "" });
   const firstLoad = () => list.items().length === 0;
   const chip = (category: string, label: string) => (
     <A
@@ -85,7 +87,7 @@ export default function Search() {
       </nav>
       <div class="mt-3">
         <FilterChips
-          count={countItemFilters(state().filters)}
+          count={sheetCount()}
           active={activeChips()}
           onOpen={() => setSheetOpen(true)}
         />
@@ -102,7 +104,17 @@ export default function Search() {
             <GridSkeleton />
           </Match>
           <Match when={firstLoad()}>
-            <EmptyState title={t("items.empty_title")} body={t("search.empty_body")} />
+            <EmptyState title={t("items.empty_title")} body={t("search.empty_body")}>
+              <Show when={countItemFilters(state().filters) > 0}>
+                <button
+                  type="button"
+                  class="btn btn-outline"
+                  onClick={() => apply({ ...EMPTY_ITEM_FILTERS, q: state().filters.q })}
+                >
+                  {t("dresses.clear")}
+                </button>
+              </Show>
+            </EmptyState>
           </Match>
           <Match when={!firstLoad()}>
             <ListingGrid items={list.items()} />
@@ -117,6 +129,7 @@ export default function Search() {
         value={state().filters}
         onApply={apply}
         onClose={() => setSheetOpen(false)}
+        hideCity
       />
     </div>
   );

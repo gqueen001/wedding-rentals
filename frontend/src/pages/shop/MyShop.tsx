@@ -19,7 +19,7 @@ function OwnerTile(props: { listing: ListingSummary; href: string }) {
     <li>
       <A
         href={props.href}
-        class="group relative block aspect-[3/4] overflow-hidden bg-veil"
+        class="group relative block aspect-[3/4] overflow-hidden bg-white"
         aria-label={l().is_published ? l().title : `${l().title} · ${t("admin.draft")}`}
       >
         <Show
