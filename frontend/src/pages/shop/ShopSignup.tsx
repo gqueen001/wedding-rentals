@@ -2,7 +2,6 @@ import { A, useNavigate } from "@solidjs/router";
 import { createSignal, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { SelectField, TextField } from "../../components/admin/Field.tsx";
-import GolBand from "../../components/GolBand.tsx";
 import LanguageSwitch from "../../components/LanguageSwitch.tsx";
 import { i18n, t, tr } from "../../i18n/i18n.ts";
 import { useCities } from "../../lib/cities.ts";
@@ -61,7 +60,6 @@ export default function ShopSignup() {
 
   return (
     <div class="min-h-screen bg-veil">
-      <GolBand />
       <main ref={mainRef} id="main" tabindex="-1" class="mx-auto max-w-md px-4 py-12 outline-none">
         <div class="flex items-center justify-between gap-3">
           <A href="/" class="font-display text-3xl text-garnet">{t("app.name")}</A>

@@ -34,9 +34,6 @@ export default function CategoryBar() {
       <ul class="mt-3 space-y-2">
         <For each={CATEGORIES}>{(c, i) => <CategoryWord slug={c.slug} first={i() === 0} />}</For>
       </ul>
-      <A href="/categories" class="label mt-4 inline-block border-b border-ink pb-0.5 text-ink">
-        {t("home.see_all_categories")}
-      </A>
     </nav>
   );
 }

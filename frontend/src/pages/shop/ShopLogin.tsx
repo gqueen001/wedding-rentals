@@ -1,7 +1,6 @@
 import { A, useNavigate, useSearchParams } from "@solidjs/router";
 import { createSignal, Show } from "solid-js";
 import { TextField } from "../../components/admin/Field.tsx";
-import GolBand from "../../components/GolBand.tsx";
 import LanguageSwitch from "../../components/LanguageSwitch.tsx";
 import { t, tr } from "../../i18n/i18n.ts";
 import { ApiError } from "../../lib/api.ts";
@@ -46,7 +45,6 @@ export default function ShopLogin() {
 
   return (
     <div class="min-h-screen bg-veil">
-      <GolBand />
       <main ref={mainRef} id="main" tabindex="-1" class="mx-auto max-w-sm px-4 py-16 outline-none">
         <div class="flex items-center justify-between gap-3">
           <A href="/" class="font-display text-3xl text-garnet">{t("app.name")}</A>
