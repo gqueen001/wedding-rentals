@@ -326,5 +326,6 @@
   "more.theme": "Theme",
   "theme.auto": "Auto",
   "theme.light": "Light",
-  "theme.dark": "Dark"
+  "theme.dark": "Dark",
+  "favorites.device_note": "Your favorites are saved on this device only."
 }

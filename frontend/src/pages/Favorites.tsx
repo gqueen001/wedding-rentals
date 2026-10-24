@@ -37,6 +37,7 @@ export default function Favorites() {
     <div class="pt-6">
       <p class="label">{t("app.name")}</p>
       <h1 class="mt-2 text-5xl sm:text-6xl">{t("favorites.title")}</h1>
+      <p class="mt-2 text-sm text-silver-ink">{t("favorites.device_note")}</p>
       <div class="mt-6">
         <Switch>
           <Match when={page.error}>
