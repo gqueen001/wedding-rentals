@@ -326,5 +326,6 @@
   "more.theme": "Тема",
   "theme.auto": "Как на устройстве",
   "theme.light": "Светлая",
-  "theme.dark": "Тёмная"
+  "theme.dark": "Тёмная",
+  "favorites.device_note": "Избранное хранится только на этом устройстве."
 }

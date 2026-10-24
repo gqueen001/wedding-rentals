@@ -110,7 +110,7 @@ export default function Shop() {
                   <p class="text-silver-ink">{t("shop.empty")}</p>
                 </Match>
                 <Match when={true}>
-                  <ListingGrid items={list.items()} />
+                  <ListingGrid items={list.items()} hideShop />
                   <LoadMore list={list} />
                 </Match>
               </Switch>
