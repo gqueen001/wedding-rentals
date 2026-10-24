@@ -368,3 +368,14 @@ The controller does this in headless Chrome against a server built from the bran
 | §4 behaviour: token, loading, no redirect, accessible names | Task 1 (`ownerProbeApi`), Task 2 |
 | §5 texts | Task 2, Step 3 |
 | §7 testing | Task 1 (`avatar_test.ts`), Final verification |
+
+## Changes made during review
+
+- No code changes were needed. Both task reviews and the final review found no Critical or Important issues.
+- **Left for later**, triaged as fine:
+  - the redundant `| null` in `avatarLook`'s parameter type;
+  - the inline 401 handler in `ownerProbeApi`;
+  - an empty salon name would show a blank circle, but the backend rejects empty names;
+  - this plan calls the `Match` callbacks "keyed", though they use the accessor form (the code is correct);
+  - no component test for the label and link;
+  - at 768px in Russian the header search field shrinks to about 110px. A possible follow-up is `gap-6 md:gap-4 lg:gap-6` on the Header row.

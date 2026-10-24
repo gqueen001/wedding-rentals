@@ -1,7 +1,7 @@
 # Account Avatar in the Top Bar: Design Spec
 
 **Date:** 2026-10-24
-**Status:** Approved in brainstorming with a mockup (`.superpowers/brainstorm/22537-1792832213/content/avatar.html`, option A); awaiting the product owner's review of this document
+**Status:** Approved by the product owner (2026-10-24), option A from the mockup (`.superpowers/brainstorm/22537-1792832213/content/avatar.html`); implemented on `feature/account-avatar`
 **Builds on:** `2026-10-23-search-listing-myshop-design.md` (My shop as a profile, merged in PR #8).
 
 ## 1. Goal
