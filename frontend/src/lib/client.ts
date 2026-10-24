@@ -27,6 +27,8 @@ export const uploadImage = createUploader({
 
 /** A shop owner's calls (shop token); use ownerApi.owner.*. */
 export const ownerApi = createApi({ fetch: fetchFn, token: shopAuth.token, onUnauthorized: onOwnerUnauthorized });
+/** The owner's own calls from public pages, e.g. the top-bar avatar: an expired session is dropped without a redirect. */
+export const ownerProbeApi = createApi({ fetch: fetchFn, token: shopAuth.token, onUnauthorized: () => shopAuth.clear() });
 export const uploadOwnerImage = createUploader({
   path: "/api/shop/images",
   token: shopAuth.token,
