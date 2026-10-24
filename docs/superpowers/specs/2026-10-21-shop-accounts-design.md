@@ -32,7 +32,7 @@ Rental shops sign up by themselves and immediately manage their own shop page: s
   - city;
   - address;
   - phone number, which is the login and also the shop's public contact phone, changeable later;
-  - password, at least 10 characters.
+  - password, at least 6 characters.
 - **Phone normalization:** numbers are stored as `+993` followed by 8 digits (§6.2). One phone number is one account. A number already in use gets the field error `phone: "taken"`.
 - **On success:** the account and the shop are created together. The owner is signed in and lands on **"My shop"**.
 - **Rate limit:** 5 attempts per minute per IP. This is the same limiter type as admin sign-in, with its own counter.
@@ -57,7 +57,7 @@ A **Sign out** button is always available. A session lasts 7 days, the same as a
 
 ## 4. What the admin does
 
-- **Owner box in the shop editor** (`/admin/shops/:id`): when the shop has an owner account, a small "Owner account" box shows the owner's phone and a **Set new password** form, with at least 10 characters. Setting a new password signs the owner out on every device.
+- **Owner box in the shop editor** (`/admin/shops/:id`): when the shop has an owner account, a small "Owner account" box shows the owner's phone and a **Set new password** form, with at least 6 characters. Setting a new password signs the owner out on every device.
 - **Shops list badge:** shops run by an owner show a **"Managed by owner"** badge.
 - **Everything else stays as it is.** Admins can still edit, unpublish or delete any shop and any dress.
   - Deleting a shop deletes its owner account too, through the cascade.
@@ -125,7 +125,7 @@ On every request the middleware:
 
 ### 6.5 Other
 
-- **Passwords:** bcrypt, at least 10 characters, the same as admin passwords.
+- **Passwords:** bcrypt, at least 6 characters (shortened from 10 on 2026-10-23 so owners can type them easily on a phone; sign-in is limited to 5 tries a minute). Admin passwords stay at least 10.
 - **Token storage:** the shop token is stored in localStorage under `wr.shop_token`, separate from `wr.admin_token`.
 
 ## 7. API

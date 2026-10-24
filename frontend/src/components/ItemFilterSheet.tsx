@@ -1,17 +1,21 @@
-import { createSignal, For, Match, Switch } from "solid-js";
+import { createSignal, For, Match, Show, Switch } from "solid-js";
 import { t, tr } from "../i18n/i18n.ts";
 import { type CategoryDef, fieldLabel, optionLabel } from "../lib/catalog.ts";
 import { EMPTY_ITEM_FILTERS, type ItemFilters } from "../lib/itemFilters.ts";
 import { ChoiceGroup, CityField, NumberInput, PriceFields } from "./FilterFields.tsx";
 import Sheet from "./Sheet.tsx";
 
-/** A category page's filters, built from the category's field definitions. */
+/**
+ * The filters of a category page or of /search, built from the category's field definitions.
+ * With hideCity the city is left out (and kept on Reset), for pages that have their own city dropdown.
+ */
 export default function ItemFilterSheet(props: {
   category: CategoryDef;
   open: boolean;
   value: ItemFilters;
   onApply: (f: ItemFilters) => void;
   onClose: () => void;
+  hideCity?: boolean;
 }) {
   const [draft, setDraft] = createSignal<ItemFilters>({ ...props.value });
   const setAttr = (param: string, value: string) =>
@@ -26,7 +30,11 @@ export default function ItemFilterSheet(props: {
       onClose={props.onClose}
       footer={
         <>
-          <button type="button" class="btn btn-quiet" onClick={() => setDraft({ ...EMPTY_ITEM_FILTERS, q: draft().q })}>
+          <button
+            type="button"
+            class="btn btn-quiet"
+            onClick={() => setDraft({ ...EMPTY_ITEM_FILTERS, q: draft().q, city: props.hideCity ? draft().city : "" })}
+          >
             {t("filters.reset")}
           </button>
           <button type="button" class="btn btn-primary flex-1" onClick={() => props.onApply(draft())}>
@@ -35,7 +43,9 @@ export default function ItemFilterSheet(props: {
         </>
       }
     >
-      <CityField value={draft().city} onChange={(city) => setDraft((d) => ({ ...d, city }))} />
+      <Show when={!props.hideCity}>
+        <CityField value={draft().city} onChange={(city) => setDraft((d) => ({ ...d, city }))} />
+      </Show>
       <PriceFields
         min={draft().priceMin}
         max={draft().priceMax}

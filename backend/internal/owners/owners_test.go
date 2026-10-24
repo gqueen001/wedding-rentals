@@ -98,6 +98,21 @@ func TestSignupCreatesOwnerAndPublicShop(t *testing.T) {
 	}
 }
 
+func TestSignupPasswordNeedsSixCharacters(t *testing.T) {
+	e := setup(t)
+	short := signupBody(t, e.tx, "+99365111111")
+	short["password"] = "ab3d5"
+	body := testutil.Decode[testutil.ErrorBody](t, testutil.Request(t, e.r, http.MethodPost, "/api/shop/signup", short, ""))
+	if body.Error.Fields["password"] != "too_short" {
+		t.Fatalf("5 characters: fields = %v, want password too_short", body.Error.Fields)
+	}
+	ok := signupBody(t, e.tx, "+99365111112")
+	ok["password"] = "ab3d5ü"
+	if rec := testutil.Request(t, e.r, http.MethodPost, "/api/shop/signup", ok, ""); rec.Code != http.StatusCreated {
+		t.Fatalf("6 characters: status = %d: %s", rec.Code, rec.Body)
+	}
+}
+
 func TestSignupValidation(t *testing.T) {
 	e := setup(t)
 	body := testutil.Decode[testutil.ErrorBody](t, testutil.Request(t, e.r, http.MethodPost, "/api/shop/signup", map[string]any{}, ""))
@@ -203,13 +218,14 @@ func TestAdminSetPasswordSignsTheOwnerOut(t *testing.T) {
 	if rec := testutil.Request(t, e.r, http.MethodPost, path, map[string]any{"password": "short"}, ""); rec.Code != http.StatusBadRequest {
 		t.Fatalf("short password: status = %d", rec.Code)
 	}
-	if rec := testutil.Request(t, e.r, http.MethodPost, path, map[string]any{"password": "brand-new-pass"}, ""); rec.Code != http.StatusNoContent {
+	// Exactly 6 characters: the shortest password an admin may set for an owner.
+	if rec := testutil.Request(t, e.r, http.MethodPost, path, map[string]any{"password": "newpw6"}, ""); rec.Code != http.StatusNoContent {
 		t.Fatalf("set password: status = %d: %s", rec.Code, rec.Body)
 	}
 	if rec := testutil.Request(t, e.r, http.MethodGet, "/api/shop/me", nil, old); rec.Code != http.StatusUnauthorized {
 		t.Fatalf("old token after reset: status = %d, want 401", rec.Code)
 	}
-	rec := testutil.Request(t, e.r, http.MethodPost, "/api/shop/login", map[string]any{"phone": "65123456", "password": "brand-new-pass"}, "")
+	rec := testutil.Request(t, e.r, http.MethodPost, "/api/shop/login", map[string]any{"phone": "65123456", "password": "newpw6"}, "")
 	if rec.Code != http.StatusOK {
 		t.Fatalf("login with new password: status = %d", rec.Code)
 	}

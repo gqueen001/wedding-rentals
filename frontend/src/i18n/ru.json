@@ -219,12 +219,12 @@
   "avail.save_failed": "Не удалось сохранить {date}. Попробуйте ещё раз.",
   "avail.save_first": "Сначала сохраните платье, потом отмечайте занятые дни.",
   "field.taken": "Этот номер уже используется",
-  "field.too_short": "Не короче 10 символов",
+  "field.too_short": "Не короче 6 символов",
   "footer.add_shop": "Сдаёте платья в аренду? Добавьте свой салон",
   "signup.title": "Добавьте свой салон",
   "signup.lead": "Создайте аккаунт и добавляйте платья сами. Страница салона появится сразу.",
   "signup.phone_hint": "По этому номеру вы входите. Невесты тоже будут звонить на него.",
-  "signup.password_hint": "Не короче 10 символов",
+  "signup.password_hint": "Не короче 6 символов",
   "signup.submit": "Создать аккаунт",
   "signup.creating": "Создаём…",
   "signup.have_account": "Уже есть аккаунт?",
@@ -243,7 +243,7 @@
   "owner.title": "Аккаунт владельца",
   "owner.phone": "Телефон для входа",
   "owner.new_password": "Новый пароль",
-  "owner.new_password_hint": "Не короче 10 символов. Владелец выйдет из аккаунта на всех устройствах.",
+  "owner.new_password_hint": "Не короче 6 символов. Владелец выйдет из аккаунта на всех устройствах.",
   "owner.set_password": "Установить новый пароль",
   "owner.password_set": "Новый пароль установлен",
   "owner.badge": "Ведёт владелец",
@@ -325,5 +325,6 @@
   "categories.kicker": "Категория",
   "filters.up_to": "до {price} TMT",
   "filters.remove": "Убрать фильтр: {filter}",
-  "contact.call": "Позвонить"
+  "contact.call": "Позвонить",
+  "myshop.edit_profile": "Изменить профиль"
 }

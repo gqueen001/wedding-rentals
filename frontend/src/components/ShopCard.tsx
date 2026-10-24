@@ -6,13 +6,21 @@ import type { ShopCard } from "../lib/types.ts";
 import { InstagramIcon, PhoneIcon, TikTokIcon } from "./icons.tsx";
 import ShopLogo from "./ShopLogo.tsx";
 
-/** Big tap targets for the three ways a bride contacts a shop. */
+/**
+ * Big tap targets for the three ways a bride contacts a shop. With hideCallOnPhones the Call button
+ * shows from 768px up only, for pages that already keep a Call bar on screen on phones.
+ */
 export function ContactButtons(props: {
   shop: { phone: string; instagram_url: string | null; tiktok_url: string | null };
+  hideCallOnPhones?: boolean;
 }) {
   return (
     <div class="grid gap-3 sm:grid-cols-3">
-      <a href={telHref(props.shop.phone)} class="btn btn-primary min-h-12 text-base sm:col-span-3">
+      <a
+        href={telHref(props.shop.phone)}
+        class="btn btn-primary min-h-12 text-base sm:col-span-3"
+        classList={{ "hidden md:inline-flex": props.hideCallOnPhones }}
+      >
         <PhoneIcon />
         {t("dress.call", { phone: props.shop.phone })}
       </a>
@@ -36,7 +44,7 @@ export function ContactButtons(props: {
   );
 }
 
-export default function ShopCardSection(props: { shop: ShopCard }) {
+export default function ShopCardSection(props: { shop: ShopCard; hideCallOnPhones?: boolean }) {
   return (
     <section aria-labelledby="shop-card-title" class="border-t border-line pt-6">
       <p class="label">{t("dress.rent_from")}</p>
@@ -52,7 +60,7 @@ export default function ShopCardSection(props: { shop: ShopCard }) {
         </div>
       </div>
       <div class="mt-5">
-        <ContactButtons shop={props.shop} />
+        <ContactButtons shop={props.shop} hideCallOnPhones={props.hideCallOnPhones} />
       </div>
       <dl class="mt-5 text-sm">
         <dt class="label">{t("dress.address")}</dt>

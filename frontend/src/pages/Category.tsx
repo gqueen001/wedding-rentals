@@ -2,20 +2,20 @@ import { useLocation, useNavigate, useParams } from "@solidjs/router";
 import { createMemo, createSignal, Match, Show, Switch } from "solid-js";
 import EmptyState from "../components/EmptyState.tsx";
 import ErrorState from "../components/ErrorState.tsx";
-import FilterChips, { type ActiveFilter } from "../components/FilterChips.tsx";
+import FilterChips from "../components/FilterChips.tsx";
+import { itemFilterChips } from "../components/itemFilterChips.ts";
 import ItemFilterSheet from "../components/ItemFilterSheet.tsx";
 import ListingGrid from "../components/ListingGrid.tsx";
 import LoadMore from "../components/LoadMore.tsx";
 import SearchBox from "../components/SearchBox.tsx";
 import { GridSkeleton } from "../components/Skeleton.tsx";
-import { i18n, t, tr } from "../i18n/i18n.ts";
-import { type CategoryDef, categoryDef, catLabel, fieldLabel, optionLabel } from "../lib/catalog.ts";
+import { t, tr } from "../i18n/i18n.ts";
+import { type CategoryDef, categoryDef, catLabel } from "../lib/catalog.ts";
 import { useCities } from "../lib/cities.ts";
 import { api } from "../lib/client.ts";
 import {
   countItemFilters, EMPTY_ITEM_FILTERS, type ItemFilters, itemFiltersToQuery, parseItemFilters,
 } from "../lib/itemFilters.ts";
-import { cityName, formatPrice } from "../lib/format.ts";
 import { createRememberedList, type ListMemory } from "../lib/rememberedList.ts";
 import { usePageTitle } from "../lib/title.ts";
 import type { ListItem } from "../lib/types.ts";
@@ -54,31 +54,7 @@ function CategoryList(props: { category: CategoryDef }) {
   };
   const active = () => countItemFilters(filters());
   const cities = useCities();
-  /** One removable chip per active filter, in the sheet's order. */
-  const activeChips = (): ActiveFilter[] => {
-    const f = filters();
-    const out: ActiveFilter[] = [];
-    if (f.city) {
-      const city = cities().find((x) => x.slug === f.city);
-      out.push({ key: "city", label: city ? cityName(city, i18n.lang()) : f.city, remove: () => apply({ ...f, city: "" }) });
-    }
-    if (f.priceMin !== null) {
-      out.push({ key: "price_min", label: t("price.from", { price: formatPrice(f.priceMin) }), remove: () => apply({ ...f, priceMin: null }) });
-    }
-    if (f.priceMax !== null) {
-      out.push({ key: "price_max", label: t("filters.up_to", { price: formatPrice(f.priceMax) }), remove: () => apply({ ...f, priceMax: null }) });
-    }
-    for (const field of c.fields) {
-      const param = field.filter?.param;
-      const value = param ? f.attrs[param] : "";
-      if (!param || !value) continue;
-      const label = field.filter!.kind === "min"
-        ? `${tr("filters.at_least", { field: tr(fieldLabel(c.slug, field.key)) })} ${value}`
-        : tr(optionLabel(c.slug, field.key, value));
-      out.push({ key: param, label, remove: () => apply({ ...f, attrs: { ...f.attrs, [param]: "" } }) });
-    }
-    return out;
-  };
+  const activeChips = () => itemFilterChips(c, filters(), cities(), apply);
   const firstLoad = () => list.items().length === 0;
 
   return (
