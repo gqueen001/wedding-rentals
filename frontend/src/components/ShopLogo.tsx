@@ -5,6 +5,7 @@ const SIZE = {
   md: "h-14 w-14 text-2xl",
   lg: "h-24 w-24 text-4xl",
   xl: "h-36 w-28 text-6xl", // an oval, for the shop page
+  profile: "h-[92px] w-[70px] text-3xl md:h-36 md:w-28 md:text-6xl", // My shop: small on phones, xl from md
 } as const;
 
 /** The shop's logo, or its first letter on garnet when it has none. */

@@ -12,6 +12,10 @@ import { useManage } from "../../lib/manage.ts";
 import { usePageTitle } from "../../lib/title.ts";
 import type { ListingSummary } from "../../lib/types.ts";
 
+/** Edit profile and New listing: compact on phones (next to the logo, wrapping long words, no + icon), full size from md. */
+const HEADER_BTN =
+  "min-h-8 px-1 text-center text-[10px] leading-tight tracking-[0.04em] md:min-h-11 md:px-5 md:text-xs md:tracking-[0.18em]";
+
 /** One square of the owner's photo grid: a link to the listing's editor, marked when it is a draft. */
 function OwnerTile(props: { listing: ListingSummary; href: string }) {
   const l = () => props.listing;
@@ -67,27 +71,38 @@ export default function MyShop() {
       <Match when={shop()}>
         {(s) => (
           <div>
-            <header class="flex flex-col gap-6 sm:flex-row sm:items-center">
-              <ShopLogo url={s().logo?.small ?? null} name={s().name} size="xl" />
-              <div class="min-w-0 flex-1">
-                <p class="label">{[city(), s().address].filter(Boolean).join(" · ")}</p>
-                <h1 class="mt-2 break-words text-5xl sm:text-6xl">{s().name}</h1>
-                <Show when={s().description}>
-                  {(text) => <p class="mt-4 max-w-prose whitespace-pre-line">{text()}</p>}
-                </Show>
-                <div class="mt-6 flex flex-wrap items-center gap-3">
-                  <A href="/shop/profile" class="btn btn-outline">{t("myshop.edit_profile")}</A>
-                  <A href={m.newListingHref()} class="btn btn-primary">
-                    <PlusIcon />
-                    {t("admin.new_listing")}
-                  </A>
-                  <Show when={s().is_published}>
-                    <A href={`/shops/${s().slug}`} class="label border-b border-ink pb-0.5 text-ink">
-                      {t("myshop.view_page")}
-                    </A>
-                  </Show>
-                </div>
+            {/* Phones: the logo with the name and buttons beside it, the description below.
+                From md: the logo, then the name, description and buttons in one column, as on the shop page. */}
+            <header class="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 md:gap-x-6">
+              <div class="row-span-2 md:col-start-1 md:row-span-3 md:row-start-1">
+                <ShopLogo url={s().logo?.small ?? null} name={s().name} size="profile" />
               </div>
+              <div class="min-w-0 md:col-start-2 md:row-start-1">
+                <p class="label">{[city(), s().address].filter(Boolean).join(" · ")}</p>
+                <h1 class="mt-1 break-words text-lg md:mt-2 md:font-display md:text-6xl md:tracking-normal">{s().name}</h1>
+              </div>
+              <div class="mt-2 grid grid-cols-2 gap-1.5 md:col-start-2 md:row-start-3 md:mt-6 md:flex md:flex-wrap md:items-center md:gap-3">
+                <A href="/shop/profile" class={`btn btn-outline ${HEADER_BTN}`}>{t("myshop.edit_profile")}</A>
+                <A href={m.newListingHref()} class={`btn btn-primary ${HEADER_BTN}`}>
+                  <PlusIcon class="hidden h-5 w-5 shrink-0 md:block" />
+                  {t("admin.new_listing")}
+                </A>
+                <Show when={s().is_published}>
+                  <A
+                    href={`/shops/${s().slug}`}
+                    class="label col-span-2 mt-1 justify-self-start border-b border-ink pb-0.5 text-ink md:mt-0"
+                  >
+                    {t("myshop.view_page")}
+                  </A>
+                </Show>
+              </div>
+              <Show when={s().description}>
+                {(text) => (
+                  <p class="col-span-2 mt-3 max-w-prose whitespace-pre-line md:col-span-1 md:col-start-2 md:row-start-2 md:mt-4">
+                    {text()}
+                  </p>
+                )}
+              </Show>
             </header>
 
             <Show when={!s().is_published}>
