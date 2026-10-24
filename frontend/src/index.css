@@ -13,14 +13,49 @@
   --color-silver: #8a8a8f;
   --color-silver-ink: #6b6b70;
   --color-blush: #f8e7ea;
+  /* Fills that carry white text (primary buttons, badges, the logo letter), and that white text. */
+  --color-garnet-fill: #8e1b2e;
+  --color-garnet-fill-deep: #6b1222;
+  --color-on-fill: #ffffff;
   --font-display: "Cormorant Garamond", "Times New Roman", serif;
   --font-label: "Tenor Sans", "Segoe UI", system-ui, sans-serif;
   --font-sans: "Jost Variable", "Segoe UI", system-ui, sans-serif;
 }
 
+/* Dark mode: the device's setting, unless a theme was picked on the More page (<html data-theme>). */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+}
+
+:root {
+  @variant dark {
+    --color-white: #1b1b1e;
+    --color-veil: #121214;
+    --color-line: #2c2c31;
+    --color-ink: #bdbdc2;
+    --color-garnet: #ef8a9a;
+    --color-garnet-deep: #f2b0b9;
+    --color-silver: #6a6a70;
+    --color-silver-ink: #8e8e94;
+    --color-blush: #3a1f25;
+    --color-garnet-fill: #a8243a;
+    --color-garnet-fill-deep: #8e1b2e;
+  }
+}
+
 @layer base {
   html {
     color-scheme: light;
+    @variant dark {
+      color-scheme: dark;
+    }
     -webkit-text-size-adjust: 100%;
   }
   /* Phones: content scrolled into view (e.g. by keyboard focus) never hides behind the bottom bar,
@@ -86,11 +121,11 @@
     cursor: not-allowed;
   }
   .btn-primary {
-    background: var(--color-garnet);
-    color: var(--color-white);
+    background: var(--color-garnet-fill);
+    color: var(--color-on-fill);
   }
   .btn-primary:hover:not(:disabled):not([aria-disabled="true"]) {
-    background: var(--color-garnet-deep);
+    background: var(--color-garnet-fill-deep);
   }
   .btn-outline {
     border: 1px solid var(--color-ink);

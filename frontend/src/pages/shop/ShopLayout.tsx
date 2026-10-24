@@ -1,5 +1,6 @@
 import { A, Navigate, type RouteSectionProps, useLocation, useNavigate } from "@solidjs/router";
 import { Show } from "solid-js";
+import SignOutButton from "../../components/admin/SignOutButton.tsx";
 import GolBand from "../../components/GolBand.tsx";
 import LanguageSwitch from "../../components/LanguageSwitch.tsx";
 import { t } from "../../i18n/i18n.ts";
@@ -32,9 +33,9 @@ export default function ShopLayout(props: RouteSectionProps) {
       <div class="min-h-screen bg-veil">
         <header class="bg-white">
           <GolBand />
-          <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2">
+          <div class="mx-auto flex max-w-6xl items-center gap-x-2 px-4 py-2 sm:gap-x-4">
             <A href="/" class="font-display text-2xl text-garnet">{t("app.name")}</A>
-            <nav class="flex text-sm" aria-label={t("myshop.title")}>
+            <nav class="hidden text-sm sm:flex" aria-label={t("myshop.title")}>
               <A
                 href="/shop"
                 end
@@ -46,9 +47,7 @@ export default function ShopLayout(props: RouteSectionProps) {
             </nav>
             <div class="ml-auto flex items-center gap-1">
               <LanguageSwitch />
-              <button type="button" class="btn btn-quiet" onClick={signOut}>
-                {t("admin.sign_out")}
-              </button>
+              <SignOutButton onClick={signOut} />
             </div>
           </div>
         </header>

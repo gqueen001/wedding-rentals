@@ -50,7 +50,7 @@ export default function Home() {
             <Oval photo={photo(0)} class="absolute left-1/2 top-2 h-[19rem] w-52 -translate-x-1/2 sm:h-[24rem] sm:w-64" />
             <Oval photo={photo(1)} class="absolute bottom-6 right-2 h-28 w-20 border-4 border-white sm:right-6" />
             <p
-              class="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center font-display text-[5rem] uppercase leading-none text-ink mix-blend-multiply sm:text-[7rem]"
+              class="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center font-display text-[5rem] uppercase leading-none text-ink mix-blend-multiply dark:mix-blend-screen sm:text-[7rem]"
               aria-hidden="true"
             >
               {t("app.name")}

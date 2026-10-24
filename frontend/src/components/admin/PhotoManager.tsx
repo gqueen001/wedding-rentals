@@ -216,7 +216,7 @@ export default function PhotoManager(props: {
                   class="aspect-[3/4] w-full rounded-xs bg-veil object-cover"
                 />
                 <Show when={i() === 0}>
-                  <span class="absolute left-1 top-1 rounded-full bg-garnet px-2 py-0.5 text-xs text-white">
+                  <span class="absolute left-1 top-1 rounded-full bg-garnet-fill px-2 py-0.5 text-xs text-on-fill">
                     {t("photos.cover")}
                   </span>
                 </Show>

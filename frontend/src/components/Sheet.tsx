@@ -38,7 +38,7 @@ export default function Sheet(props: {
           else if (panel) trapTab(e, panel);
         }}
       >
-        <div class="absolute inset-0 bg-ink/40" aria-hidden="true" onClick={() => props.onClose()} />
+        <div class="absolute inset-0 bg-black/50" aria-hidden="true" onClick={() => props.onClose()} />
         <div
           ref={panel}
           role="dialog"

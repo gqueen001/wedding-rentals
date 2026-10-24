@@ -1,5 +1,6 @@
 import { A, Navigate, type RouteSectionProps, useLocation, useNavigate } from "@solidjs/router";
 import { Show } from "solid-js";
+import SignOutButton from "../../components/admin/SignOutButton.tsx";
 import GolBand from "../../components/GolBand.tsx";
 import LanguageSwitch from "../../components/LanguageSwitch.tsx";
 import { t } from "../../i18n/i18n.ts";
@@ -11,7 +12,7 @@ import { usePageTitle } from "../../lib/title.ts";
 
 const manage = adminManage(api, uploadImage);
 
-const NAV_LINK = "inline-flex min-h-11 items-center rounded-full px-3 hover:bg-veil";
+const NAV_LINK = "inline-flex min-h-11 items-center rounded-full px-2 hover:bg-veil sm:px-3";
 
 /** Every /admin page: requires a token, otherwise goes to sign-in and comes back afterwards. */
 export default function AdminLayout(props: RouteSectionProps) {
@@ -33,9 +34,9 @@ export default function AdminLayout(props: RouteSectionProps) {
       <div class="min-h-screen bg-veil">
         <header class="bg-white">
           <GolBand />
-          <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2">
+          <div class="mx-auto flex max-w-6xl items-center gap-x-2 px-4 py-2 sm:gap-x-4">
             <A href="/" class="font-display text-2xl text-garnet">{t("app.name")}</A>
-            <span class="text-sm text-silver-ink">{t("admin.title")}</span>
+            <span class="hidden text-sm text-silver-ink sm:inline">{t("admin.title")}</span>
             <nav class="flex text-sm" aria-label={t("admin.title")}>
               <A href="/admin/shops" class={NAV_LINK} activeClass="font-semibold text-garnet">{t("admin.shops")}</A>
               <A href="/admin/listings" class={`${NAV_LINK} ${inListings() ? "font-semibold text-garnet" : ""}`}>
@@ -43,8 +44,11 @@ export default function AdminLayout(props: RouteSectionProps) {
               </A>
             </nav>
             <div class="ml-auto flex items-center gap-1">
-              <LanguageSwitch />
-              <button type="button" class="btn btn-quiet" onClick={signOut}>{t("admin.sign_out")}</button>
+              {/* Phones: no room next to the admin links; the language can be changed on any public page. */}
+              <span class="hidden sm:contents">
+                <LanguageSwitch />
+              </span>
+              <SignOutButton onClick={signOut} />
             </div>
           </div>
         </header>

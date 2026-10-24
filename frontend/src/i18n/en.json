@@ -325,5 +325,9 @@
   "filters.up_to": "up to {price} TMT",
   "filters.remove": "Remove filter: {filter}",
   "contact.call": "Call",
-  "myshop.edit_profile": "Edit profile"
+  "myshop.edit_profile": "Edit profile",
+  "more.theme": "Theme",
+  "theme.auto": "Auto",
+  "theme.light": "Light",
+  "theme.dark": "Dark"
 }

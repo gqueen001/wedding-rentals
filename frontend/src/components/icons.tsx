@@ -130,3 +130,9 @@ export const UserIcon = (p: IconProps) => (
     <path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6" />
   </Svg>
 );
+
+export const LogoutIcon = (p: IconProps) => (
+  <Svg class={p.class}>
+    <path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" />
+  </Svg>
+);

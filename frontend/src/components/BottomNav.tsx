@@ -43,7 +43,7 @@ export default function BottomNav() {
                   <span class="relative">
                     <item.icon class="h-6 w-6" />
                     <Show when={item.tab === "favorites" && count() > 0}>
-                      <span class="absolute -right-2.5 -top-1.5 min-w-4 rounded-full bg-garnet px-1 text-center font-sans text-[10px] leading-4 tracking-normal text-white">
+                      <span class="absolute -right-2.5 -top-1.5 min-w-4 rounded-full bg-garnet-fill px-1 text-center font-sans text-[10px] leading-4 tracking-normal text-on-fill">
                         {count()}
                       </span>
                     </Show>
