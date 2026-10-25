@@ -17,7 +17,7 @@ function LinkRow(props: { href: string; children: JSX.Element }) {
   );
 }
 
-/** The bottom bar's "More": language, theme, search, and the way in for shops. */
+/** The bottom bar's "More": language, theme, and the way in for shops. */
 export default function More() {
   usePageTitle(() => t("tab.more"));
   const phone = contactPhone();
@@ -67,14 +67,6 @@ export default function More() {
               </button>
             )}
           </For>
-        </div>
-      </section>
-
-      <section class="mt-8" aria-labelledby="more-site">
-        <h2 id="more-site" class="label">{t("app.name")}</h2>
-        <div class="mt-2 border-t border-line">
-          <LinkRow href="/search">{t("search.title")}</LinkRow>
-          <LinkRow href="/favorites">{t("tab.favorites")}</LinkRow>
         </div>
       </section>
 

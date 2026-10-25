@@ -12,6 +12,11 @@ export const THEME_KEY = "wr.theme";
 /** The browser bar's color in each theme (the <meta name="theme-color"> tags in index.html). */
 export const THEME_COLOR = { light: "#8e1b2e", dark: "#1b1b1e" } as const;
 
+/** The choice after this one, for a button that cycles Auto → Light → Dark → Auto. */
+export function nextTheme(choice: ThemeChoice): ThemeChoice {
+  return THEMES[(THEMES.indexOf(choice) + 1) % THEMES.length];
+}
+
 /** A stored value as a choice: anything but "light" or "dark" means auto. */
 export function parseTheme(stored: string | null): ThemeChoice {
   return stored === "light" || stored === "dark" ? stored : "auto";

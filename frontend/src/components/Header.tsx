@@ -3,8 +3,8 @@ import { Show } from "solid-js";
 import { t } from "../i18n/i18n.ts";
 import { favorites } from "../lib/favorites.ts";
 import AccountAvatar from "./AccountAvatar.tsx";
-import { HeartIcon } from "./icons.tsx";
 import LanguageSwitch from "./LanguageSwitch.tsx";
+import ThemeButton from "./ThemeButton.tsx";
 
 const MENU_LINK = "inline-flex min-h-11 items-center gap-1.5 px-2 font-label text-xs uppercase tracking-[0.2em]";
 
@@ -26,13 +26,13 @@ export default function Header() {
             activeClass="text-garnet"
             aria-label={t("nav.favorites_count", { count: count() })}
           >
-            <HeartIcon filled={count() > 0} class="h-4 w-4 text-garnet" />
             {t("tab.favorites")}
             <Show when={count() > 0}>
-              <span class="tabular-nums text-garnet">{count()}</span>
+              <span class="-ml-1 -translate-y-1 text-[10px] leading-none tracking-normal tabular-nums text-garnet">{count()}</span>
             </Show>
           </A>
           <LanguageSwitch />
+          <ThemeButton />
         </nav>
         <AccountAvatar />
       </div>
