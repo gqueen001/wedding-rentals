@@ -23,6 +23,7 @@ const maxPasswordBytes = 72 // bcrypt's limit
 var (
 	errInvalidCredentials = httpx.New(http.StatusUnauthorized, "invalid_credentials", "phone or password is wrong")
 	errRateLimited        = httpx.New(http.StatusTooManyRequests, "rate_limited", "too many attempts, try again in a minute")
+	errTooManyAttempts    = httpx.New(http.StatusTooManyRequests, "too_many_attempts", "too many wrong passwords for this number, try again in 15 minutes")
 )
 
 // dummyHash keeps sign-in timing similar whether or not the phone exists.
@@ -32,6 +33,9 @@ type Handler struct {
 	DB      db.DBTX
 	Tokens  *auth.Tokens
 	Limiter *auth.Limiter
+	// PhoneLimiter counts wrong passwords per phone number (the number is public, so a per-IP
+	// limit alone lets many devices try one account).
+	PhoneLimiter *auth.Limiter
 }
 
 // RegisterPublic adds sign-up and sign-in under /shop.
@@ -98,6 +102,8 @@ func (h *Handler) signup(c *gin.Context) {
 		errs["password"] = "too_short"
 	} else if len(in.Password) > maxPasswordBytes {
 		errs["password"] = "too_long"
+	} else if commonPassword(in.Password, phoneIf(phoneOK, phone)) {
+		errs["password"] = "too_common"
 	}
 	if len(errs) > 0 {
 		httpx.Abort(c, httpx.Validation(errs))
@@ -134,10 +140,20 @@ func (h *Handler) login(c *gin.Context) {
 	if !httpx.BindJSON(c, &in) {
 		return
 	}
-	phone, _ := NormalizePhone(in.Phone)
+	phone, ok := NormalizePhone(in.Phone)
+	// Unknown numbers count too, so the answer never tells whether an account exists.
+	key := phone
+	if !ok {
+		key = strings.TrimSpace(in.Phone)
+	}
+	if h.PhoneLimiter.Full(key) {
+		httpx.Abort(c, errTooManyAttempts)
+		return
+	}
 	o, err := byPhone(c.Request.Context(), h.DB, phone)
 	if errors.Is(err, pgx.ErrNoRows) {
 		auth.CheckPassword(dummyHash, in.Password)
+		h.PhoneLimiter.Add(key)
 		httpx.Abort(c, errInvalidCredentials)
 		return
 	}
@@ -146,6 +162,7 @@ func (h *Handler) login(c *gin.Context) {
 		return
 	}
 	if !auth.CheckPassword(o.PasswordHash, in.Password) {
+		h.PhoneLimiter.Add(key)
 		httpx.Abort(c, errInvalidCredentials)
 		return
 	}
@@ -226,6 +243,10 @@ func (h *Handler) setPassword(c *gin.Context) {
 		httpx.Abort(c, httpx.Validation(map[string]string{"password": "too_long"}))
 		return
 	}
+	if commonPassword(in.Password, "") {
+		httpx.Abort(c, httpx.Validation(map[string]string{"password": "too_common"}))
+		return
+	}
 	hash, err := auth.HashPassword(in.Password)
 	if err != nil {
 		httpx.Abort(c, err)
@@ -236,4 +257,12 @@ func (h *Handler) setPassword(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusNoContent)
+}
+
+// phoneIf is phone when ok, else "": a password only matches the number when the number is valid.
+func phoneIf(ok bool, phone string) string {
+	if ok {
+		return phone
+	}
+	return ""
 }

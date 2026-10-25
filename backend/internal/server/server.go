@@ -25,6 +25,8 @@ type Deps struct {
 	Limiter *auth.Limiter
 	// ShopLimiter rate-limits shop sign-up and sign-in; nil gets its own 5-per-minute limiter.
 	ShopLimiter *auth.Limiter
+	// ShopPhoneLimiter counts wrong shop passwords per phone number; nil gets 10 per 15 minutes.
+	ShopPhoneLimiter *auth.Limiter
 	// UploadLimiter caps a shop owner's image uploads; nil gets 30 per minute per owner.
 	UploadLimiter *auth.Limiter
 	Storage       images.Storage
@@ -57,10 +59,13 @@ func New(d Deps) (*gin.Engine, error) {
 	if d.ShopLimiter == nil {
 		d.ShopLimiter = auth.NewLimiter(5, time.Minute)
 	}
+	if d.ShopPhoneLimiter == nil {
+		d.ShopPhoneLimiter = auth.NewLimiter(10, 15*time.Minute)
+	}
 	if d.UploadLimiter == nil {
 		d.UploadLimiter = auth.NewLimiter(30, time.Minute)
 	}
-	ownersH := &owners.Handler{DB: d.DB, Tokens: d.Tokens, Limiter: d.ShopLimiter}
+	ownersH := &owners.Handler{DB: d.DB, Tokens: d.Tokens, Limiter: d.ShopLimiter, PhoneLimiter: d.ShopPhoneLimiter}
 
 	authH.RegisterPublic(api)
 	citiesH.RegisterPublic(api)
