@@ -47,18 +47,16 @@ func (l *Limiter) Allow(key string) bool {
 	return true
 }
 
-// Full reports whether key has reached its limit, without recording an event. With Add it counts
-// only some events, e.g. wrong passwords: check Full first, Add when the event happens.
-func (l *Limiter) Full(key string) bool {
+// Undo takes back key's most recent event, e.g. a sign-in try that turned out to be right. With
+// Allow it counts only some events, with no gap between checking and counting for parallel tries.
+func (l *Limiter) Undo(key string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	return len(l.recent(key, l.now())) >= l.max
-}
-
-// Add records one event for key.
-func (l *Limiter) Add(key string) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	now := l.now()
-	l.hits[key] = append(l.recent(key, now), now)
+	switch h := l.hits[key]; len(h) {
+	case 0:
+	case 1:
+		delete(l.hits, key)
+	default:
+		l.hits[key] = h[:len(h)-1]
+	}
 }

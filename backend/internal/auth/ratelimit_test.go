@@ -26,28 +26,31 @@ func TestLimiterAllowsMaxPerWindow(t *testing.T) {
 	}
 }
 
-func TestLimiterFullAndAddCountOnlyAddedEvents(t *testing.T) {
+func TestLimiterUndoTakesBackTheLatestEvent(t *testing.T) {
 	now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 	l := NewLimiter(3, 15*time.Minute)
 	l.now = func() time.Time { return now }
 	for i := 0; i < 3; i++ {
-		if l.Full("+99365000001") {
-			t.Fatalf("full after %d events", i)
+		if !l.Allow("+99365000001") {
+			t.Fatalf("try %d blocked", i+1)
 		}
-		l.Add("+99365000001")
 	}
-	if !l.Full("+99365000001") {
-		t.Fatal("not full after 3 events")
+	if l.Allow("+99365000001") {
+		t.Fatal("4th try allowed")
 	}
-	// Checking does not record anything, and other keys are separate.
-	for i := 0; i < 5; i++ {
-		l.Full("+99365000002")
+	l.Undo("+99365000001")
+	if !l.Allow("+99365000001") {
+		t.Fatal("not allowed after Undo")
 	}
-	if l.Full("+99365000002") {
-		t.Fatal("Full recorded events")
+	// Undo on a key with no events does nothing, and keys are separate.
+	l.Undo("+99365000002")
+	for i := 0; i < 3; i++ {
+		if !l.Allow("+99365000002") {
+			t.Fatalf("other key: try %d blocked", i+1)
+		}
 	}
 	now = now.Add(15*time.Minute + time.Second)
-	if l.Full("+99365000001") {
-		t.Fatal("still full after the window passed")
+	if !l.Allow("+99365000001") {
+		t.Fatal("still blocked after the window passed")
 	}
 }

@@ -18,7 +18,11 @@ func TestCommonPassword(t *testing.T) {
 		{"65123456", "+99365123456", true},    // the phone's last 8 digits
 		{"99365123456", "+99365123456", true}, // the whole phone number
 		{"+99365123456", "+99365123456", true},
-		{"65123456", "", false}, // fine when no phone is given (admin path)
+		{"65 12 34 56", "+99365123456", true}, // however it is spaced
+		{"+993 65 12-34-56", "+99365123456", true},
+		{"865123456", "+99365123456", true},   // the 8-prefixed local form
+		{"65123456ab", "+99365123456", false}, // letters make it a different password
+		{"65123456", "", false},               // fine when no phone is given (admin path)
 		{"ak-gelin-24", "", false},
 		{"abcdeg", "", false},
 		{"135790", "", false},

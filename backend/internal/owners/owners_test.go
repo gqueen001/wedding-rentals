@@ -169,6 +169,9 @@ func TestSignupAndLoginAreRateLimited(t *testing.T) {
 	if rec.Code != http.StatusTooManyRequests {
 		t.Fatalf("6th attempt: status = %d", rec.Code)
 	}
+	if code := testutil.Decode[testutil.ErrorBody](t, rec).Error.Code; code != "rate_limited" {
+		t.Fatalf("6th attempt: code = %q, want rate_limited (the per-IP limit)", code)
+	}
 }
 
 func TestShopMiddlewareRejectsOtherTokens(t *testing.T) {
@@ -307,9 +310,22 @@ func TestLoginStopsAfterTenWrongPasswordsForOneNumber(t *testing.T) {
 	if code := testutil.Decode[testutil.ErrorBody](t, rec).Error.Code; code != "too_many_attempts" {
 		t.Fatalf("code = %q, want too_many_attempts", code)
 	}
-	// Another number is not affected; an unknown number gets the usual answer.
-	if rec := login("65999999", "whatever-1"); rec.Code != http.StatusUnauthorized {
-		t.Fatalf("other number: status = %d, want 401", rec.Code)
+	// Another number is not affected. An unknown number locks the same way, so the answer never tells
+	// whether an account exists.
+	for i := 0; i < 10; i++ {
+		if rec := login("65999999", "whatever-1"); rec.Code != http.StatusUnauthorized {
+			t.Fatalf("unknown number, try %d: status = %d, want 401", i+1, rec.Code)
+		}
+	}
+	rec = login("65999999", "whatever-1")
+	if rec.Code != http.StatusTooManyRequests || testutil.Decode[testutil.ErrorBody](t, rec).Error.Code != "too_many_attempts" {
+		t.Fatalf("unknown number after 10: status = %d: %s", rec.Code, rec.Body)
+	}
+	// Input that is not a phone number can't match an account and isn't counted.
+	for i := 0; i < 12; i++ {
+		if rec := login("not a phone", "whatever-1"); rec.Code != http.StatusUnauthorized {
+			t.Fatalf("not a phone, try %d: status = %d, want 401", i+1, rec.Code)
+		}
 	}
 }
 

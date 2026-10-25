@@ -23,7 +23,8 @@ const maxPasswordBytes = 72 // bcrypt's limit
 var (
 	errInvalidCredentials = httpx.New(http.StatusUnauthorized, "invalid_credentials", "phone or password is wrong")
 	errRateLimited        = httpx.New(http.StatusTooManyRequests, "rate_limited", "too many attempts, try again in a minute")
-	errTooManyAttempts    = httpx.New(http.StatusTooManyRequests, "too_many_attempts", "too many wrong passwords for this number, try again in 15 minutes")
+	// The 15 minutes is server.go's default PhoneLimiter window.
+	errTooManyAttempts = httpx.New(http.StatusTooManyRequests, "too_many_attempts", "too many wrong passwords for this number, try again in 15 minutes")
 )
 
 // dummyHash keeps sign-in timing similar whether or not the phone exists.
@@ -141,31 +142,29 @@ func (h *Handler) login(c *gin.Context) {
 		return
 	}
 	phone, ok := NormalizePhone(in.Phone)
-	// Unknown numbers count too, so the answer never tells whether an account exists.
-	key := phone
-	if !ok {
-		key = strings.TrimSpace(in.Phone)
-	}
-	if h.PhoneLimiter.Full(key) {
+	// Each try is counted before the password is checked and taken back when it is right, so parallel
+	// tries can't slip past the limit. Unknown numbers count too, so the answer never tells whether an
+	// account exists; input that is not a phone number can't match an account and isn't counted.
+	if ok && !h.PhoneLimiter.Allow(phone) {
 		httpx.Abort(c, errTooManyAttempts)
 		return
 	}
 	o, err := byPhone(c.Request.Context(), h.DB, phone)
 	if errors.Is(err, pgx.ErrNoRows) {
 		auth.CheckPassword(dummyHash, in.Password)
-		h.PhoneLimiter.Add(key)
 		httpx.Abort(c, errInvalidCredentials)
 		return
 	}
 	if err != nil {
+		h.PhoneLimiter.Undo(phone) // a server error is not a wrong password
 		httpx.Abort(c, err)
 		return
 	}
 	if !auth.CheckPassword(o.PasswordHash, in.Password) {
-		h.PhoneLimiter.Add(key)
 		httpx.Abort(c, errInvalidCredentials)
 		return
 	}
+	h.PhoneLimiter.Undo(phone)
 	h.respondWithToken(c, http.StatusOK, o)
 }
 

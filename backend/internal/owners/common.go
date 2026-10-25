@@ -19,7 +19,8 @@ func init() {
 }
 
 // commonPassword reports whether a new password is too easy to guess: on the list, one repeated
-// character, a run of digits (up or down), or, when phone is given, the phone number's own digits.
+// character, a run of digits (up or down), or, when phone is given, the phone number itself (its
+// digits, however they are spaced, in full, local or 8-prefixed form).
 func commonPassword(password, phone string) bool {
 	p := strings.ToLower(strings.TrimSpace(password))
 	if commonList[p] {
@@ -35,12 +36,12 @@ func commonPassword(password, phone string) bool {
 	if len(r) > 1 && (same || (unicode.IsDigit(r[0]) && (up || down))) {
 		return true
 	}
-	if digits := onlyDigits(phone); digits != "" {
+	if digits := onlyDigits(phone); digits != "" && strings.Trim(p, "0123456789+-() ") == "" {
 		local := digits
 		if len(local) > 8 {
 			local = local[len(local)-8:]
 		}
-		if p == digits || p == local || p == "+"+digits {
+		if pd := onlyDigits(p); pd == digits || pd == local || pd == "8"+local {
 			return true
 		}
 	}
