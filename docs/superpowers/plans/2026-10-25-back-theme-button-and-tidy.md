@@ -552,3 +552,18 @@ This runs in headless Chrome on the test database with demo data, in light and d
 - **Theme button:** it cycles Auto → Light → Dark → Auto, and More shows the same choice.
 - **Phone listing back:** it goes back from the list, and to the list when opened directly.
 - **Contrast:** clean in both themes.
+
+## Changes made during review
+
+- **Task 1:** clean. The implementer dropped one stray blank line in `theme_test.ts`, which is accepted.
+- **Task 2:** clean.
+- **Final review (d06c1d2):**
+  - The favorites count was not raised, because `align-super` has no effect inside a flex link. It now uses `-translate-y-1`.
+  - On phones `/search` lit the More tab, which no longer links to Search. Search results now belong to the Home tab (`nav.ts` and its test). The spec was updated to match both.
+- **Left for later**, triaged as fine:
+  - the ThemeButton has no focus colour change (the global focus outline applies);
+  - the 50-entry history cap falls back to Home;
+  - the tagline's no-wrap has room to spare;
+  - the skip link adds a `#main` history entry;
+  - after a reload, Back goes Home;
+  - the theme button's changing name isn't announced by every screen reader (More has the full group).
