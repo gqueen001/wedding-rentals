@@ -12,13 +12,13 @@ const dicts: Record<string, Record<string, string>> = { tk, ru, en };
 // Every error code the Go API can return, plus the client-side network_error.
 const API_ERROR_CODES = [
   "validation_failed", "not_found", "conflict", "invalid_reference", "invalid_json",
-  "body_too_large", "internal_error", "invalid_credentials", "unauthorized", "rate_limited",
+  "body_too_large", "internal_error", "invalid_credentials", "unauthorized", "rate_limited", "too_many_attempts",
   "file_too_large", "image_too_large", "invalid_image", "network_error",
 ];
 // Every value the Go API puts in error.fields.
 const FIELD_VALUES = [
   "required", "invalid", "too_long", "too_many", "too_large", "must_be_positive", "out_of_range", "taken",
-  "too_short", "unknown",
+  "too_short", "too_common", "unknown",
   "exactly_one_of_listing_id_or_shop_id", "must_list_all_images_of_one_listing",
 ];
 
