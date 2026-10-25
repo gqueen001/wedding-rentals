@@ -733,3 +733,10 @@ This runs in headless Chrome, on the test database.
   - **The fix:** non-phone input isn't counted; each try is counted with `Allow` and taken back with `Undo` on success.
   - **Also:** the phone-number rule now compares the password's digits however they are spaced, and the tests cover unknown numbers, non-phone input and the per-IP `rate_limited` code.
 
+- **Task 2:** the review was clean. The Turkmen lock message was smoothed to "Bu belgi üçin nädogry açar söz gaty köp girizildi. 15 minutdan gaýtadan synanyşyň." (ad43294).
+- **Final review:** an admin setting a new password (the "forgot your password, call us" flow) now clears that number's lock. `Limiter.Reset` was added and `setPasswordForShop` returns the owner's phone (a804016). The spec now states the accepted trade-off: anyone who knows a public number can keep it locked, but no account is taken over, the owner stays signed in, and the admin can clear the lock.
+- **Left for later**, triaged as fine:
+  - limiters never sweep keys that are no longer touched;
+  - the password hints don't mention common passwords;
+  - the "15 minutes" in the message is fixed text;
+  - wrap-around digit runs aren't caught.
