@@ -1,6 +1,7 @@
 import { A, Navigate, type RouteSectionProps, useLocation, useNavigate } from "@solidjs/router";
 import { Show } from "solid-js";
 import SignOutButton from "../../components/admin/SignOutButton.tsx";
+import BottomNav from "../../components/BottomNav.tsx";
 import LanguageSwitch from "../../components/LanguageSwitch.tsx";
 import { t } from "../../i18n/i18n.ts";
 import { ownerApi, uploadOwnerImage } from "../../lib/client.ts";
@@ -53,10 +54,12 @@ export default function ShopLayout(props: RouteSectionProps) {
           ref={mainRef}
           id="main"
           tabindex="-1"
-          class="mx-auto max-w-6xl px-4 py-8 outline-none"
+          class="mx-auto max-w-6xl px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-8 outline-none md:pb-8"
         >
           <ManageContext.Provider value={manage}>{props.children}</ManageContext.Provider>
         </main>
+        {/* Phones: the same bottom bar as the public pages, so the site is one tap away. */}
+        <BottomNav />
       </div>
     </Show>
   );

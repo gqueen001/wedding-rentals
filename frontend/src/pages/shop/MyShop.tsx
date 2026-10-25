@@ -1,5 +1,6 @@
 import { A } from "@solidjs/router";
 import { createResource, For, Match, Show, Switch } from "solid-js";
+import BackButton from "../../components/BackButton.tsx";
 import ErrorState from "../../components/ErrorState.tsx";
 import { PlusIcon } from "../../components/icons.tsx";
 import ShopProfileHeader from "../../components/ShopProfileHeader.tsx";
@@ -71,6 +72,7 @@ export default function MyShop() {
       <Match when={shop()}>
         {(s) => (
           <div>
+            <BackButton class="mb-6" />
             <ShopProfileHeader
               logo={s().logo?.small ?? null}
               name={s().name}
