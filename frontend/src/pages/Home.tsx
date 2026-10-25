@@ -57,17 +57,17 @@ export default function Home() {
           <p class="mx-auto mt-3 max-w-md text-center text-silver-ink">{t("home.lead")}</p>
           <div class="mx-auto mt-6 max-w-md space-y-4">
             <SearchBox value="" onSearch={search} />
-            <label class="flex flex-wrap items-center justify-center gap-3 text-sm">
-              <span class="text-silver-ink">{t("home.city")}</span>
+            <div class="flex justify-center">
               <select
                 class="field-input w-auto"
+                aria-label={t("home.city")}
                 value=""
                 onChange={(e) => e.currentTarget.value && browseCity(e.currentTarget.value)}
               >
                 <option value="">{t("home.all_cities")}</option>
                 <For each={cities()}>{(c) => <option value={c.slug}>{cityName(c, i18n.lang())}</option>}</For>
               </select>
-            </label>
+            </div>
           </div>
         </div>
         <CategoryBar />

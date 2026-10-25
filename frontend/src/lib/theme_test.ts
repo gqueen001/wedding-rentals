@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { memoryKV } from "./storage.ts";
-import { createTheme, parseTheme, THEME_KEY, themeAttr } from "./theme.ts";
+import { createTheme, nextTheme, parseTheme, THEME_KEY, themeAttr } from "./theme.ts";
 
 Deno.test("parseTheme keeps light and dark, and treats anything else as auto", () => {
   assertEquals(parseTheme("light"), "light");
@@ -25,4 +25,10 @@ Deno.test("createTheme remembers a picked theme and forgets it on auto", () => {
   t.set("auto");
   assertEquals([t.choice(), kv.get(THEME_KEY)], ["auto", null]);
   assertEquals(createTheme(memoryKV({ [THEME_KEY]: "nonsense" })).choice(), "auto");
+});
+
+Deno.test("nextTheme cycles auto, light, dark and back to auto", () => {
+  assertEquals(nextTheme("auto"), "light");
+  assertEquals(nextTheme("light"), "dark");
+  assertEquals(nextTheme("dark"), "auto");
 });
