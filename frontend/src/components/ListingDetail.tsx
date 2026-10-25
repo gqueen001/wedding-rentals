@@ -1,13 +1,11 @@
-import { useNavigate } from "@solidjs/router";
 import { type JSX, Show } from "solid-js";
 import { t } from "../i18n/i18n.ts";
 import { httpsUrl, telHref } from "../lib/format.ts";
-import { backTracker } from "../lib/history.ts";
 import type { Attributes, Image, ShopCard } from "../lib/types.ts";
 import Availability from "./Availability.tsx";
 import { FavoriteButton, FavoriteIconButton } from "./FavoriteButton.tsx";
 import Gallery from "./Gallery.tsx";
-import { ChevronLeftIcon, InstagramIcon, PhoneIcon } from "./icons.tsx";
+import { InstagramIcon, PhoneIcon } from "./icons.tsx";
 import { priceText } from "./price.ts";
 import ShareButton from "./ShareButton.tsx";
 import ShopCardSection from "./ShopCard.tsx";
@@ -24,37 +22,25 @@ export interface DetailListing {
 }
 
 /**
- * The dress and item page body. On phones the photo fills the width with back, share and heart
- * buttons on it, and Call (plus an Instagram icon) stays in view just above the bottom bar.
+ * The dress and item page body. On phones the photo fills the width with share and heart buttons
+ * on it (no Back: phones use their own), and Call (plus an Instagram icon) stays in view just above the bottom bar.
  * On wide screens the info and the shop sit beside the photo, and the calendar runs under both.
  */
 export default function ListingDetail(props: {
   listing: DetailListing;
   /** The small label above the title, e.g. "Dresses · Ak Gelin". */
   kicker: string;
-  /** Where Back goes when there is no page to go back to. */
-  backHref: string;
   /** The heading above the description, e.g. "About this dress". */
   about: string;
   details: JSX.Element;
 }) {
-  const navigate = useNavigate();
   const l = () => props.listing;
-  const back = () => (backTracker.canGoBack() ? history.back() : navigate(props.backHref));
   return (
     <>
       <article class="pt-0 md:pt-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:gap-x-12">
         <div class="relative">
           <Gallery images={l().images} title={l().title} />
-          <div class="pointer-events-none absolute inset-x-0 top-3 flex justify-between sm:px-3 md:hidden">
-            <button
-              type="button"
-              class="pointer-events-auto inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-ink hover:bg-white"
-              aria-label={t("common.back")}
-              onClick={back}
-            >
-              <ChevronLeftIcon />
-            </button>
+          <div class="pointer-events-none absolute inset-x-0 top-3 flex justify-end sm:px-3 md:hidden">
             <span class="pointer-events-auto flex gap-2">
               <ShareButton title={l().title} round />
               <FavoriteIconButton id={l().id} />

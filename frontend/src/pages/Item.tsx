@@ -5,7 +5,7 @@ import ErrorState from "../components/ErrorState.tsx";
 import ListingDetail from "../components/ListingDetail.tsx";
 import { DetailSkeleton } from "../components/Skeleton.tsx";
 import { tr } from "../i18n/i18n.ts";
-import { categoryHref, catLabel } from "../lib/catalog.ts";
+import { catLabel } from "../lib/catalog.ts";
 import { api } from "../lib/client.ts";
 import { isNotFound } from "../lib/errors.ts";
 import { usePageTitle } from "../lib/title.ts";
@@ -18,7 +18,6 @@ function ItemView(props: { item: PublicItem }) {
     <ListingDetail
       listing={it()}
       kicker={`${tr(catLabel(it().category))} · ${it().shop.name}`}
-      backHref={categoryHref(it().category)}
       about={tr("item.about")}
       details={<AttributeList category={it().category} attributes={it().attributes} />}
     />
