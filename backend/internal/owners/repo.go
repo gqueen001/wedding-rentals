@@ -57,16 +57,13 @@ func byID(ctx context.Context, d db.DBTX, id int64) (Owner, error) {
 }
 
 // setPasswordForShop replaces the password of the shop's owner and bumps the token
-// version, which signs the owner out everywhere. pgx.ErrNoRows means the shop has no owner.
-func setPasswordForShop(ctx context.Context, d db.DBTX, shopID int64, passwordHash string) error {
-	tag, err := d.Exec(ctx, `
+// version, which signs the owner out everywhere. It returns the owner's sign-in phone.
+// pgx.ErrNoRows means the shop has no owner.
+func setPasswordForShop(ctx context.Context, d db.DBTX, shopID int64, passwordHash string) (string, error) {
+	var phone string
+	err := d.QueryRow(ctx, `
 		UPDATE shop_owners SET password_hash = $2, token_version = token_version + 1, updated_at = now()
-		WHERE shop_id = $1`, shopID, passwordHash)
-	if err != nil {
-		return err
-	}
-	if tag.RowsAffected() == 0 {
-		return pgx.ErrNoRows
-	}
-	return nil
+		WHERE shop_id = $1
+		RETURNING phone`, shopID, passwordHash).Scan(&phone)
+	return phone, err
 }

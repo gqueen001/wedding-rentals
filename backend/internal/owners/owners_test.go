@@ -3,6 +3,7 @@ package owners_test
 import (
 	"context"
 	"net/http"
+	"net/http/httptest"
 	"strconv"
 	"strings"
 	"testing"
@@ -26,7 +27,7 @@ type env struct {
 
 func setup(t *testing.T) env {
 	e := env{r: gin.New(), tx: testutil.Tx(t)}
-	h := &owners.Handler{DB: e.tx, Tokens: tokens, Limiter: auth.NewLimiter(100, time.Minute)}
+	h := &owners.Handler{DB: e.tx, Tokens: tokens, Limiter: auth.NewLimiter(100, time.Minute), PhoneLimiter: auth.NewLimiter(10, 15*time.Minute)}
 	h.RegisterPublic(e.r.Group("/api"))
 	h.RegisterShop(e.r.Group("/api/shop", owners.ShopMiddleware(tokens, e.tx)))
 	h.RegisterAdmin(e.r.Group("/api/admin"))
@@ -159,7 +160,7 @@ func TestLogin(t *testing.T) {
 
 func TestSignupAndLoginAreRateLimited(t *testing.T) {
 	e := env{r: gin.New(), tx: testutil.Tx(t)}
-	h := &owners.Handler{DB: e.tx, Tokens: tokens, Limiter: auth.NewLimiter(5, time.Minute)}
+	h := &owners.Handler{DB: e.tx, Tokens: tokens, Limiter: auth.NewLimiter(5, time.Minute), PhoneLimiter: auth.NewLimiter(10, 15*time.Minute)}
 	h.RegisterPublic(e.r.Group("/api"))
 	for i := 0; i < 5; i++ {
 		testutil.Request(t, e.r, http.MethodPost, "/api/shop/login", map[string]any{"phone": "65123456", "password": "x"}, "")
@@ -167,6 +168,9 @@ func TestSignupAndLoginAreRateLimited(t *testing.T) {
 	rec := testutil.Request(t, e.r, http.MethodPost, "/api/shop/signup", signupBody(t, e.tx, "65123456"), "")
 	if rec.Code != http.StatusTooManyRequests {
 		t.Fatalf("6th attempt: status = %d", rec.Code)
+	}
+	if code := testutil.Decode[testutil.ErrorBody](t, rec).Error.Code; code != "rate_limited" {
+		t.Fatalf("6th attempt: code = %q, want rate_limited (the per-IP limit)", code)
 	}
 }
 
@@ -280,5 +284,86 @@ func TestDeletingTheShopDeletesTheOwner(t *testing.T) {
 	}
 	if rec := testutil.Request(t, e.r, http.MethodGet, "/api/shop/me", nil, token); rec.Code != http.StatusUnauthorized {
 		t.Fatalf("token after shop deletion: status = %d, want 401", rec.Code)
+	}
+}
+
+func TestLoginStopsAfterTenWrongPasswordsForOneNumber(t *testing.T) {
+	e := setup(t)
+	signup(t, e, "+99365123456")
+	login := func(phone, password string) *httptest.ResponseRecorder {
+		return testutil.Request(t, e.r, http.MethodPost, "/api/shop/login", map[string]any{"phone": phone, "password": password}, "")
+	}
+	// A correct password does not count towards the limit.
+	if rec := login("65123456", "long-enough-1"); rec.Code != http.StatusOK {
+		t.Fatalf("right password: status = %d", rec.Code)
+	}
+	for i := 0; i < 10; i++ {
+		if rec := login("+993 65 12-34-56", "wrong-pass"); rec.Code != http.StatusUnauthorized {
+			t.Fatalf("wrong password %d: status = %d", i+1, rec.Code)
+		}
+	}
+	// Locked for this number (however it is typed), even with the right password.
+	rec := login("65123456", "long-enough-1")
+	if rec.Code != http.StatusTooManyRequests {
+		t.Fatalf("after 10 wrong: status = %d, want 429", rec.Code)
+	}
+	if code := testutil.Decode[testutil.ErrorBody](t, rec).Error.Code; code != "too_many_attempts" {
+		t.Fatalf("code = %q, want too_many_attempts", code)
+	}
+	// Another number is not affected. An unknown number locks the same way, so the answer never tells
+	// whether an account exists.
+	for i := 0; i < 10; i++ {
+		if rec := login("65999999", "whatever-1"); rec.Code != http.StatusUnauthorized {
+			t.Fatalf("unknown number, try %d: status = %d, want 401", i+1, rec.Code)
+		}
+	}
+	rec = login("65999999", "whatever-1")
+	if rec.Code != http.StatusTooManyRequests || testutil.Decode[testutil.ErrorBody](t, rec).Error.Code != "too_many_attempts" {
+		t.Fatalf("unknown number after 10: status = %d: %s", rec.Code, rec.Body)
+	}
+	// Input that is not a phone number can't match an account and isn't counted.
+	for i := 0; i < 12; i++ {
+		if rec := login("not a phone", "whatever-1"); rec.Code != http.StatusUnauthorized {
+			t.Fatalf("not a phone, try %d: status = %d, want 401", i+1, rec.Code)
+		}
+	}
+}
+
+func TestCommonPasswordsAreRefused(t *testing.T) {
+	e := setup(t)
+	for _, pw := range []string{"123456", "qwerty", "111111", "65111222"} {
+		body := signupBody(t, e.tx, "+99365111222")
+		body["password"] = pw
+		got := testutil.Decode[testutil.ErrorBody](t, testutil.Request(t, e.r, http.MethodPost, "/api/shop/signup", body, ""))
+		if got.Error.Fields["password"] != "too_common" {
+			t.Errorf("signup with %q: fields = %v, want password too_common", pw, got.Error.Fields)
+		}
+	}
+	token := signup(t, e, "+99365123457")
+	path := "/api/admin/shops/" + strconv.FormatInt(me(t, e, token).Shop.ID, 10) + "/owner-password"
+	rec := testutil.Request(t, e.r, http.MethodPost, path, map[string]any{"password": "password"}, "")
+	if rec.Code != http.StatusBadRequest || testutil.Decode[testutil.ErrorBody](t, rec).Error.Fields["password"] != "too_common" {
+		t.Fatalf("admin set common password: status = %d: %s", rec.Code, rec.Body)
+	}
+}
+
+func TestAdminNewPasswordClearsTheSignInLock(t *testing.T) {
+	e := setup(t)
+	token := signup(t, e, "+99365123456")
+	path := "/api/admin/shops/" + strconv.FormatInt(me(t, e, token).Shop.ID, 10) + "/owner-password"
+	login := func(password string) int {
+		return testutil.Request(t, e.r, http.MethodPost, "/api/shop/login", map[string]any{"phone": "65123456", "password": password}, "").Code
+	}
+	for i := 0; i < 10; i++ {
+		login("forgotten-1")
+	}
+	if code := login("long-enough-1"); code != http.StatusTooManyRequests {
+		t.Fatalf("locked: status = %d, want 429", code)
+	}
+	if rec := testutil.Request(t, e.r, http.MethodPost, path, map[string]any{"password": "fresh-pass-7"}, ""); rec.Code != http.StatusNoContent {
+		t.Fatalf("set password: status = %d: %s", rec.Code, rec.Body)
+	}
+	if code := login("fresh-pass-7"); code != http.StatusOK {
+		t.Fatalf("new password after the admin reset: status = %d, want 200", code)
 	}
 }

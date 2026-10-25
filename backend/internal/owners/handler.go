@@ -23,6 +23,8 @@ const maxPasswordBytes = 72 // bcrypt's limit
 var (
 	errInvalidCredentials = httpx.New(http.StatusUnauthorized, "invalid_credentials", "phone or password is wrong")
 	errRateLimited        = httpx.New(http.StatusTooManyRequests, "rate_limited", "too many attempts, try again in a minute")
+	// The 15 minutes is server.go's default PhoneLimiter window.
+	errTooManyAttempts = httpx.New(http.StatusTooManyRequests, "too_many_attempts", "too many wrong passwords for this number, try again in 15 minutes")
 )
 
 // dummyHash keeps sign-in timing similar whether or not the phone exists.
@@ -32,6 +34,9 @@ type Handler struct {
 	DB      db.DBTX
 	Tokens  *auth.Tokens
 	Limiter *auth.Limiter
+	// PhoneLimiter counts wrong passwords per phone number (the number is public, so a per-IP
+	// limit alone lets many devices try one account).
+	PhoneLimiter *auth.Limiter
 }
 
 // RegisterPublic adds sign-up and sign-in under /shop.
@@ -98,6 +103,8 @@ func (h *Handler) signup(c *gin.Context) {
 		errs["password"] = "too_short"
 	} else if len(in.Password) > maxPasswordBytes {
 		errs["password"] = "too_long"
+	} else if commonPassword(in.Password, phoneIf(phoneOK, phone)) {
+		errs["password"] = "too_common"
 	}
 	if len(errs) > 0 {
 		httpx.Abort(c, httpx.Validation(errs))
@@ -134,7 +141,14 @@ func (h *Handler) login(c *gin.Context) {
 	if !httpx.BindJSON(c, &in) {
 		return
 	}
-	phone, _ := NormalizePhone(in.Phone)
+	phone, ok := NormalizePhone(in.Phone)
+	// Each try is counted before the password is checked and taken back when it is right, so parallel
+	// tries can't slip past the limit. Unknown numbers count too, so the answer never tells whether an
+	// account exists; input that is not a phone number can't match an account and isn't counted.
+	if ok && !h.PhoneLimiter.Allow(phone) {
+		httpx.Abort(c, errTooManyAttempts)
+		return
+	}
 	o, err := byPhone(c.Request.Context(), h.DB, phone)
 	if errors.Is(err, pgx.ErrNoRows) {
 		auth.CheckPassword(dummyHash, in.Password)
@@ -142,6 +156,7 @@ func (h *Handler) login(c *gin.Context) {
 		return
 	}
 	if err != nil {
+		h.PhoneLimiter.Undo(phone) // a server error is not a wrong password
 		httpx.Abort(c, err)
 		return
 	}
@@ -149,6 +164,7 @@ func (h *Handler) login(c *gin.Context) {
 		httpx.Abort(c, errInvalidCredentials)
 		return
 	}
+	h.PhoneLimiter.Undo(phone)
 	h.respondWithToken(c, http.StatusOK, o)
 }
 
@@ -226,14 +242,29 @@ func (h *Handler) setPassword(c *gin.Context) {
 		httpx.Abort(c, httpx.Validation(map[string]string{"password": "too_long"}))
 		return
 	}
+	if commonPassword(in.Password, "") {
+		httpx.Abort(c, httpx.Validation(map[string]string{"password": "too_common"}))
+		return
+	}
 	hash, err := auth.HashPassword(in.Password)
 	if err != nil {
 		httpx.Abort(c, err)
 		return
 	}
-	if err := setPasswordForShop(c.Request.Context(), h.DB, shopID, hash); err != nil {
+	phone, err := setPasswordForShop(c.Request.Context(), h.DB, shopID, hash)
+	if err != nil {
 		httpx.Abort(c, err)
 		return
 	}
+	// An owner locked out by wrong passwords can sign in with the new one straight away.
+	h.PhoneLimiter.Reset(phone)
 	c.Status(http.StatusNoContent)
+}
+
+// phoneIf is phone when ok, else "": a password only matches the number when the number is valid.
+func phoneIf(ok bool, phone string) string {
+	if ok {
+		return phone
+	}
+	return ""
 }

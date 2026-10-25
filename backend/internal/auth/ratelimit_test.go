@@ -25,3 +25,52 @@ func TestLimiterAllowsMaxPerWindow(t *testing.T) {
 		t.Fatal("not allowed after window passed")
 	}
 }
+
+func TestLimiterUndoTakesBackTheLatestEvent(t *testing.T) {
+	now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+	l := NewLimiter(3, 15*time.Minute)
+	l.now = func() time.Time { return now }
+	for i := 0; i < 3; i++ {
+		if !l.Allow("+99365000001") {
+			t.Fatalf("try %d blocked", i+1)
+		}
+	}
+	if l.Allow("+99365000001") {
+		t.Fatal("4th try allowed")
+	}
+	l.Undo("+99365000001")
+	if !l.Allow("+99365000001") {
+		t.Fatal("not allowed after Undo")
+	}
+	// Undo on a key with no events does nothing, and keys are separate.
+	l.Undo("+99365000002")
+	for i := 0; i < 3; i++ {
+		if !l.Allow("+99365000002") {
+			t.Fatalf("other key: try %d blocked", i+1)
+		}
+	}
+	now = now.Add(15*time.Minute + time.Second)
+	if !l.Allow("+99365000001") {
+		t.Fatal("still blocked after the window passed")
+	}
+}
+
+func TestLimiterResetForgetsAKey(t *testing.T) {
+	l := NewLimiter(2, 15*time.Minute)
+	l.Allow("+99365000001")
+	l.Allow("+99365000001")
+	l.Allow("+99365000002")
+	if l.Allow("+99365000001") {
+		t.Fatal("3rd try allowed before Reset")
+	}
+	l.Reset("+99365000001")
+	if !l.Allow("+99365000001") {
+		t.Fatal("not allowed after Reset")
+	}
+	// Other keys keep their count, and resetting an unknown key does nothing.
+	l.Reset("+99365000003")
+	l.Allow("+99365000002")
+	if l.Allow("+99365000002") {
+		t.Fatal("Reset cleared another key")
+	}
+}

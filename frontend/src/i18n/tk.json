@@ -327,5 +327,7 @@
   "theme.auto": "Awtomatik",
   "theme.light": "Ýagty",
   "theme.dark": "Garaňky",
-  "favorites.device_note": "Halanlaryňyz diňe şu enjamda saklanýar."
+  "favorites.device_note": "Halanlaryňyz diňe şu enjamda saklanýar.",
+  "error.too_many_attempts": "Bu belgi üçin nädogry açar söz gaty köp girizildi. 15 minutdan gaýtadan synanyşyň.",
+  "field.too_common": "Bu açar söz gaty ýönekeý. Başgasyny saýlaň."
 }
