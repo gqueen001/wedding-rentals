@@ -251,10 +251,13 @@ func (h *Handler) setPassword(c *gin.Context) {
 		httpx.Abort(c, err)
 		return
 	}
-	if err := setPasswordForShop(c.Request.Context(), h.DB, shopID, hash); err != nil {
+	phone, err := setPasswordForShop(c.Request.Context(), h.DB, shopID, hash)
+	if err != nil {
 		httpx.Abort(c, err)
 		return
 	}
+	// An owner locked out by wrong passwords can sign in with the new one straight away.
+	h.PhoneLimiter.Reset(phone)
 	c.Status(http.StatusNoContent)
 }
 

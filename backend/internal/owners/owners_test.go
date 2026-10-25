@@ -346,3 +346,24 @@ func TestCommonPasswordsAreRefused(t *testing.T) {
 		t.Fatalf("admin set common password: status = %d: %s", rec.Code, rec.Body)
 	}
 }
+
+func TestAdminNewPasswordClearsTheSignInLock(t *testing.T) {
+	e := setup(t)
+	token := signup(t, e, "+99365123456")
+	path := "/api/admin/shops/" + strconv.FormatInt(me(t, e, token).Shop.ID, 10) + "/owner-password"
+	login := func(password string) int {
+		return testutil.Request(t, e.r, http.MethodPost, "/api/shop/login", map[string]any{"phone": "65123456", "password": password}, "").Code
+	}
+	for i := 0; i < 10; i++ {
+		login("forgotten-1")
+	}
+	if code := login("long-enough-1"); code != http.StatusTooManyRequests {
+		t.Fatalf("locked: status = %d, want 429", code)
+	}
+	if rec := testutil.Request(t, e.r, http.MethodPost, path, map[string]any{"password": "fresh-pass-7"}, ""); rec.Code != http.StatusNoContent {
+		t.Fatalf("set password: status = %d: %s", rec.Code, rec.Body)
+	}
+	if code := login("fresh-pass-7"); code != http.StatusOK {
+		t.Fatalf("new password after the admin reset: status = %d, want 200", code)
+	}
+}

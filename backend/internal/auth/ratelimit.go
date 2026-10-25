@@ -47,6 +47,13 @@ func (l *Limiter) Allow(key string) bool {
 	return true
 }
 
+// Reset forgets every event for key, e.g. when an admin gives the account a new password.
+func (l *Limiter) Reset(key string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	delete(l.hits, key)
+}
+
 // Undo takes back key's most recent event, e.g. a sign-in try that turned out to be right. With
 // Allow it counts only some events, with no gap between checking and counting for parallel tries.
 func (l *Limiter) Undo(key string) {

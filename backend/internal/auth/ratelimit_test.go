@@ -54,3 +54,23 @@ func TestLimiterUndoTakesBackTheLatestEvent(t *testing.T) {
 		t.Fatal("still blocked after the window passed")
 	}
 }
+
+func TestLimiterResetForgetsAKey(t *testing.T) {
+	l := NewLimiter(2, 15*time.Minute)
+	l.Allow("+99365000001")
+	l.Allow("+99365000001")
+	l.Allow("+99365000002")
+	if l.Allow("+99365000001") {
+		t.Fatal("3rd try allowed before Reset")
+	}
+	l.Reset("+99365000001")
+	if !l.Allow("+99365000001") {
+		t.Fatal("not allowed after Reset")
+	}
+	// Other keys keep their count, and resetting an unknown key does nothing.
+	l.Reset("+99365000003")
+	l.Allow("+99365000002")
+	if l.Allow("+99365000002") {
+		t.Fatal("Reset cleared another key")
+	}
+}

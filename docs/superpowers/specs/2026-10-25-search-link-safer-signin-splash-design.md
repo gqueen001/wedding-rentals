@@ -32,7 +32,8 @@ There are three follow-ups from the last reviews:
   - Unknown numbers count too, so the reply never reveals whether an account exists.
   - An input that doesn't normalize can't match any account and isn't counted (counting it by its raw text would let junk input fill memory).
 - **The error:** a refused sign-in gets **HTTP 429** with a new error code, **`too_many_attempts`** ("too many wrong passwords for this number, try again in 15 minutes"). Each try is counted and checked in one step **before** the password is checked, so a locked number can't be probed and parallel tries can't slip past; a right password (or a server error) takes its try back.
-- **What counts:** a correct password doesn't add to the count, and it doesn't clear it.
+- **What counts:** a correct password doesn't add to the count, and it doesn't clear it. An admin setting a new password (the "call us" flow for a forgotten password) clears the number's count, so the owner can sign in with it straight away.
+- **Accepted trade-off:** anyone who knows a number (numbers are public) can keep it locked by making about 10 wrong tries every 15 minutes. No account is taken over; the owner stays signed in on their devices, and the admin can clear the lock by setting a new password. Keying the lock by phone and IP together would bring back many-device guessing, which this limit exists to stop.
 - **Where it lives:** the count is kept in memory, the same way as the existing limiter. A server restart clears it, which is acceptable.
 - **Implementation:**
   - `auth.Limiter` gets `Undo(key)`, which takes back the key's latest event. Sign-in uses the existing `Allow` to count a try and `Undo` when it was right.
@@ -75,7 +76,7 @@ There are three follow-ups from the last reviews:
 ## 6. Testing
 
 - **Go:**
-  - `Limiter.Full` and `Add`.
+  - `Limiter.Undo` and `Limiter.Reset` (and that `Allow` keeps working).
   - `commonPassword`: list entries, mixed case, same characters, digit runs both ways, the phone digits, and passwords that must pass.
   - Owners login:
     - the 11th try after 10 wrong passwords for one number gets 429 `too_many_attempts`, even with the right password;
