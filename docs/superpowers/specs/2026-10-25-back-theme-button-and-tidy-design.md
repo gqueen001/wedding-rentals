@@ -6,11 +6,11 @@
 
 ## 1. Changes
 
-1. **More page (phones):** the section with the Search and Favorites rows is removed. Phones still have Favorites in the bottom bar, and the search box on the home page.
+1. **More page (phones):** the section with the Search and Favorites rows is removed. Phones still have Favorites in the bottom bar, and the search box on the home page. Search results (`/search`) now light the Home tab, not More.
 2. **Home:** the visible "Şäher" (City) word before the city dropdown is removed. The dropdown keeps the same name for screen readers, through `aria-label={t("home.city")}`.
 3. **Computer menu, Favorites:**
    - the heart icon is removed;
-   - the favorites count becomes a small raised number after the word (`text-[10px]`, garnet, `align-super`);
+   - the favorites count becomes a small raised number after the word (`text-[10px]`, garnet, raised with `-translate-y-1`);
    - the link's accessible name, "Favorites: N", is unchanged.
 4. **Computer footer:** the button reads a shorter text, from a new key `footer.add_shop_short` ("Salonyňyzy goşuň" / "Добавить салон" / "Add your shop"). The tagline and the button each stay on one line (`whitespace-nowrap`); if a screen is too narrow for both, they sit on two rows. The long `footer.add_shop` text stays on the More page.
 5. **Back button on computers:**

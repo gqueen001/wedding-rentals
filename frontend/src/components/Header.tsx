@@ -28,7 +28,7 @@ export default function Header() {
           >
             {t("tab.favorites")}
             <Show when={count() > 0}>
-              <span class="-ml-1 align-super text-[10px] leading-none tracking-normal tabular-nums text-garnet">{count()}</span>
+              <span class="-ml-1 -translate-y-1 text-[10px] leading-none tracking-normal tabular-nums text-garnet">{count()}</span>
             </Show>
           </A>
           <LanguageSwitch />

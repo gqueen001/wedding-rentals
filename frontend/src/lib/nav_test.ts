@@ -11,7 +11,7 @@ Deno.test("each public page lights up its bottom-bar tab", () => {
     "/items/30": "categories",
     "/favorites": "favorites",
     "/more": "more",
-    "/search": "more",
+    "/search": "home",
     "/shops/ak-gelin": "more",
     "/admin/listings": null,
     "/shop": null,
