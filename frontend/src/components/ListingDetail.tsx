@@ -2,6 +2,7 @@ import { useNavigate } from "@solidjs/router";
 import { type JSX, Show } from "solid-js";
 import { t } from "../i18n/i18n.ts";
 import { httpsUrl, telHref } from "../lib/format.ts";
+import { backTracker } from "../lib/history.ts";
 import type { Attributes, Image, ShopCard } from "../lib/types.ts";
 import Availability from "./Availability.tsx";
 import { FavoriteButton, FavoriteIconButton } from "./FavoriteButton.tsx";
@@ -39,7 +40,7 @@ export default function ListingDetail(props: {
 }) {
   const navigate = useNavigate();
   const l = () => props.listing;
-  const back = () => (history.length > 1 ? history.back() : navigate(props.backHref));
+  const back = () => (backTracker.canGoBack() ? history.back() : navigate(props.backHref));
   return (
     <>
       <article class="pt-0 md:pt-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:gap-x-12">

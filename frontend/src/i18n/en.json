@@ -329,5 +329,6 @@
   "theme.dark": "Dark",
   "favorites.device_note": "Your favorites are saved on this device only.",
   "error.too_many_attempts": "Too many wrong passwords for this number. Try again in 15 minutes.",
-  "field.too_common": "This password is too common. Choose another one."
+  "field.too_common": "This password is too common. Choose another one.",
+  "footer.add_shop_short": "Add your shop"
 }
