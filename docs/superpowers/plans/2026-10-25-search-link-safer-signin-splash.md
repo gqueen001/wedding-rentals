@@ -9,7 +9,7 @@
 - The installed app's splash screen becomes dark charcoal.
 
 **Architecture:**
-- **Limiter:** `auth.Limiter` gains `Full`, which checks without recording, and `Add`, which records. Sign-in checks `Full` for the phone before the password, and `Add`s on every wrong password. A pure `owners.commonPassword` runs after the length checks at sign-up and admin set-password.
+- **Limiter:** `auth.Limiter` gains `Undo`, which takes back the latest event. Sign-in counts each try for the phone with `Allow` before the password check, so parallel tries can't slip past, and `Undo`es it when the password is right or the server fails. Input that isn't a phone number isn't counted. A pure `owners.commonPassword` runs after the length checks at sign-up and admin set-password.
 - **Frontend:** a new link in `Header`, two texts, and the manifest's `background_color`.
 
 **Tech Stack:** Go 1.27, Gin and PostgreSQL 17 (backend); Solid 1.9 and Tailwind 4 with Deno 2.4 (frontend).
@@ -22,7 +22,8 @@
   - 10 wrong passwords per normalized phone number in 15 minutes (`auth.NewLimiter(10, 15*time.Minute)`).
   - It applies on top of the existing per-IP limiter.
   - Unknown numbers count too, and a correct password neither counts nor clears the count.
-  - The lock is checked **before** the password.
+  - Input that isn't a phone number can't match an account and isn't counted.
+  - The try is counted and checked in one step (`Allow`) **before** the password, and taken back with `Undo` when the password is right.
 - **The lock error:** HTTP 429, code `too_many_attempts`.
 - **Common passwords:** field code `too_common`, for new passwords only (sign-up and admin set-password). The phone-digits rule runs at sign-up only.
 - **Unchanged:**
@@ -62,13 +63,13 @@
 
 **Interfaces:**
 - Produces:
-  - `(*auth.Limiter).Full(key string) bool` and `(*auth.Limiter).Add(key string)`;
+  - `(*auth.Limiter).Undo(key string)`;
   - the `owners.Handler.PhoneLimiter *auth.Limiter` field;
   - the `server.Deps.ShopPhoneLimiter` field, which defaults to `auth.NewLimiter(10, 15*time.Minute)` when nil;
   - the error code `too_many_attempts` (429);
   - the field code `too_common`.
 
-- [ ] **Step 1: The limiter can check without counting**
+- [ ] **Step 1: The limiter can take back an event**
 
 `backend/internal/auth/ratelimit.go`
 ```go
@@ -121,20 +122,18 @@ func (l *Limiter) Allow(key string) bool {
 	return true
 }
 
-// Full reports whether key has reached its limit, without recording an event. With Add it counts
-// only some events, e.g. wrong passwords: check Full first, Add when the event happens.
-func (l *Limiter) Full(key string) bool {
+// Undo takes back key's most recent event, e.g. a sign-in try that turned out to be right. With
+// Allow it counts only some events, with no gap between checking and counting for parallel tries.
+func (l *Limiter) Undo(key string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	return len(l.recent(key, l.now())) >= l.max
-}
-
-// Add records one event for key.
-func (l *Limiter) Add(key string) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	now := l.now()
-	l.hits[key] = append(l.recent(key, now), now)
+	switch h := l.hits[key]; len(h) {
+	case 0:
+	case 1:
+		delete(l.hits, key)
+	default:
+		l.hits[key] = h[:len(h)-1]
+	}
 }
 ```
 
@@ -149,36 +148,39 @@ with:
 	}
 }
 
-func TestLimiterFullAndAddCountOnlyAddedEvents(t *testing.T) {
+func TestLimiterUndoTakesBackTheLatestEvent(t *testing.T) {
 	now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 	l := NewLimiter(3, 15*time.Minute)
 	l.now = func() time.Time { return now }
 	for i := 0; i < 3; i++ {
-		if l.Full("+99365000001") {
-			t.Fatalf("full after %d events", i)
+		if !l.Allow("+99365000001") {
+			t.Fatalf("try %d blocked", i+1)
 		}
-		l.Add("+99365000001")
 	}
-	if !l.Full("+99365000001") {
-		t.Fatal("not full after 3 events")
+	if l.Allow("+99365000001") {
+		t.Fatal("4th try allowed")
 	}
-	// Checking does not record anything, and other keys are separate.
-	for i := 0; i < 5; i++ {
-		l.Full("+99365000002")
+	l.Undo("+99365000001")
+	if !l.Allow("+99365000001") {
+		t.Fatal("not allowed after Undo")
 	}
-	if l.Full("+99365000002") {
-		t.Fatal("Full recorded events")
+	// Undo on a key with no events does nothing, and keys are separate.
+	l.Undo("+99365000002")
+	for i := 0; i < 3; i++ {
+		if !l.Allow("+99365000002") {
+			t.Fatalf("other key: try %d blocked", i+1)
+		}
 	}
 	now = now.Add(15*time.Minute + time.Second)
-	if l.Full("+99365000001") {
-		t.Fatal("still full after the window passed")
+	if !l.Allow("+99365000001") {
+		t.Fatal("still blocked after the window passed")
 	}
 }
 
 ```
 
 Run, from `backend/`: `set -a; . ./.env; set +a; GOPROXY=off go test -count=1 ./internal/auth/`
-Expected: `ok`, including `TestLimiterFullAndAddCountOnlyAddedEvents` and the existing `TestLimiterAllowsMaxPerWindow`.
+Expected: `ok`, including `TestLimiterUndoTakesBackTheLatestEvent` and the existing `TestLimiterAllowsMaxPerWindow`.
 
 - [ ] **Step 2: Write the failing common-password test**
 
@@ -204,7 +206,11 @@ func TestCommonPassword(t *testing.T) {
 		{"65123456", "+99365123456", true},    // the phone's last 8 digits
 		{"99365123456", "+99365123456", true}, // the whole phone number
 		{"+99365123456", "+99365123456", true},
-		{"65123456", "", false}, // fine when no phone is given (admin path)
+		{"65 12 34 56", "+99365123456", true}, // however it is spaced
+		{"+993 65 12-34-56", "+99365123456", true},
+		{"865123456", "+99365123456", true},   // the 8-prefixed local form
+		{"65123456ab", "+99365123456", false}, // letters make it a different password
+		{"65123456", "", false},               // fine when no phone is given (admin path)
 		{"ak-gelin-24", "", false},
 		{"abcdeg", "", false},
 		{"135790", "", false},
@@ -246,7 +252,8 @@ func init() {
 }
 
 // commonPassword reports whether a new password is too easy to guess: on the list, one repeated
-// character, a run of digits (up or down), or, when phone is given, the phone number's own digits.
+// character, a run of digits (up or down), or, when phone is given, the phone number itself (its
+// digits, however they are spaced, in full, local or 8-prefixed form).
 func commonPassword(password, phone string) bool {
 	p := strings.ToLower(strings.TrimSpace(password))
 	if commonList[p] {
@@ -262,12 +269,12 @@ func commonPassword(password, phone string) bool {
 	if len(r) > 1 && (same || (unicode.IsDigit(r[0]) && (up || down))) {
 		return true
 	}
-	if digits := onlyDigits(phone); digits != "" {
+	if digits := onlyDigits(phone); digits != "" && strings.Trim(p, "0123456789+-() ") == "" {
 		local := digits
 		if len(local) > 8 {
 			local = local[len(local)-8:]
 		}
-		if p == digits || p == local || p == "+"+digits {
+		if pd := onlyDigits(p); pd == digits || pd == local || pd == "8"+local {
 			return true
 		}
 	}
@@ -293,7 +300,7 @@ Expected: `ok`.
 Both test setups get a `PhoneLimiter`. The new tests cover:
 - the lock after 10 wrong passwords;
 - the correct password not counting;
-- another number being unaffected;
+- an unknown number locking the same way, and non-phone input never locking;
 - common passwords at sign-up and at admin set-password.
 
 In `backend/internal/owners/owners_test.go`, replace:
@@ -324,6 +331,20 @@ In `backend/internal/owners/owners_test.go`, replace:
 with:
 ```go
 	h := &owners.Handler{DB: e.tx, Tokens: tokens, Limiter: auth.NewLimiter(5, time.Minute), PhoneLimiter: auth.NewLimiter(10, 15*time.Minute)}
+```
+
+In `backend/internal/owners/owners_test.go`, replace:
+```go
+		t.Fatalf("6th attempt: status = %d", rec.Code)
+	}
+```
+with:
+```go
+		t.Fatalf("6th attempt: status = %d", rec.Code)
+	}
+	if code := testutil.Decode[testutil.ErrorBody](t, rec).Error.Code; code != "rate_limited" {
+		t.Fatalf("6th attempt: code = %q, want rate_limited (the per-IP limit)", code)
+	}
 ```
 
 In `backend/internal/owners/owners_test.go`, replace:
@@ -362,9 +383,22 @@ func TestLoginStopsAfterTenWrongPasswordsForOneNumber(t *testing.T) {
 	if code := testutil.Decode[testutil.ErrorBody](t, rec).Error.Code; code != "too_many_attempts" {
 		t.Fatalf("code = %q, want too_many_attempts", code)
 	}
-	// Another number is not affected; an unknown number gets the usual answer.
-	if rec := login("65999999", "whatever-1"); rec.Code != http.StatusUnauthorized {
-		t.Fatalf("other number: status = %d, want 401", rec.Code)
+	// Another number is not affected. An unknown number locks the same way, so the answer never tells
+	// whether an account exists.
+	for i := 0; i < 10; i++ {
+		if rec := login("65999999", "whatever-1"); rec.Code != http.StatusUnauthorized {
+			t.Fatalf("unknown number, try %d: status = %d, want 401", i+1, rec.Code)
+		}
+	}
+	rec = login("65999999", "whatever-1")
+	if rec.Code != http.StatusTooManyRequests || testutil.Decode[testutil.ErrorBody](t, rec).Error.Code != "too_many_attempts" {
+		t.Fatalf("unknown number after 10: status = %d: %s", rec.Code, rec.Body)
+	}
+	// Input that is not a phone number can't match an account and isn't counted.
+	for i := 0; i < 12; i++ {
+		if rec := login("not a phone", "whatever-1"); rec.Code != http.StatusUnauthorized {
+			t.Fatalf("not a phone, try %d: status = %d, want 401", i+1, rec.Code)
+		}
 	}
 }
 
@@ -401,7 +435,8 @@ In `backend/internal/owners/handler.go`, replace:
 with:
 ```go
 	errRateLimited        = httpx.New(http.StatusTooManyRequests, "rate_limited", "too many attempts, try again in a minute")
-	errTooManyAttempts    = httpx.New(http.StatusTooManyRequests, "too_many_attempts", "too many wrong passwords for this number, try again in 15 minutes")
+	// The 15 minutes is server.go's default PhoneLimiter window.
+	errTooManyAttempts = httpx.New(http.StatusTooManyRequests, "too_many_attempts", "too many wrong passwords for this number, try again in 15 minutes")
 )
 ```
 
@@ -435,38 +470,53 @@ with:
 In `backend/internal/owners/handler.go`, replace:
 ```go
 	phone, _ := NormalizePhone(in.Phone)
-	o, err := byPhone(c.Request.Context(), h.DB, phone)
-	if errors.Is(err, pgx.ErrNoRows) {
-		auth.CheckPassword(dummyHash, in.Password)
 ```
 with:
 ```go
 	phone, ok := NormalizePhone(in.Phone)
-	// Unknown numbers count too, so the answer never tells whether an account exists.
-	key := phone
-	if !ok {
-		key = strings.TrimSpace(in.Phone)
-	}
-	if h.PhoneLimiter.Full(key) {
+	// Each try is counted before the password is checked and taken back when it is right, so parallel
+	// tries can't slip past the limit. Unknown numbers count too, so the answer never tells whether an
+	// account exists; input that is not a phone number can't match an account and isn't counted.
+	if ok && !h.PhoneLimiter.Allow(phone) {
 		httpx.Abort(c, errTooManyAttempts)
 		return
 	}
-	o, err := byPhone(c.Request.Context(), h.DB, phone)
-	if errors.Is(err, pgx.ErrNoRows) {
-		auth.CheckPassword(dummyHash, in.Password)
-		h.PhoneLimiter.Add(key)
 ```
 
 In `backend/internal/owners/handler.go`, replace:
 ```go
-	if !auth.CheckPassword(o.PasswordHash, in.Password) {
 		httpx.Abort(c, errInvalidCredentials)
+		return
+	}
+	if err != nil {
+		httpx.Abort(c, err)
+		return
+	}
+	if !auth.CheckPassword(o.PasswordHash, in.Password) {
 ```
 with:
 ```go
-	if !auth.CheckPassword(o.PasswordHash, in.Password) {
-		h.PhoneLimiter.Add(key)
 		httpx.Abort(c, errInvalidCredentials)
+		return
+	}
+	if err != nil {
+		h.PhoneLimiter.Undo(phone) // a server error is not a wrong password
+		httpx.Abort(c, err)
+		return
+	}
+	if !auth.CheckPassword(o.PasswordHash, in.Password) {
+```
+
+In `backend/internal/owners/handler.go`, replace:
+```go
+	}
+	h.respondWithToken(c, http.StatusOK, o)
+```
+with:
+```go
+	}
+	h.PhoneLimiter.Undo(phone)
+	h.respondWithToken(c, http.StatusOK, o)
 ```
 
 In `backend/internal/owners/handler.go`, replace:
@@ -674,3 +724,12 @@ This runs in headless Chrome, on the test database.
 - **Sign-up:** a sign-up with `123456` shows the too-common message.
 - **The lock:** 10 wrong passwords for one number, paced under the per-IP limit, are followed by the sign-in page showing the 15-minute message.
 - **The manifest** serves `"background_color": "#121214"`.
+
+## Changes made during review
+
+- **Task 1:** the review found two problems in the first version.
+  - **Memory.** Non-phone input was counted under its raw text, up to 1 MiB, and never pruned.
+  - **Parallel tries.** A separate check (`Full`) and count (`Add`), with bcrypt in between, let parallel tries from many devices get well past 10.
+  - **The fix:** non-phone input isn't counted; each try is counted with `Allow` and taken back with `Undo` on success.
+  - **Also:** the phone-number rule now compares the password's digits however they are spaced, and the tests cover unknown numbers, non-phone input and the per-IP `rate_limited` code.
+

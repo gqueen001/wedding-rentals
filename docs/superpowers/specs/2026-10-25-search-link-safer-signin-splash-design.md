@@ -30,15 +30,13 @@ There are three follow-ups from the last reviews:
 - **Which numbers count:**
   - The key is the normalized phone, the same one used to look up the owner.
   - Unknown numbers count too, so the reply never reveals whether an account exists.
-  - An input that doesn't normalize is keyed by its raw text.
-- **The error:** a refused sign-in gets **HTTP 429** with a new error code, **`too_many_attempts`** ("too many wrong passwords for this number, try again in 15 minutes"). The check happens **before** the password is checked, so a locked number can't be probed.
+  - An input that doesn't normalize can't match any account and isn't counted (counting it by its raw text would let junk input fill memory).
+- **The error:** a refused sign-in gets **HTTP 429** with a new error code, **`too_many_attempts`** ("too many wrong passwords for this number, try again in 15 minutes"). Each try is counted and checked in one step **before** the password is checked, so a locked number can't be probed and parallel tries can't slip past; a right password (or a server error) takes its try back.
 - **What counts:** a correct password doesn't add to the count, and it doesn't clear it.
 - **Where it lives:** the count is kept in memory, the same way as the existing limiter. A server restart clears it, which is acceptable.
 - **Implementation:**
-  - `auth.Limiter` gets two methods:
-    - `Full(key) bool`: is the key at its limit? This prunes old events and doesn't record one.
-    - `Add(key)`: records one event.
-  - The existing `Allow` keeps working, and both new methods are unit tested.
+  - `auth.Limiter` gets `Undo(key)`, which takes back the key's latest event. Sign-in uses the existing `Allow` to count a try and `Undo` when it was right.
+  - `Undo` is unit tested, and `Allow` keeps working.
   - `owners.Handler` gets a `PhoneLimiter`. `server.go` creates it as `auth.NewLimiter(10, 15*time.Minute)` when it is nil.
 
 ### 3.2 No very common passwords
@@ -51,7 +49,7 @@ There are three follow-ups from the last reviews:
     - words: `password`, `password1`, `parol`, `parol123`, `пароль`, `abc123`, `abcdef`, `iloveyou`, `gelin`, `gelin123`, `salon`, `salon123`, `toy123` and `turkmenistan`;
   - every character is the same, for example `111111` or `aaaaaa`;
   - it is an ascending or descending run of digits, for example `234567` or `987654`;
-  - **at sign-up only:** its digits are exactly the phone number's digits, either the full normalized number or its last 8 digits.
+  - **at sign-up only:** it is made only of digits (and `+ - ( )` or spaces), and its digits are the phone number's: the full normalized number, its last 8 digits, or those with a leading 8.
 - **The code:** a pure function, `owners.commonPassword(password, phone string) bool`, with table tests. The admin path calls it with an empty phone.
 
 ### 3.3 Texts
