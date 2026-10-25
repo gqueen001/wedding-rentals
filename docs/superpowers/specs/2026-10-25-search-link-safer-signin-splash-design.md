@@ -56,7 +56,7 @@ There are three follow-ups from the last reviews:
 
 | Key | tk | ru | en |
 |---|---|---|---|
-| `error.too_many_attempts` | Bu belgi üçin nädogry açar sözi gaty köp. 15 minutdan gaýtadan synanyşyň. | Слишком много неверных паролей для этого номера. Попробуйте через 15 минут. | Too many wrong passwords for this number. Try again in 15 minutes. |
+| `error.too_many_attempts` | Bu belgi üçin nädogry açar söz gaty köp girizildi. 15 minutdan gaýtadan synanyşyň. | Слишком много неверных паролей для этого номера. Попробуйте через 15 минут. | Too many wrong passwords for this number. Try again in 15 minutes. |
 | `field.too_common` | Bu açar söz gaty ýönekeý. Başgasyny saýlaň. | Слишком простой пароль. Выберите другой. | This password is too common. Choose another one. |
 
 - The i18n test's lists of API error codes and field values each gain the new code.
