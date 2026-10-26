@@ -34,7 +34,7 @@ export default function Home() {
             <Oval photo={PHOTOS.dresses} class="absolute left-1/2 top-2 h-[19rem] w-52 -translate-x-1/2 sm:h-[24rem] sm:w-64" />
             <Oval photo={PHOTOS.bouquet} class="absolute bottom-6 right-2 h-28 w-20 border-4 border-white sm:right-6" />
             <p
-              class="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center font-display text-[5rem] uppercase leading-none text-ink mix-blend-multiply dark:mix-blend-difference sm:text-[7rem]"
+              class="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center font-display text-[5rem] uppercase leading-none text-ink mix-blend-multiply dark:mix-blend-normal dark:[text-shadow:0_2px_14px_rgb(0_0_0_/_0.6)] sm:text-[7rem]"
               aria-hidden="true"
             >
               {t("app.name")}
