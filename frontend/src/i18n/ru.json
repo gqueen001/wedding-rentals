@@ -332,5 +332,10 @@
   "favorites.device_note": "Избранное хранится только на этом устройстве.",
   "error.too_many_attempts": "Слишком много неверных паролей для этого номера. Попробуйте через 15 минут.",
   "field.too_common": "Слишком простой пароль. Выберите другой.",
-  "footer.add_shop_short": "Добавить салон"
+  "footer.add_shop_short": "Добавить салон",
+  "credits.title": "Авторы фото",
+  "credits.lead": "Эти фото взяты из Wikimedia Commons и используются по лицензиям их авторов.",
+  "credits.bouquet": "Свадебный букет",
+  "credits.author": "Автор: {name}",
+  "credits.source": "Источник"
 }

@@ -2,20 +2,21 @@ import { A } from "@solidjs/router";
 import { For, Show } from "solid-js";
 import { ChevronRightIcon } from "../components/icons.tsx";
 import { t, tr } from "../i18n/i18n.ts";
-import { CATEGORIES, catLabel, categoryHref, categoryPicture } from "../lib/catalog.ts";
+import { CATEGORIES, catLabel, categoryHref } from "../lib/catalog.ts";
 import { useCategoryCount } from "../lib/categoryCount.ts";
+import { categoryPhoto, photoStyle } from "../lib/photos.ts";
 import { usePageTitle } from "../lib/title.ts";
 
-/** One category: its picture and how many listings it has. */
+/** One category: its photo and how many listings it has. */
 function CategoryRow(props: { slug: string; oval: boolean }) {
   const count = useCategoryCount(() => props.slug);
   return (
     <li class="border-b border-line">
       <A href={categoryHref(props.slug)} class="flex items-center gap-5 py-4 hover:text-garnet">
         <span
-          class="h-24 w-[4.5rem] shrink-0 bg-veil bg-cover bg-center dark:brightness-[.86]"
+          class="h-24 w-[4.5rem] shrink-0 bg-veil bg-cover dark:brightness-[.86]"
           classList={{ "rounded-[50%]": props.oval }}
-          style={{ "background-image": `url("${categoryPicture(props.slug)}")` }}
+          style={photoStyle(categoryPhoto(props.slug))}
           aria-hidden="true"
         />
         <span class="min-w-0 flex-1">

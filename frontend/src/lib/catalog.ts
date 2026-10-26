@@ -38,11 +38,6 @@ export function categoryHref(slug: string): string {
   return slug === "dresses" ? "/dresses" : `/c/${slug}`;
 }
 
-/** A category's own drawn picture (public/art), shown next to its name on Home and Categories. */
-export function categoryPicture(slug: string): string {
-  return `/art/${slug}.svg`;
-}
-
 /** A listing's public page: dresses keep /dresses/:id, everything else is /items/:id. */
 export function listingHref(item: Pick<ListItem, "id" | "category">): string {
   return !item.category || item.category === "dresses" ? `/dresses/${item.id}` : `/items/${item.id}`;

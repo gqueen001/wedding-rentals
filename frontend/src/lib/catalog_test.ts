@@ -1,5 +1,5 @@
 import { assert, assertEquals } from "@std/assert";
-import { CATEGORIES, categoryDef, categoryHref, categoryPicture, ITEM_CATEGORIES, listingHref } from "./catalog.ts";
+import { CATEGORIES, categoryDef, categoryHref, ITEM_CATEGORIES, listingHref } from "./catalog.ts";
 
 Deno.test("dresses come first and keep their own pages", () => {
   assertEquals(CATEGORIES[0].slug, "dresses");
@@ -25,9 +25,4 @@ Deno.test("links go to each category's own pages", () => {
   assertEquals(listingHref({ id: 4, category: "dresses" }), "/dresses/4");
   assertEquals(listingHref({ id: 4 }), "/dresses/4"); // dress lists send no category
   assertEquals(listingHref({ id: 5, category: "cars" }), "/items/5");
-});
-
-Deno.test("each category's picture is its own file under /art", () => {
-  assertEquals(categoryPicture("national-clothes"), "/art/national-clothes.svg");
-  assertEquals(new Set(CATEGORIES.map((c) => categoryPicture(c.slug))).size, CATEGORIES.length);
 });

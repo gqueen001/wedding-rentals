@@ -11,6 +11,7 @@ import Categories from "./pages/Categories.tsx";
 import Category from "./pages/Category.tsx";
 import Home from "./pages/Home.tsx";
 import Item from "./pages/Item.tsx";
+import Credits from "./pages/Credits.tsx";
 import More from "./pages/More.tsx";
 import Search from "./pages/Search.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -48,6 +49,7 @@ render(
       <Route path="/shops/:slug" component={Shop} />
       <Route path="/favorites" component={Favorites} />
       <Route path="/more" component={More} />
+      <Route path="/credits" component={Credits} />
       <Route path="/admin/login" component={Login} />
       <Route path="/admin" component={AdminLayout}>
         <Route path="/" component={() => <Navigate href="/admin/shops" />} />
