@@ -1,6 +1,6 @@
 import type {
   AdminDress, AdminItem, AdminShop, BusyDays, City, DressInput, ItemInput, ListingSummary, Page, PublicDress,
-  PublicItem, PublicShop, ShopInput, ShopMe, SignupInput,
+  PublicItem, PublicShop, ShopInput, ShopMe, ShopSummary, SignupInput,
 } from "./types.ts";
 
 export class ApiError extends Error {
@@ -144,6 +144,8 @@ export function createApi(deps: ApiDeps) {
     items: (query?: URLSearchParams) => request<Page>("GET", withQuery("/api/items", query)),
     item: (id: number | string) => request<PublicItem>("GET", `/api/items/${encodeURIComponent(String(id))}`),
     busyDays: (listingId: number) => request<BusyDays>("GET", `/api/items/${listingId}/busy-days`),
+    /** Published salons A to Z, or with ?q= the ones whose name or alias matches. */
+    shops: (query?: URLSearchParams) => request<Page<ShopSummary>>("GET", withQuery("/api/shops", query)),
     shop: (slug: string, query?: URLSearchParams) =>
       request<PublicShop>("GET", withQuery(`/api/shops/${encodeURIComponent(slug)}`, query)),
     login: (email: string, password: string) =>

@@ -2,7 +2,14 @@ import { createUniqueId } from "solid-js";
 import { t } from "../i18n/i18n.ts";
 import { SearchIcon } from "./icons.tsx";
 
-export default function SearchBox(props: { value: string; onSearch: (q: string) => void; large?: boolean }) {
+/** A search form; label and placeholder default to the listing search's. */
+export default function SearchBox(props: {
+  value: string;
+  onSearch: (q: string) => void;
+  large?: boolean;
+  label?: string;
+  placeholder?: string;
+}) {
   const id = createUniqueId();
   let input!: HTMLInputElement;
   return (
@@ -15,7 +22,7 @@ export default function SearchBox(props: { value: string; onSearch: (q: string) 
       }}
     >
       <label for={id} class="sr-only">
-        {t("search.label")}
+        {props.label ?? t("search.label")}
       </label>
       <div class="relative flex-1">
         <SearchIcon class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-silver-ink" />
@@ -25,7 +32,7 @@ export default function SearchBox(props: { value: string; onSearch: (q: string) 
           type="search"
           autocomplete="off"
           value={props.value}
-          placeholder={t("search.placeholder")}
+          placeholder={props.placeholder ?? t("search.placeholder")}
           class="field-input pl-10"
           classList={{ "min-h-14 text-lg": props.large }}
         />

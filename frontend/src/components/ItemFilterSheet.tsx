@@ -1,4 +1,4 @@
-import { createSignal, For, Match, Show, Switch } from "solid-js";
+import { createSignal, For, Match, Switch } from "solid-js";
 import { t, tr } from "../i18n/i18n.ts";
 import { type CategoryDef, fieldLabel, optionLabel } from "../lib/catalog.ts";
 import { EMPTY_ITEM_FILTERS, type ItemFilters } from "../lib/itemFilters.ts";
@@ -6,8 +6,7 @@ import { ChoiceGroup, CityField, NumberInput, PriceFields } from "./FilterFields
 import Sheet from "./Sheet.tsx";
 
 /**
- * The filters of a category page or of /search, built from the category's field definitions.
- * With hideCity the city is left out (and kept on Reset), for pages that have their own city dropdown.
+ * The filters of a category page, built from the category's field definitions.
  */
 export default function ItemFilterSheet(props: {
   category: CategoryDef;
@@ -15,7 +14,6 @@ export default function ItemFilterSheet(props: {
   value: ItemFilters;
   onApply: (f: ItemFilters) => void;
   onClose: () => void;
-  hideCity?: boolean;
 }) {
   const [draft, setDraft] = createSignal<ItemFilters>({ ...props.value });
   const setAttr = (param: string, value: string) =>
@@ -33,7 +31,7 @@ export default function ItemFilterSheet(props: {
           <button
             type="button"
             class="btn btn-quiet"
-            onClick={() => setDraft({ ...EMPTY_ITEM_FILTERS, q: draft().q, city: props.hideCity ? draft().city : "" })}
+            onClick={() => setDraft({ ...EMPTY_ITEM_FILTERS, q: draft().q })}
           >
             {t("filters.reset")}
           </button>
@@ -43,9 +41,7 @@ export default function ItemFilterSheet(props: {
         </>
       }
     >
-      <Show when={!props.hideCity}>
-        <CityField value={draft().city} onChange={(city) => setDraft((d) => ({ ...d, city }))} />
-      </Show>
+      <CityField value={draft().city} onChange={(city) => setDraft((d) => ({ ...d, city }))} />
       <PriceFields
         min={draft().priceMin}
         max={draft().priceMax}

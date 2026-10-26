@@ -51,6 +51,15 @@ export interface ListItem {
   city: CityRef;
 }
 
+/** One row of the public salon list (GET /api/shops). */
+export interface ShopSummary {
+  name: string;
+  slug: string;
+  logo: string | null;
+  city: CityRef;
+  listing_count: number;
+}
+
 export interface Page<T = ListItem> {
   items: T[];
   page: number;

@@ -1,11 +1,7 @@
 import { useNavigate } from "@solidjs/router";
-import { For } from "solid-js";
 import CategoryBar from "../components/CategoryBar.tsx";
 import SearchBox from "../components/SearchBox.tsx";
-import { i18n, t } from "../i18n/i18n.ts";
-import { useCities } from "../lib/cities.ts";
-import { EMPTY_FILTERS, filtersToQuery } from "../lib/filters.ts";
-import { cityName } from "../lib/format.ts";
+import { t } from "../i18n/i18n.ts";
 import { usePageTitle } from "../lib/title.ts";
 
 /** A drawn picture (public/art) in an oval frame, a little dimmed in dark mode. */
@@ -22,12 +18,7 @@ function Oval(props: { picture: string; class: string }) {
 export default function Home() {
   usePageTitle(() => undefined);
   const navigate = useNavigate();
-  const cities = useCities();
   const search = (q: string) => navigate(q ? `/search?${new URLSearchParams({ q })}` : "/search");
-  const browseCity = (city: string) => {
-    const qs = filtersToQuery({ ...EMPTY_FILTERS, city }).toString();
-    navigate(qs ? `/dresses?${qs}` : "/dresses");
-  };
 
   return (
     <>
@@ -50,19 +41,13 @@ export default function Home() {
           </div>
           <h1 class="label text-center">{t("home.title")}</h1>
           <p class="mx-auto mt-3 max-w-md text-center text-silver-ink">{t("home.lead")}</p>
-          <div class="mx-auto mt-6 max-w-md space-y-4">
-            <SearchBox value="" onSearch={search} />
-            <div class="flex justify-center">
-              <select
-                class="field-input w-auto"
-                aria-label={t("home.city")}
-                value=""
-                onChange={(e) => e.currentTarget.value && browseCity(e.currentTarget.value)}
-              >
-                <option value="">{t("home.all_cities")}</option>
-                <For each={cities()}>{(c) => <option value={c.slug}>{cityName(c, i18n.lang())}</option>}</For>
-              </select>
-            </div>
+          <div class="mx-auto mt-6 max-w-md">
+            <SearchBox
+              value=""
+              onSearch={search}
+              label={t("search.salon_label")}
+              placeholder={t("search.salon_placeholder")}
+            />
           </div>
         </div>
         <CategoryBar />

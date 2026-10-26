@@ -25,6 +25,7 @@ func (h *Handler) RegisterAdmin(g *gin.RouterGroup) {
 }
 
 func (h *Handler) RegisterPublic(g *gin.RouterGroup) {
+	g.GET("/shops", h.listPublic)
 	g.GET("/shops/:slug", h.getPublic)
 }
 

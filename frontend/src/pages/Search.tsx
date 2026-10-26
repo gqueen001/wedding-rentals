@@ -1,136 +1,91 @@
 import { A, useLocation, useNavigate } from "@solidjs/router";
-import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
-import EmptyState from "../components/EmptyState.tsx";
+import { createMemo, For, Match, Switch } from "solid-js";
 import ErrorState from "../components/ErrorState.tsx";
-import FilterChips from "../components/FilterChips.tsx";
-import { itemFilterChips } from "../components/itemFilterChips.ts";
-import ItemFilterSheet from "../components/ItemFilterSheet.tsx";
-import ListingGrid from "../components/ListingGrid.tsx";
 import LoadMore from "../components/LoadMore.tsx";
 import SearchBox from "../components/SearchBox.tsx";
-import { GridSkeleton } from "../components/Skeleton.tsx";
+import ShopLogo from "../components/ShopLogo.tsx";
+import { ChevronRightIcon } from "../components/icons.tsx";
 import { i18n, t, tr } from "../i18n/i18n.ts";
-import { CATEGORIES, catLabel } from "../lib/catalog.ts";
-import { useCities } from "../lib/cities.ts";
+import { CATEGORIES, catLabel, categoryHref } from "../lib/catalog.ts";
 import { api } from "../lib/client.ts";
 import { cityName } from "../lib/format.ts";
-import { countItemFilters, EMPTY_ITEM_FILTERS, type ItemFilters } from "../lib/itemFilters.ts";
 import { createRememberedList, type ListMemory } from "../lib/rememberedList.ts";
-import { parseSearch, searchFields, searchHref, searchQuery } from "../lib/search.ts";
 import { usePageTitle } from "../lib/title.ts";
-import type { ListItem } from "../lib/types.ts";
+import type { ShopSummary } from "../lib/types.ts";
 
 const PER_PAGE = "24";
-const memory: ListMemory<ListItem> = {};
+const memory: ListMemory<ShopSummary> = {};
 
-/** /search?q=&category=&city=&price_min=…: every category at once, narrowed by chips, city and filters. */
+/** One salon: its logo, name, city and how many listings it has; it opens the salon's page. */
+function SalonRow(props: { shop: ShopSummary }) {
+  return (
+    <li class="border-b border-line">
+      <A href={`/shops/${props.shop.slug}`} class="flex items-center gap-4 py-3 hover:text-garnet">
+        <ShopLogo url={props.shop.logo} name={props.shop.name} />
+        <span class="min-w-0 flex-1">
+          <span class="block truncate font-display text-2xl leading-tight sm:text-3xl">{props.shop.name}</span>
+          <span class="label mt-1 block">
+            {cityName(props.shop.city, i18n.lang())} · {t("categories.count", { count: props.shop.listing_count })}
+          </span>
+        </span>
+        <ChevronRightIcon class="h-5 w-5 shrink-0 text-silver-ink" />
+      </A>
+    </li>
+  );
+}
+
+/** /search?q=: the salons whose name matches, or every salon A to Z when nothing is typed. */
 export default function Search() {
   usePageTitle(() => t("search.title"));
   const location = useLocation();
   const navigate = useNavigate();
-  const state = createMemo(() => parseSearch(new URLSearchParams(location.search)), undefined, {
-    equals: (a, b) => searchQuery(a).toString() === searchQuery(b).toString(),
-  });
-  const slug = () => state().category?.slug ?? "";
-  const [sheetOpen, setSheetOpen] = createSignal(false);
-  const apply = (f: ItemFilters) => {
-    setSheetOpen(false);
-    navigate(searchHref(slug(), f));
-  };
-  const list = createRememberedList(memory, () => searchHref(slug(), state().filters), (page) => {
-    const query = searchQuery(state());
-    query.set("page", String(page));
-    query.set("per_page", PER_PAGE);
-    return api.items(query);
-  });
-  const cities = useCities();
-  const activeChips = () => itemFilterChips(searchFields(state().category), state().filters, cities(), apply);
-  // The city has its own dropdown, so the Filters badge counts only what is in the sheet.
-  const sheetCount = () => countItemFilters({ ...state().filters, city: "" });
+  const q = createMemo(() => (new URLSearchParams(location.search).get("q") ?? "").trim());
+  const list = createRememberedList(memory, q, (page) =>
+    api.shops(new URLSearchParams({ ...(q() ? { q: q() } : {}), page: String(page), per_page: PER_PAGE })));
   const firstLoad = () => list.items().length === 0;
-  const chip = (category: string, label: string) => (
-    <A
-      href={searchHref(category, state().filters)}
-      class="chip"
-      classList={{ "border-garnet bg-blush text-garnet-deep": slug() === category }}
-      aria-current={slug() === category ? "page" : undefined}
-    >
-      {label}
-    </A>
-  );
 
   return (
     <div class="pt-6">
-      <h1 class="sr-only">{t("search.title")}</h1>
-      <div class="max-w-xl space-y-3">
-        <SearchBox value={state().filters.q} onSearch={(q) => apply({ ...state().filters, q })} />
-        <label class="flex flex-wrap items-center gap-3 text-sm">
-          <span class="text-silver-ink">{t("home.city")}</span>
-          <select
-            class="field-input w-auto"
-            value={state().filters.city}
-            onChange={(e) => apply({ ...state().filters, city: e.currentTarget.value })}
-          >
-            {/* selected= as well as value=: the cities load after the first render. */}
-            <option value="" selected={!state().filters.city}>{t("home.all_cities")}</option>
-            <For each={cities()}>
-              {(c) => (
-                <option value={c.slug} selected={c.slug === state().filters.city}>{cityName(c, i18n.lang())}</option>
-              )}
-            </For>
-          </select>
-        </label>
-      </div>
-      <nav class="mt-5 flex flex-wrap gap-2" aria-label={t("home.categories")}>
-        {chip("", t("search.all"))}
-        <For each={CATEGORIES}>{(c) => chip(c.slug, tr(catLabel(c.slug)))}</For>
-      </nav>
-      <div class="mt-3">
-        <FilterChips
-          count={sheetCount()}
-          active={activeChips()}
-          onOpen={() => setSheetOpen(true)}
+      <p class="label">{t("search.title")}</p>
+      <h1 class="mt-2 text-5xl sm:text-6xl">{t("search.salons")}</h1>
+      <div class="mt-5 max-w-xl">
+        <SearchBox
+          value={q()}
+          onSearch={(text) => navigate(text ? `/search?${new URLSearchParams({ q: text })}` : "/search")}
+          label={t("search.salon_label")}
+          placeholder={t("search.salon_placeholder")}
         />
       </div>
-      <p class="label mt-5 min-h-5" aria-live="polite">
-        <Show when={!(list.loading() && firstLoad()) && list.error() === null}>{t("dresses.found", { count: list.total() })}</Show>
-      </p>
-      <div class="mt-4">
+      <div class="mt-4 max-w-2xl">
         <Switch>
           <Match when={firstLoad() && list.error() !== null}>
             <ErrorState error={list.error()} onRetry={() => void list.retry()} />
           </Match>
           <Match when={firstLoad() && list.loading()}>
-            <GridSkeleton />
+            <ul aria-busy="true" aria-label={t("common.loading")}>
+              <For each={[0, 1, 2, 3, 4]}>
+                {() => <li class="my-3 h-14 animate-pulse rounded-lg bg-veil" />}
+              </For>
+            </ul>
           </Match>
           <Match when={firstLoad()}>
-            <EmptyState title={t("items.empty_title")} body={t("search.empty_body")}>
-              <Show when={countItemFilters(state().filters) > 0}>
-                <button
-                  type="button"
-                  class="btn btn-outline"
-                  onClick={() => apply({ ...EMPTY_ITEM_FILTERS, q: state().filters.q })}
-                >
-                  {t("dresses.clear")}
-                </button>
-              </Show>
-            </EmptyState>
+            {/* Nothing matched (usually a product word): offer the categories instead. */}
+            <div class="py-10 text-center">
+              <h2 class="text-3xl">{t("search.no_salons")}</h2>
+              <p class="mt-2 text-silver-ink">{t("search.no_salons_body")}</p>
+              <nav class="mt-5 flex flex-wrap justify-center gap-2" aria-label={t("home.categories")}>
+                <For each={CATEGORIES}>{(c) => <A href={categoryHref(c.slug)} class="chip">{tr(catLabel(c.slug))}</A>}</For>
+              </nav>
+            </div>
           </Match>
           <Match when={!firstLoad()}>
-            <ListingGrid items={list.items()} />
+            <ul class="border-t border-line">
+              <For each={list.items()}>{(shop) => <SalonRow shop={shop} />}</For>
+            </ul>
             <LoadMore list={list} />
           </Match>
         </Switch>
       </div>
-
-      <ItemFilterSheet
-        category={searchFields(state().category)}
-        open={sheetOpen()}
-        value={state().filters}
-        onApply={apply}
-        onClose={() => setSheetOpen(false)}
-        hideCity
-      />
     </div>
   );
 }
