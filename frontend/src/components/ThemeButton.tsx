@@ -3,7 +3,7 @@ import { t } from "../i18n/i18n.ts";
 import { nextTheme, theme } from "../lib/theme.ts";
 import { MoonIcon, SunIcon, ThemeAutoIcon } from "./icons.tsx";
 
-/** The computer menu's theme switch: each click goes Auto → Light → Dark; the icon shows the choice. */
+/** The theme switch beside the languages (computer menu, My shop, admin, shop sign-in): Auto → Light → Dark; the icon shows the choice. */
 export default function ThemeButton() {
   const name = () => `${t("more.theme")}: ${t(`theme.${theme.choice()}`)}`;
   return (

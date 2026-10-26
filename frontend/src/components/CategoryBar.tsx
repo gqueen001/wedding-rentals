@@ -1,12 +1,10 @@
 import { A } from "@solidjs/router";
 import { For } from "solid-js";
 import { t, tr } from "../i18n/i18n.ts";
-import { CATEGORIES, catLabel, categoryHref } from "../lib/catalog.ts";
-import { useCategoryPreview } from "../lib/categoryPreview.ts";
+import { CATEGORIES, catLabel, categoryHref, categoryPicture } from "../lib/catalog.ts";
 
-/** One category word with a small oval photo of its newest listing. */
+/** One category word with its small oval picture. */
 function CategoryWord(props: { slug: string; first: boolean }) {
-  const preview = useCategoryPreview(() => props.slug);
   return (
     <li>
       <A
@@ -15,8 +13,8 @@ function CategoryWord(props: { slug: string; first: boolean }) {
         classList={{ "text-garnet": props.first }}
       >
         <span
-          class="h-14 w-10 shrink-0 rounded-[50%] bg-veil bg-cover bg-center"
-          style={preview()?.photo ? { "background-image": `url("${preview()!.photo}")` } : undefined}
+          class="h-14 w-10 shrink-0 rounded-[50%] bg-veil bg-cover bg-center dark:brightness-[.86]"
+          style={{ "background-image": `url("${categoryPicture(props.slug)}")` }}
           aria-hidden="true"
         />
         {props.first && <span class="h-px w-8 shrink-0 bg-current" aria-hidden="true" />}
@@ -26,7 +24,7 @@ function CategoryWord(props: { slug: string; first: boolean }) {
   );
 }
 
-/** Every category as a large elegant word with a small photo, the first one marked with a short line. */
+/** Every category as a large elegant word with a small picture, the first one marked with a short line. */
 export default function CategoryBar() {
   return (
     <nav aria-label={t("home.categories")}>
