@@ -2,6 +2,7 @@ import { A, Navigate, type RouteSectionProps, useLocation, useNavigate } from "@
 import { Show } from "solid-js";
 import SignOutButton from "../../components/admin/SignOutButton.tsx";
 import LanguageSwitch from "../../components/LanguageSwitch.tsx";
+import ThemeButton from "../../components/ThemeButton.tsx";
 import { t } from "../../i18n/i18n.ts";
 import { auth } from "../../lib/auth.ts";
 import { api, uploadImage } from "../../lib/client.ts";
@@ -42,9 +43,10 @@ export default function AdminLayout(props: RouteSectionProps) {
               </A>
             </nav>
             <div class="ml-auto flex items-center gap-1">
-              {/* Phones: no room next to the admin links; the language can be changed on any public page. */}
+              {/* Phones: no room next to the admin links; the language and theme can be changed on any public page. */}
               <span class="hidden sm:contents">
                 <LanguageSwitch />
+                <ThemeButton />
               </span>
               <SignOutButton onClick={signOut} />
             </div>

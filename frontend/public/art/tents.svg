@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300">
+  <defs><radialGradient id="bg" cx="50%" cy="35%" r="72%"><stop offset="0" stop-color="#faf4f1"/><stop offset="1" stop-color="#e8d6d0"/></radialGradient>
+    <linearGradient id="cloth" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f0e7e3"/></linearGradient>
+    <radialGradient id="glow" cx="50%" cy="70%" r="70%"><stop offset="0" stop-color="#fbe6c4"/><stop offset="1" stop-color="#efcf9f"/></radialGradient>
+  </defs>
+  <rect width="200" height="300" fill="url(#bg)"/>
+  <ellipse cx="100" cy="236" rx="82" ry="8" fill="#d6c2bb" opacity=".6"/>
+  <path d="M100 72 L100 46" stroke="#a5a5ab" stroke-width="1.6"/><path d="M100 47 L118 53 L100 59Z" fill="#8e1b2e"/>
+  <path d="M28 150 L100 72 L172 150Z" fill="url(#cloth)" stroke="#c4b3ad" stroke-width=".9"/>
+  <path d="M100 72 L76 150 M100 72 L124 150 M100 72 L52 150 M100 72 L148 150" stroke="#eadbd6" stroke-width=".8"/>
+  <rect x="36" y="150" width="128" height="82" fill="url(#cloth)" stroke="#c4b3ad" stroke-width=".9"/>
+  <path d="M80 232 L80 186 Q100 166 120 186 L120 232Z" fill="url(#glow)"/>
+  <path d="M80 186 Q100 166 120 186 L114 200 Q104 186 100 186 Q96 186 86 200Z" fill="#fff" stroke="#c4b3ad" stroke-width=".7"/>
+  <path d="M80 186 L80 232 L92 232 Q84 212 88 198Z M120 186 L120 232 L108 232 Q116 212 112 198Z" fill="#fff" stroke="#c4b3ad" stroke-width=".7"/>
+  <circle cx="88" cy="198" r="2" fill="#8e1b2e"/><circle cx="112" cy="198" r="2" fill="#8e1b2e"/>
+  <path d="M28 150 Q37 162 46 150 Q55 162 64 150 Q73 162 82 150 Q91 162 100 150 Q109 162 118 150 Q127 162 136 150 Q145 162 154 150 Q163 162 172 150Z" fill="#8e1b2e"/>
+  <path d="M30 128 Q65 150 100 140 Q135 150 170 128" fill="none" stroke="#b9a8a2" stroke-width=".6"/>
+  <g fill="#f2cf86"><circle cx="40" cy="135" r="1.8"/><circle cx="56" cy="142" r="1.8"/><circle cx="72" cy="145" r="1.8"/><circle cx="88" cy="142" r="1.8"/><circle cx="112" cy="142" r="1.8"/><circle cx="128" cy="145" r="1.8"/><circle cx="144" cy="142" r="1.8"/><circle cx="160" cy="135" r="1.8"/></g>
+  <path d="M44 232 L44 168 M156 232 L156 168" stroke="#eadbd6" stroke-width=".8"/>
+</svg>

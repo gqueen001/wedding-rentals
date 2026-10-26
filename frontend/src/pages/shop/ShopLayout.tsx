@@ -3,6 +3,7 @@ import { Show } from "solid-js";
 import SignOutButton from "../../components/admin/SignOutButton.tsx";
 import BottomNav from "../../components/BottomNav.tsx";
 import LanguageSwitch from "../../components/LanguageSwitch.tsx";
+import ThemeButton from "../../components/ThemeButton.tsx";
 import { t } from "../../i18n/i18n.ts";
 import { ownerApi, uploadOwnerImage } from "../../lib/client.ts";
 import { mainRef } from "../../lib/dom.ts";
@@ -46,6 +47,7 @@ export default function ShopLayout(props: RouteSectionProps) {
             </nav>
             <div class="ml-auto flex items-center gap-1">
               <LanguageSwitch />
+              <ThemeButton />
               <SignOutButton onClick={signOut} />
             </div>
           </div>
