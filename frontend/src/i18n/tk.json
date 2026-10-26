@@ -332,5 +332,10 @@
   "favorites.device_note": "Halanlaryňyz diňe şu enjamda saklanýar.",
   "error.too_many_attempts": "Bu belgi üçin nädogry açar söz gaty köp girizildi. 15 minutdan gaýtadan synanyşyň.",
   "field.too_common": "Bu açar söz gaty ýönekeý. Başgasyny saýlaň.",
-  "footer.add_shop_short": "Salonyňyzy goşuň"
+  "footer.add_shop_short": "Salonyňyzy goşuň",
+  "credits.title": "Surat awtorlary",
+  "credits.lead": "Bu suratlar Wikimedia Commons-dan alnan we awtorlarynyň ygtyýarnamasy boýunça ulanylýar.",
+  "credits.bouquet": "Toý gül dessesi",
+  "credits.author": "Awtory: {name}",
+  "credits.source": "Çeşmesi"
 }

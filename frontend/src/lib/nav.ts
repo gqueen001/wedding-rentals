@@ -9,6 +9,6 @@ export function activeTab(pathname: string): Tab | null {
   if (pathname === "/" || under(pathname, "/search")) return "home";
   if (["/categories", "/c", "/dresses", "/items"].some((base) => under(pathname, base))) return "categories";
   if (under(pathname, "/favorites")) return "favorites";
-  if (["/more", "/shops"].some((base) => under(pathname, base))) return "more";
+  if (["/more", "/shops", "/credits"].some((base) => under(pathname, base))) return "more";
   return null;
 }

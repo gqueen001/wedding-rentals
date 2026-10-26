@@ -1,9 +1,10 @@
 import { A } from "@solidjs/router";
 import { For } from "solid-js";
 import { t, tr } from "../i18n/i18n.ts";
-import { CATEGORIES, catLabel, categoryHref, categoryPicture } from "../lib/catalog.ts";
+import { CATEGORIES, catLabel, categoryHref } from "../lib/catalog.ts";
+import { categoryPhoto, photoStyle } from "../lib/photos.ts";
 
-/** One category word with its small oval picture. */
+/** One category word with its small oval photo. */
 function CategoryWord(props: { slug: string; first: boolean }) {
   return (
     <li>
@@ -13,8 +14,8 @@ function CategoryWord(props: { slug: string; first: boolean }) {
         classList={{ "text-garnet": props.first }}
       >
         <span
-          class="h-14 w-10 shrink-0 rounded-[50%] bg-veil bg-cover bg-center dark:brightness-[.86]"
-          style={{ "background-image": `url("${categoryPicture(props.slug)}")` }}
+          class="h-14 w-10 shrink-0 rounded-[50%] bg-veil bg-cover dark:brightness-[.86]"
+          style={photoStyle(categoryPhoto(props.slug))}
           aria-hidden="true"
         />
         {props.first && <span class="h-px w-8 shrink-0 bg-current" aria-hidden="true" />}
@@ -24,7 +25,7 @@ function CategoryWord(props: { slug: string; first: boolean }) {
   );
 }
 
-/** Every category as a large elegant word with a small picture, the first one marked with a short line. */
+/** Every category as a large elegant word with a small photo, the first one marked with a short line. */
 export default function CategoryBar() {
   return (
     <nav aria-label={t("home.categories")}>
