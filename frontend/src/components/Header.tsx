@@ -1,4 +1,4 @@
-import { A, useLocation } from "@solidjs/router";
+import { A } from "@solidjs/router";
 import { Show } from "solid-js";
 import { t } from "../i18n/i18n.ts";
 import { favorites } from "../lib/favorites.ts";
@@ -10,10 +10,9 @@ const MENU_LINK = "inline-flex min-h-11 items-center gap-1.5 px-2 font-label tex
 
 /**
  * Phones: the logo and the account avatar (the bottom bar does the rest). Desktop: the logo, a menu
- * (search first, except on Home, which has its own search box) and the avatar.
+ * and the avatar. Search is the box on Home.
  */
 export default function Header() {
-  const location = useLocation();
   const count = () => favorites.ids().length;
   return (
     <header class="bg-white">
@@ -22,9 +21,6 @@ export default function Header() {
           {t("app.name")}
         </A>
         <nav class="hidden items-center md:flex" aria-label={t("tab.menu")}>
-          <Show when={location.pathname !== "/"}>
-            <A href="/search" class={MENU_LINK} activeClass="text-garnet">{t("search.title")}</A>
-          </Show>
           <A href="/categories" class={MENU_LINK} activeClass="text-garnet">{t("tab.categories")}</A>
           <A
             href="/favorites"

@@ -5,7 +5,7 @@ import type { Attributes, Image, ShopCard } from "../lib/types.ts";
 import Availability from "./Availability.tsx";
 import { FavoriteButton, FavoriteIconButton } from "./FavoriteButton.tsx";
 import Gallery from "./Gallery.tsx";
-import { InstagramIcon, PhoneIcon } from "./icons.tsx";
+import { InstagramIcon, PhoneIcon, TikTokIcon } from "./icons.tsx";
 import { priceText } from "./price.ts";
 import ShareButton from "./ShareButton.tsx";
 import ShopCardSection from "./ShopCard.tsx";
@@ -23,8 +23,8 @@ export interface DetailListing {
 
 /**
  * The dress and item page body. On phones the photo fills the width with share and heart buttons
- * on it (no Back: phones use their own), and Call (plus an Instagram icon) stays in view just above the bottom bar.
- * On wide screens the info and the shop sit beside the photo, and the calendar runs under both.
+ * on it (no Back: phones use their own), and Call (plus Instagram and TikTok icons) stays in view just above the bottom bar.
+ * On wide screens the info and the calendar sit beside the photo, and the shop runs under both as one row.
  */
 export default function ListingDetail(props: {
   listing: DetailListing;
@@ -68,12 +68,12 @@ export default function ListingDetail(props: {
           </Show>
 
           <div class="mt-10">
-            <ShopCardSection shop={l().shop} hideCallOnPhones />
+            <Availability listingId={l().id} />
           </div>
         </div>
 
         <div class="mt-10 lg:col-span-2">
-          <Availability listingId={l().id} />
+          <ShopCardSection shop={l().shop} hideCallOnPhones wide />
         </div>
       </article>
 
@@ -94,6 +94,19 @@ export default function ListingDetail(props: {
               aria-label={t("dress.instagram")}
             >
               <InstagramIcon />
+            </a>
+          )}
+        </Show>
+        <Show when={httpsUrl(l().shop.tiktok_url)}>
+          {(url) => (
+            <a
+              href={url()}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-outline px-3"
+              aria-label={t("dress.tiktok")}
+            >
+              <TikTokIcon />
             </a>
           )}
         </Show>
