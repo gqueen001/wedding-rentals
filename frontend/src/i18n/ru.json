@@ -337,5 +337,13 @@
   "credits.lead": "Эти фото взяты из Wikimedia Commons и используются по лицензиям их авторов.",
   "credits.bouquet": "Свадебный букет",
   "credits.author": "Автор: {name}",
-  "credits.source": "Источник"
+  "credits.source": "Источник",
+  "install.section": "Приложение",
+  "install.title": "Установить приложение",
+  "install.bar": "Установите BUKJA на телефон как приложение",
+  "install.button": "Установить",
+  "install.ios_lead": "На iPhone это три шага:",
+  "install.ios_step1": "В Safari нажмите кнопку «Поделиться» (квадрат со стрелкой вверх).",
+  "install.ios_step2": "Выберите «На экран «Домой»».",
+  "install.ios_step3": "Нажмите «Добавить»: значок BUKJA появится на экране."
 }

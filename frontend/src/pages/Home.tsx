@@ -1,5 +1,6 @@
 import { useNavigate } from "@solidjs/router";
 import CategoryBar from "../components/CategoryBar.tsx";
+import { InstallBar } from "../components/InstallApp.tsx";
 import SearchBox from "../components/SearchBox.tsx";
 import { t } from "../i18n/i18n.ts";
 import { type Photo, PHOTOS, photoStyle } from "../lib/photos.ts";
@@ -50,6 +51,7 @@ export default function Home() {
               placeholder={t("search.salon_placeholder")}
             />
           </div>
+          <InstallBar />
         </div>
         <CategoryBar />
       </section>
