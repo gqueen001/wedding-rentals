@@ -1,8 +1,10 @@
 import { A } from "@solidjs/router";
 import { For, type JSX, Show } from "solid-js";
 import { ChevronRightIcon } from "../components/icons.tsx";
+import { InstallButton } from "../components/InstallApp.tsx";
 import { i18n, LANGS, t } from "../i18n/i18n.ts";
 import { contactPhone } from "../lib/contact.ts";
+import { install } from "../lib/install.ts";
 import { theme, THEMES } from "../lib/theme.ts";
 import { usePageTitle } from "../lib/title.ts";
 
@@ -17,13 +19,25 @@ function LinkRow(props: { href: string; children: JSX.Element }) {
   );
 }
 
-/** The bottom bar's "More": language, theme, and the way in for shops. */
+/** The bottom bar's "More": installing the app, language, theme, and the way in for shops. */
 export default function More() {
   usePageTitle(() => t("tab.more"));
   const phone = contactPhone();
   return (
     <div class="pt-6">
       <h1 class="text-5xl">{t("tab.more")}</h1>
+
+      <Show when={install.mode() !== "none"}>
+        <section class="mt-8" aria-labelledby="more-app">
+          <h2 id="more-app" class="label">{t("install.section")}</h2>
+          <div class="mt-2 border-t border-line">
+            <InstallButton class={`${ROW} w-full text-left hover:text-garnet`}>
+              <span>{t("install.title")}</span>
+              <ChevronRightIcon class="h-5 w-5 text-silver-ink" />
+            </InstallButton>
+          </div>
+        </section>
+      </Show>
 
       <section class="mt-8" aria-labelledby="more-language">
         <h2 id="more-language" class="label">{t("nav.language")}</h2>

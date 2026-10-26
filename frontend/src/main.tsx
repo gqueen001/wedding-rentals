@@ -4,6 +4,7 @@ import { render } from "solid-js/web";
 import App from "./app/App.tsx";
 import { i18n } from "./i18n/i18n.ts";
 import { trackTraversals } from "./lib/history.ts";
+import { registerServiceWorker } from "./lib/install.ts";
 import Dress from "./pages/Dress.tsx";
 import Dresses from "./pages/Dresses.tsx";
 import Favorites from "./pages/Favorites.tsx";
@@ -34,6 +35,7 @@ const MyShop = lazy(() => import("./pages/shop/MyShop.tsx"));
 const ShopProfile = lazy(() => import("./pages/shop/ShopProfile.tsx"));
 
 trackTraversals();
+registerServiceWorker();
 document.documentElement.lang = i18n.lang();
 
 render(

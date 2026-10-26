@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="tk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BUKJA</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --ink: #2e2e30; --muted: #6b6b70; --garnet: #8e1b2e; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #121214; --ink: #bdbdc2; --muted: #9a9aa0; --garnet: #b8384d; } }
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; text-align: center; }
+  main { padding: 24px 16px; max-width: 26rem; }
+  .brand { letter-spacing: .32em; font-size: 14px; margin-bottom: 32px; }
+  h1 { font-family: Georgia, serif; font-weight: 400; font-size: 30px; margin: 0 0 8px; }
+  p { color: var(--muted); margin: 0 0 4px; line-height: 1.5; }
+  button { margin-top: 28px; min-height: 48px; padding: 0 24px; border: 0; border-radius: 8px; background: var(--garnet); color: #fff; font-size: 15px; letter-spacing: .08em; }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">BUKJA</div>
+  <h1>Internet ýok</h1>
+  <p>Birikmäni barlap, täzeden synanyşyň.</p>
+  <p lang="ru">Нет подключения к интернету. Проверьте связь и попробуйте снова.</p>
+  <p lang="en">No internet connection. Check it and try again.</p>
+  <button type="button" onclick="location.reload()">Gaýtadan synanyş · Ещё раз · Retry</button>
+</main>
+</body>
+</html>
