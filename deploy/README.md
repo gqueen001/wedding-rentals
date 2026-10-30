@@ -17,10 +17,15 @@ Secrets live only on the server, in `/etc/bukja/bukja.env`. Never put them in th
        IdentityFile ~/.ssh/<your key>
        IdentitiesOnly yes
    ```
-2. **Set up the server.** Copy this folder over and run the setup script with the site name and the contact phone. Until a domain is bought, `<IP with dashes>.sslip.io` gives a free name with https, for example `1-2-3-4.sslip.io`.
+2. **Set up the server.** Copy this folder over and run the setup script with:
+   - the site name;
+   - the contact phone;
+   - optionally, other names that should forward to the site (`www.`, an old address).
+
+   Until a domain is bought, `<IP with dashes>.sslip.io` gives a free name with https, for example `1-2-3-4.sslip.io`.
    ```
    rsync -a deploy/ bukja:/root/bukja-deploy/
-   ssh bukja 'bash /root/bukja-deploy/setup-server.sh <site name> "<contact phone>"'
+   ssh bukja 'bash /root/bukja-deploy/setup-server.sh <site name> "<contact phone>" [www.<site name> ...]'
    ```
 3. **Copy BUKJA over and start it.**
    ```
@@ -37,8 +42,8 @@ After merging a change, run `deploy/deploy.sh`.
 
 ## Moving to a real domain
 
-1. Point the domain's DNS **A record** at the server's IP.
-2. Run step 2 again with the new name; it keeps the database, the photos and the secret.
+1. Point the domain's DNS **A record** at the server's IP, and `www` at the domain. With Cloudflare, use "DNS only" (grey cloud).
+2. Run step 2 again with the new name. Add `www.<domain>` and the old name as forwarding names, so old links keep working. It keeps the database, the photos and the secret.
 3. Run `deploy/deploy.sh` again.
 
 ## Backups

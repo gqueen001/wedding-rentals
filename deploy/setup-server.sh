@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # One-time (and safe to re-run) setup of a fresh Ubuntu server for BUKJA. Run as root on the server:
 #
-#   bash setup-server.sh <site-name> [contact-phone]
-#   e.g. bash setup-server.sh bukja.example.com "+993 62 00 00 00"
+#   bash setup-server.sh <site-name> [contact-phone] [other names that forward to the site...]
+#   e.g. bash setup-server.sh bukja.example.com "+993 62 00 00 00" www.bukja.example.com
 #
 # It secures SSH and the firewall, adds swap, installs PostgreSQL and Caddy, creates the bukja
 # user, database, folders and settings file (with a new random JWT secret, kept only on the
@@ -10,8 +10,10 @@
 # copied in by deploy.sh.
 set -euo pipefail
 
-SITE="${1:?usage: setup-server.sh <site-name> [contact-phone]}"
+SITE="${1:?usage: setup-server.sh <site-name> [contact-phone] [forwarding names...]}"
 PHONE="${2:-}"
+shift $(( $# < 2 ? $# : 2 ))
+FORWARD=("$@")
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DEBIAN_FRONTEND=noninteractive
 # The connecting computer may send a locale this server does not have.
@@ -85,6 +87,11 @@ install -m 644 "$HERE/bukja.service" /etc/systemd/system/bukja.service
 install -m 755 "$HERE/backup.sh" /usr/local/bin/bukja-backup
 install -m 644 "$HERE/bukja-backup.service" "$HERE/bukja-backup.timer" /etc/systemd/system/
 sed "s/{{SITE}}/$SITE/" "$HERE/Caddyfile" > /etc/caddy/Caddyfile
+# Other names (www, an old address) send visitors on to the site, keeping the page they asked for.
+if [ ${#FORWARD[@]} -gt 0 ]; then
+  printf '\n%s {\n\tredir https://%s{uri} permanent\n}\n' "${FORWARD[*]}" "$SITE" >> /etc/caddy/Caddyfile
+fi
+caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null
 systemctl daemon-reload
 systemctl enable bukja.service
 systemctl enable --now bukja-backup.timer
