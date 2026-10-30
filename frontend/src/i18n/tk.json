@@ -1,5 +1,5 @@
 {
-  "app.name": "BUKJA",
+  "app.name": "TOÝBUKJA",
   "app.tagline": "Türkmenistanyň kireý salonlaryndan toý üçin ähli zat",
   "nav.home": "Baş sahypa",
   "nav.dresses": "Köýnekler",
@@ -339,10 +339,10 @@
   "credits.source": "Çeşmesi",
   "install.section": "Programma",
   "install.title": "Programmany guruň",
-  "install.bar": "BUKJA-ny telefonyňyza programma edip guruň",
+  "install.bar": "TOÝBUKJA-ny telefonyňyza programma edip guruň",
   "install.button": "Gur",
   "install.ios_lead": "iPhone-da üç ädimde gurulýar:",
   "install.ios_step1": "Safari-de «Paýlaş» düwmesine basyň (ýokary okly inedördül).",
   "install.ios_step2": "«На экран «Домой»» ýa-da «Add to Home Screen» saýlaň.",
-  "install.ios_step3": "«Goş» («Добавить» / «Add») basyň: BUKJA nyşany telefonyňyzda peýda bolar."
+  "install.ios_step3": "«Goş» («Добавить» / «Add») basyň: TOÝBUKJA nyşany telefonyňyzda peýda bolar."
 }

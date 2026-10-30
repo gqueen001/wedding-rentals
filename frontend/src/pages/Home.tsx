@@ -20,7 +20,7 @@ export default function Home() {
               <circle cx="15" cy="12" r="9" />
               <circle cx="25" cy="12" r="9" />
             </svg>
-            <p class="font-display text-[5.5rem] uppercase leading-none tracking-[0.04em] text-ink sm:text-[7.5rem]">
+            <p class="font-display text-[3.4rem] uppercase leading-none tracking-[0.04em] text-ink min-[400px]:text-[4rem] sm:text-[5.5rem] md:text-[4rem] lg:text-[5.5rem]">
               {t("app.name")}
             </p>
             <span class="flex items-center gap-3 text-garnet">

@@ -1,5 +1,5 @@
 {
-  "app.name": "BUKJA",
+  "app.name": "TOÝBUKJA",
   "app.tagline": "Wedding rentals from shops across Turkmenistan",
   "nav.home": "Home",
   "nav.dresses": "Dresses",
@@ -339,10 +339,10 @@
   "credits.source": "Source",
   "install.section": "App",
   "install.title": "Install the app",
-  "install.bar": "Get BUKJA on your phone as an app",
+  "install.bar": "Get TOÝBUKJA on your phone as an app",
   "install.button": "Install",
   "install.ios_lead": "On iPhone it takes three steps:",
   "install.ios_step1": "In Safari, tap the Share button (the square with an arrow pointing up).",
   "install.ios_step2": "Choose “Add to Home Screen”.",
-  "install.ios_step3": "Tap “Add”: the BUKJA icon appears on your home screen."
+  "install.ios_step3": "Tap “Add”: the TOÝBUKJA icon appears on your home screen."
 }
