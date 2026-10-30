@@ -23,14 +23,6 @@ export const PHOTOS = {
     licenseUrl: "https://creativecommons.org/licenses/by-sa/2.0",
     source: commons("Yet_another_Wedding_Dress_Shop_-_Flickr_-_judy_dean.jpg"),
   },
-  bouquet: {
-    src: "/photos/bouquet.jpg",
-    position: "center",
-    author: "böhringer friedrich",
-    license: "CC BY-SA 2.5",
-    licenseUrl: "https://creativecommons.org/licenses/by-sa/2.5",
-    source: commons("Hochzeitsstrau%C3%9F_1.JPG"),
-  },
   cars: {
     src: "/photos/cars.jpg",
     position: "88% 60%", // the front of the limousine, with the flowers on the bonnet
@@ -67,7 +59,7 @@ export const PHOTOS = {
 
 export type PhotoKey = keyof typeof PHOTOS;
 
-/** A category's photo, shown next to its name on Home and Categories. */
+/** A category's photo, shown next to its name on the Categories page. */
 export function categoryPhoto(slug: string): Photo | undefined {
   return (PHOTOS as Record<string, Photo>)[slug];
 }
