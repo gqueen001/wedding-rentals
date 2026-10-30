@@ -96,5 +96,7 @@ systemctl daemon-reload
 systemctl enable bukja.service
 systemctl enable --now bukja-backup.timer
 systemctl reload-or-restart caddy
+# A running BUKJA picks up changed settings (a new site name) only on restart.
+systemctl try-restart bukja.service
 
 echo "== done. Next: run deploy/deploy.sh on your computer to copy BUKJA here and start it."
