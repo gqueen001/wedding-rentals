@@ -1,5 +1,5 @@
 {
-  "app.name": "BUKJA",
+  "app.name": "TOÝBUKJA",
   "app.tagline": "Всё для свадьбы из салонов проката по всему Туркменистану",
   "nav.home": "Главная",
   "nav.dresses": "Платья",
@@ -335,15 +335,14 @@
   "footer.add_shop_short": "Добавить салон",
   "credits.title": "Авторы фото",
   "credits.lead": "Эти фото взяты из Wikimedia Commons и используются по лицензиям их авторов.",
-  "credits.bouquet": "Свадебный букет",
   "credits.author": "Автор: {name}",
   "credits.source": "Источник",
   "install.section": "Приложение",
   "install.title": "Установить приложение",
-  "install.bar": "Установите BUKJA на телефон как приложение",
+  "install.bar": "Установите TOÝBUKJA на телефон как приложение",
   "install.button": "Установить",
   "install.ios_lead": "На iPhone это три шага:",
   "install.ios_step1": "В Safari нажмите кнопку «Поделиться» (квадрат со стрелкой вверх).",
   "install.ios_step2": "Выберите «На экран «Домой»».",
-  "install.ios_step3": "Нажмите «Добавить»: значок BUKJA появится на экране."
+  "install.ios_step3": "Нажмите «Добавить»: значок TOÝBUKJA появится на экране."
 }

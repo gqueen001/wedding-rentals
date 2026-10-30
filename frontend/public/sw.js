@@ -1,4 +1,4 @@
-// BUKJA's service worker. It keeps only a small offline page and shows it when a page cannot
+// TOÝBUKJA's service worker. It keeps only a small offline page and shows it when a page cannot
 // load because there is no connection; everything else always comes from the network, so a new
 // version of the site shows at once. (Chrome also needs a page-handling worker before it offers
 // to install the site as an app.)

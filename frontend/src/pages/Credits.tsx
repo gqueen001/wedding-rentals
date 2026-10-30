@@ -4,8 +4,8 @@ import { catLabel } from "../lib/catalog.ts";
 import { type PhotoKey, PHOTOS, photoStyle } from "../lib/photos.ts";
 import { usePageTitle } from "../lib/title.ts";
 
-/** What each photo shows: the bouquet has its own text, the rest are category names. */
-const label = (key: PhotoKey) => (key === "bouquet" ? t("credits.bouquet") : tr(catLabel(key)));
+/** What each photo shows: every photo is a category's. */
+const label = (key: PhotoKey) => tr(catLabel(key));
 
 /** /credits: who took the site's photos, under which licence, and where they come from. */
 export default function Credits() {
