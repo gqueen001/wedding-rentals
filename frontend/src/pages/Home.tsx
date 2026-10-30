@@ -14,11 +14,15 @@ export default function Home() {
     <>
       <section class="grid gap-10 pt-4 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:items-center md:pt-10">
         <div>
-          {/* The hero is type only: two wedding rings, the brand word and a small ornament line. */}
+          {/* The hero is type only: the logo, the brand word and a small ornament line. */}
           <div class="flex flex-col items-center gap-3 py-16 sm:py-24" aria-hidden="true">
-            <svg viewBox="0 0 40 24" class="w-14 text-garnet" fill="none" stroke="currentColor" stroke-width="1.2">
-              <circle cx="15" cy="12" r="9" />
-              <circle cx="25" cy="12" r="9" />
+            {/* The project logo, as on the business card: a box with two wedding rings inside. */}
+            <svg viewBox="0 0 56 44" class="w-16 text-garnet" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round">
+              <path d="M6 18V12Q6 4 14 4H42Q50 4 50 12V18Z" />
+              <rect x="6" y="18" width="44" height="22" rx="2" />
+              <path d="M14 4V40M42 4V40" />
+              <circle cx="25" cy="29" r="5" />
+              <circle cx="31" cy="29" r="5" />
             </svg>
             <p class="font-display text-[3.4rem] uppercase leading-none tracking-[0.04em] text-ink min-[400px]:text-[4rem] sm:text-[5.5rem] md:text-[4rem] lg:text-[5.5rem]">
               {t("app.name")}
