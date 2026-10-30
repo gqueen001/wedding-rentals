@@ -1,0 +1,6 @@
+# Caddy gets and renews the https certificate for the site name by itself.
+# setup-server.sh fills in {{SITE}}.
+{{SITE}} {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:8080
+}

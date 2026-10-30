@@ -1,0 +1,7 @@
+[Unit]
+Description=BUKJA daily backup
+After=postgresql.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/bukja-backup

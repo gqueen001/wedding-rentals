@@ -1,0 +1,23 @@
+[Unit]
+Description=BUKJA web server
+After=network-online.target postgresql.service
+Wants=network-online.target
+Requires=postgresql.service
+
+[Service]
+User=bukja
+Group=bukja
+EnvironmentFile=/etc/bukja/bukja.env
+WorkingDirectory=/opt/bukja
+ExecStart=/opt/bukja/server
+Restart=on-failure
+RestartSec=3
+# It may only write its photos; everything else is read-only to it.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/bukja
+
+[Install]
+WantedBy=multi-user.target
