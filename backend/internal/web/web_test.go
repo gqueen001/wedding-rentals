@@ -34,9 +34,17 @@ func TestServesStaticFilesAndSPAFallback(t *testing.T) {
 	if rec := testutil.Request(t, r, http.MethodGet, "/assets/app.js", nil, ""); rec.Code != 200 || rec.Body.String() != "console.log(1)" {
 		t.Fatalf("asset: %d %q", rec.Code, rec.Body)
 	}
-	for _, p := range []string{"/", "/dresses", "/admin/shops", "/../../etc/passwd"} {
+	for _, p := range []string{"/", "/dresses", "/admin/shops"} {
 		rec := testutil.Request(t, r, http.MethodGet, p, nil, "")
 		if rec.Code != 200 || !strings.Contains(rec.Body.String(), `<div id="root">`) {
+			t.Errorf("%s: %d %q", p, rec.Code, rec.Body)
+		}
+	}
+	// A path the app does not have still gets the app (it shows "not found"), but with a real 404
+	// so search engines do not index it.
+	for _, p := range []string{"/nope", "/../../etc/passwd"} {
+		rec := testutil.Request(t, r, http.MethodGet, p, nil, "")
+		if rec.Code != 404 || !strings.Contains(rec.Body.String(), `<div id="root">`) || !strings.Contains(rec.Body.String(), "noindex") {
 			t.Errorf("%s: %d %q", p, rec.Code, rec.Body)
 		}
 	}
@@ -62,7 +70,8 @@ func TestInjectsOpenGraphForPublishedDress(t *testing.T) {
 	for _, want := range []string{
 		`<meta property="og:title" content="Princess · Gelin Öýi &amp; Co">`,
 		`<meta property="og:image" content="https://toy.example/uploads/ab/pic_l.jpg">`,
-		`<meta property="og:description" content="1500 TMT · Aşgabat">`,
+		`<meta property="og:description" content="Köýnekler · 1500 TMT · Gelin Öýi &amp; Co, Aşgabat.">`,
+		`<title>Princess · Gelin Öýi &amp; Co · TOÝBUKJA</title>`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("missing %s in %s", want, body)
@@ -71,9 +80,9 @@ func TestInjectsOpenGraphForPublishedDress(t *testing.T) {
 	if !strings.Contains(body, `<div id="root">`) {
 		t.Fatal("index body missing")
 	}
-	hiddenBody := testutil.Request(t, r, http.MethodGet, "/dresses/"+strconv.FormatInt(hidden, 10), nil, "").Body.String()
-	if strings.Contains(hiddenBody, "og:title") {
-		t.Fatal("OG tags leaked for unpublished dress")
+	hiddenRec := testutil.Request(t, r, http.MethodGet, "/dresses/"+strconv.FormatInt(hidden, 10), nil, "")
+	if hiddenRec.Code != 404 || strings.Contains(hiddenRec.Body.String(), "og:title") {
+		t.Fatalf("unpublished dress: %d, OG tags leaked: %s", hiddenRec.Code, hiddenRec.Body)
 	}
 }
 
