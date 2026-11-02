@@ -2,29 +2,22 @@ package web
 
 import (
 	"bytes"
-	"context"
-	"errors"
-	"fmt"
 	"html"
 	"io/fs"
-	"log"
 	"net/http"
 	"os"
 	"path"
-	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
 
 	"wedding-rentals/backend/internal/db"
 	"wedding-rentals/backend/internal/httpx"
-	"wedding-rentals/backend/internal/items"
 )
 
-// Handler serves the built SPA: real files as-is, every other GET gets
-// index.html. Dress pages get Open Graph tags for link previews.
+// Handler serves the built SPA: real files as-is, every other GET gets index.html with the page's
+// title, description and link-preview tags for search engines (seo.go), plus robots.txt and
+// sitemap.xml.
 type Handler struct {
 	Dir     string
 	DB      db.DBTX
@@ -32,9 +25,6 @@ type Handler struct {
 	// ContactPhone, when set, is published to the SPA in a <meta name="wr-contact-phone"> tag.
 	ContactPhone string
 }
-
-// Dress and item pages get Open Graph tags; both are listings.
-var listingPath = regexp.MustCompile(`^/(?:dresses|items)/(\d+)/?$`)
 
 func (h *Handler) Serve(c *gin.Context) {
 	p := c.Request.URL.Path
@@ -46,6 +36,21 @@ func (h *Handler) Serve(c *gin.Context) {
 	}
 	fsys := os.DirFS(h.Dir)
 	clean := path.Clean("/" + p)
+	switch clean {
+	case "/robots.txt":
+		c.Header("Cache-Control", "public, max-age=3600")
+		c.String(http.StatusOK, h.robots())
+		return
+	case "/sitemap.xml":
+		data, err := h.sitemap(c.Request.Context())
+		if err != nil {
+			httpx.Abort(c, err)
+			return
+		}
+		c.Header("Cache-Control", "public, max-age=3600")
+		c.Data(http.StatusOK, "application/xml; charset=utf-8", data)
+		return
+	}
 	name := strings.TrimPrefix(clean, "/")
 	// Vite content-hashes everything under /assets, so a stale page asking for
 	// a file from an older build must fail loudly rather than get index.html.
@@ -68,41 +73,16 @@ func (h *Handler) Serve(c *gin.Context) {
 		c.String(http.StatusNotFound, "frontend not built: run the frontend build first")
 		return
 	}
-	if m := listingPath.FindStringSubmatch(p); m != nil {
-		if id, err := strconv.ParseInt(m[1], 10, 64); err == nil {
-			index = h.injectOG(c.Request.Context(), index, id)
-		}
-	}
+	meta := h.pageFor(c.Request.Context(), clean)
+	index = h.render(index, meta)
 	if h.ContactPhone != "" {
 		tag := `<meta name="wr-contact-phone" content="` + html.EscapeString(h.ContactPhone) + `">` + "\n"
 		index = bytes.Replace(index, []byte("</head>"), []byte(tag+"</head>"), 1)
 	}
+	status := meta.Status
+	if status == 0 {
+		status = http.StatusOK
+	}
 	c.Header("Cache-Control", "no-cache")
-	c.Data(http.StatusOK, "text/html; charset=utf-8", index)
-}
-
-func (h *Handler) injectOG(ctx context.Context, index []byte, id int64) []byte {
-	d, err := items.GetPublic(ctx, h.DB, id)
-	if err != nil {
-		if !errors.Is(err, pgx.ErrNoRows) {
-			log.Printf("og lookup for listing %d: %v", id, err)
-		}
-		return index
-	}
-	page := "/items/"
-	if d.Category == "dresses" {
-		page = "/dresses/"
-	}
-	var b strings.Builder
-	meta := func(prop, content string) {
-		fmt.Fprintf(&b, `<meta property="%s" content="%s">`+"\n", prop, html.EscapeString(content))
-	}
-	meta("og:type", "product")
-	meta("og:title", d.Title+" · "+d.Shop.Name)
-	meta("og:description", fmt.Sprintf("%d TMT · %s", d.PriceManat, d.Shop.City.NameTK))
-	meta("og:url", h.BaseURL+page+strconv.FormatInt(id, 10))
-	if len(d.Images) > 0 {
-		meta("og:image", h.BaseURL+d.Images[0].Large)
-	}
-	return bytes.Replace(index, []byte("</head>"), []byte(b.String()+"</head>"), 1)
+	c.Data(status, "text/html; charset=utf-8", index)
 }
