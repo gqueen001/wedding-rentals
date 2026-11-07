@@ -4,21 +4,14 @@ import { ChevronRightIcon } from "../components/icons.tsx";
 import { t, tr } from "../i18n/i18n.ts";
 import { CATEGORIES, catLabel, categoryHref } from "../lib/catalog.ts";
 import { useCategoryCount } from "../lib/categoryCount.ts";
-import { categoryPhoto, photoStyle } from "../lib/photos.ts";
 import { usePageTitle } from "../lib/title.ts";
 
-/** One category: its photo (computers only) and how many listings it has. */
-function CategoryRow(props: { slug: string; oval: boolean }) {
+/** One category: its name and how many listings it has. */
+function CategoryRow(props: { slug: string }) {
   const count = useCategoryCount(() => props.slug);
   return (
     <li class="border-b border-line">
       <A href={categoryHref(props.slug)} class="flex items-center gap-5 py-4 hover:text-garnet">
-        <span
-          class="hidden h-24 w-[4.5rem] shrink-0 bg-veil bg-cover md:block dark:brightness-[.86]"
-          classList={{ "rounded-[50%]": props.oval }}
-          style={photoStyle(categoryPhoto(props.slug))}
-          aria-hidden="true"
-        />
         <span class="min-w-0 flex-1">
           <span class="block font-display text-3xl leading-tight sm:text-4xl">{tr(catLabel(props.slug))}</span>
           <Show when={count() !== null}>
@@ -39,7 +32,7 @@ export default function Categories() {
       <p class="label">{t("tab.categories")}</p>
       <h1 class="mt-2 text-5xl sm:text-6xl">{t("home.title")}</h1>
       <ul class="mt-6 border-t border-line">
-        <For each={CATEGORIES}>{(c, i) => <CategoryRow slug={c.slug} oval={i() % 2 === 0} />}</For>
+        <For each={CATEGORIES}>{(c) => <CategoryRow slug={c.slug} />}</For>
       </ul>
     </div>
   );

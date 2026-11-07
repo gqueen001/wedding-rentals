@@ -97,8 +97,6 @@ func (h *Handler) pageFor(ctx context.Context, p string) pageMeta {
 		return h.listingMeta(ctx, m[1], id)
 	case shopPath.MatchString(p):
 		return h.shopMeta(ctx, shopPath.FindStringSubmatch(p)[1])
-	case p == "/credits":
-		return pageMeta{Title: "Surat awtorlary · " + siteName, Description: homeDescription, Path: p}
 	// Pages that only make sense to one visitor: searches, favorites, settings, and the admin and
 	// shop-owner areas.
 	case p == "/search", p == "/favorites", p == "/more",
@@ -338,7 +336,6 @@ func (h *Handler) sitemap(ctx context.Context) ([]byte, error) {
 			entries = append(entries, entry{path: "/c/" + c.Slug})
 		}
 	}
-	entries = append(entries, entry{path: "/credits"})
 
 	rows, err := h.DB.Query(ctx, `SELECT slug, updated_at FROM shops WHERE is_published ORDER BY name, id`)
 	if err != nil {
