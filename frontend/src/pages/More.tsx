@@ -101,9 +101,6 @@ export default function More() {
       </section>
 
       <p class="label mt-10">{t("app.tagline")}</p>
-      <A href="/credits" class="mt-3 inline-block text-sm text-silver-ink underline underline-offset-4 hover:text-ink">
-        {t("credits.title")}
-      </A>
     </div>
   );
 }

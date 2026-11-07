@@ -59,12 +59,7 @@ export default function App(props: RouteSectionProps) {
       </main>
       <footer class="hidden border-t border-line md:block">
         <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-8 py-8">
-          <p class="label whitespace-nowrap">
-            {t("app.tagline")}
-            <A href="/credits" class="ml-4 normal-case tracking-normal underline underline-offset-4 hover:text-ink">
-              {t("credits.title")}
-            </A>
-          </p>
+          <p class="label whitespace-nowrap">{t("app.tagline")}</p>
           <A href="/shop/signup" class="btn btn-outline whitespace-nowrap">{t("footer.add_shop_short")}</A>
         </div>
       </footer>
